@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Bestellen</title>
+<style>
+:root{--pri:#22c55e;--bg:#f5f5f5;--card:#fff;--text:#1a1a1a;--muted:#666;--danger:#ef4444}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);max-width:480px;margin:0 auto}
+header{background:var(--pri);color:#fff;padding:20px 16px;text-align:center;position:sticky;top:0;z-index:10}
+header h1{font-size:1.3rem;margin-bottom:4px}
+header p{font-size:.85rem;opacity:.9}
+.lang-switch{position:absolute;top:20px;right:16px;display:flex;gap:4px}
+.lang-switch button{background:rgba(255,255,255,.25);border:none;color:#fff;padding:4px 8px;border-radius:4px;font-size:.75rem;cursor:pointer}
+.lang-switch button.active{background:#fff;color:var(--pri);font-weight:600}
+.cat-nav{display:flex;gap:8px;padding:12px 16px;overflow-x:auto;background:#fff;border-bottom:1px solid #eee}
+.cat-nav button{white-space:nowrap;padding:6px 14px;border-radius:20px;border:1px solid #ddd;background:#fff;font-size:.85rem;cursor:pointer}
+.cat-nav button.active{background:var(--pri);color:#fff;border-color:var(--pri)}
+.menu{padding:12px 16px}
+.cat-title{font-size:1rem;font-weight:700;margin:16px 0 8px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.item{display:flex;gap:12px;padding:12px;background:var(--card);border-radius:12px;margin-bottom:8px;align-items:center;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.item-img{width:60px;height:60px;border-radius:8px;background:#e5e7eb;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.5rem;overflow:hidden}
+.item-img img{width:100%;height:100%;object-fit:cover}
+.item-info{flex:1}
+.item-info h3{font-size:.95rem;margin-bottom:2px}
+.item-info p{font-size:.8rem;color:var(--muted);line-height:1.3}
+.item-action{display:flex;flex-direction:column;align-items:center;gap:6px}
+.item-price{font-weight:700;font-size:1rem;color:var(--pri)}
+.qty-ctrl{display:flex;align-items:center;gap:8px}
+.qty-ctrl button{width:30px;height:30px;border-radius:50%;border:2px solid var(--pri);background:#fff;color:var(--pri);font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.qty-ctrl button:active{background:var(--pri);color:#fff}
+.qty-ctrl span{font-weight:600;min-width:20px;text-align:center}
+.cart-bar{position:sticky;bottom:0;background:#fff;padding:16px;border-top:2px solid #eee;display:flex;justify-content:space-between;align-items:center;box-shadow:0 -2px 10px rgba(0,0,0,.08)}
+.cart-info{font-size:.9rem}
+.cart-total{font-weight:700;font-size:1.2rem;color:var(--pri)}
+.cart-bar button{background:var(--pri);color:#fff;border:none;padding:12px 24px;border-radius:10px;font-weight:700;font-size:1rem;cursor:pointer}
+.cart-bar button:disabled{opacity:.5}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:flex-end;justify-content:center}
+.modal{background:#fff;width:100%;max-width:480px;border-radius:20px 20px 0 0;padding:24px 16px;max-height:90vh;overflow-y:auto}
+.modal h2{font-size:1.1rem;margin-bottom:16px;text-align:center}
+.modal input,.modal textarea{width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;margin-bottom:12px;font-size:.9rem}
+.modal textarea{resize:none;height:60px}
+.pickup-time{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.pickup-time button{padding:8px 12px;border:1px solid #ddd;border-radius:8px;background:#fff;font-size:.8rem;cursor:pointer}
+.pickup-time button.active{background:var(--pri);color:#fff;border-color:var(--pri)}
+.order-summary{background:#f9fafb;border-radius:8px;padding:12px;margin-bottom:12px}
+.order-summary .line{display:flex;justify-content:space-between;font-size:.85rem;margin-bottom:4px}
+.modal .submit-btn{width:100%;padding:14px;background:var(--pri);color:#fff;border:none;border-radius:10px;font-weight:700;font-size:1rem;cursor:pointer}
+.success{text-align:center;padding:40px 16px}
+.success .icon{font-size:4rem;margin-bottom:16px}
+.success h2{color:var(--pri);margin-bottom:8px}
+.success p{color:var(--muted);margin-bottom:4px}
+.share-btn{display:inline-block;margin-top:16px;padding:10px 20px;background:#25D366;color:#fff;border-radius:20px;text-decoration:none;font-weight:600}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<header>
+  <div class="lang-switch">
+    <button onclick="setLang('nl')" class="active" id="btn-nl">NL</button>
+    <button onclick="setLang('zh')" id="btn-zh">中文</button>
+    <button onclick="setLang('en')" id="btn-en">EN</button>
+  </div>
+  <h1 id="shop-name">...</h1>
+  <p id="shop-desc">Gerechten bestellen</p>
+</header>
+<nav class="cat-nav" id="cat-nav"></nav>
+<main class="menu" id="menu"></main>
+<div class="cart-bar" id="cart-bar">
+  <div class="cart-info">
+    <span id="cart-count">0 items</span><br>
+    <span class="cart-total" id="cart-total">SRD 0</span>
+  </div>
+  <button onclick="showCheckout()" id="cart-btn" disabled>Bestellen</button>
+</div>
+<div class="modal-overlay hidden" id="checkout-modal">
+  <div class="modal">
+    <h2 id="checkout-title">Uw bestelling</h2>
+    <div class="order-summary" id="order-summary"></div>
+    <input type="text" id="cust-name" placeholder="Naam / Name / 姓名" required>
+    <input type="tel" id="cust-phone" placeholder="Telefoon (optioneel)">
+    <div class="pickup-time" id="pickup-times">
+      <button onclick="setPickup('Nu')" class="active">Nu</button>
+      <button onclick="setPickup('12:00')">12:00</button>
+      <button onclick="setPickup('12:30')">12:30</button>
+      <button onclick="setPickup('13:00')">13:00</button>
+    </div>
+    <textarea id="cust-note" placeholder="Opmerkingen / Notities / 备注"></textarea>
+    <button class="submit-btn" onclick="submitOrder()">Plaats bestelling</button>
+    <button style="width:100%;padding:10px;margin-top:8px;background:#eee;border:none;border-radius:10px;font-size:.9rem;cursor:pointer" onclick="hideCheckout()">Annuleren</button>
+  </div>
+</div>
+<div class="hidden" id="success-view"></div>
+<script>
+const L = {
+  nl:{shop_desc:"Gerechten bestellen",all:"Alles",cart_empty:"0 items",order_btn:"Bestellen",checkout_title:"Uw bestelling",name_ph:"Naam",phone_ph:"Telefoon (optioneel)",note_ph:"Opmerkingen",submit:"Plaats bestelling",cancel:"Annuleren",success_title:"Gelukt!",success_msg:"Uw bestelling is geplaatst.",order_id:"Bestelling",total:"Totaal",share:"Delen via WhatsApp",annuleren:"Annuleren"},
+  zh:{shop_desc:"在线点餐",all:"全部",cart_empty:"0 件",order_btn:"下单",checkout_title:"确认订单",name_ph:"姓名",phone_ph:"电话（选填）",note_ph:"备注",submit:"提交订单",cancel:"取消",success_title:"下单成功！",success_msg:"您的订单已提交。",order_id:"订单号",total:"合计",share:"通过 WhatsApp 分享",annuleren:"取消"},
+  en:{shop_desc:"Order food",all:"All",cart_empty:"0 items",order_btn:"Order",checkout_title:"Your order",name_ph:"Name",phone_ph:"Phone (optional)",note_ph:"Note",submit:"Place order",cancel:"Cancel",success_title:"Success!",success_msg:"Your order has been placed.",order_id:"Order",total:"Total",share:"Share via WhatsApp",annuleren:"Cancel"}
+};
+let shopId, shop, categories=[], items=[], cart={}, lang='nl', pickupTime='Nu';
+
+async function init(){
+  const p = window.location.pathname.split('/');
+  shopId = p[p.length-1] || 'demo';
+  const r = await fetch(`/api/shop/${shopId}`);
+  if(!r.ok){ document.getElementById('shop-name').textContent='Shop not found'; return; }
+  const d = await r.json();
+  shop = d.shop; categories = d.categories; items = d.items;
+  lang = shop.language || 'nl';
+  setLang(lang);
+  renderAll();
+}
+
+function t(key){ return L[lang]?.[key] || L.nl[key] || key; }
+function tn(obj){ return obj?.['name_'+lang] || obj?.name || ''; }
+function td(obj){ return obj?.['desc_'+lang] || obj?.desc || ''; }
+function p(n){ return 'SRD '+Number(n).toFixed(2); }
+
+function setLang(l){
+  lang=l;
+  document.querySelectorAll('.lang-switch button').forEach(b=>b.classList.toggle('active',b.id==='btn-'+l));
+  renderAll();
+}
+
+function renderAll(){
+  document.getElementById('shop-name').textContent = tn(shop) || shop.name;
+  document.getElementById('shop-desc').textContent = t('shop_desc');
+  // Cat nav
+  const cn = document.getElementById('cat-nav');
+  cn.innerHTML = `<button class="active" onclick="filterCat(0)">${t('all')}</button>` + categories.map(c=>`<button onclick="filterCat(${c.id})">${tn(c)||c.name}</button>`).join('');
+  filterCat(0);
+  updateCart();
+}
+
+function filterCat(cid){
+  document.querySelectorAll('.cat-nav button').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.cat-nav button').forEach(b=>{if(b.textContent===t('all')&&cid===0||b.textContent===(categories.find(c=>c.id===cid)||{}).name) b.classList.add('active')});
+  const menu = document.getElementById('menu');
+  let html='', lastCat=null;
+  const filtered = cid===0 ? items : items.filter(i=>i.category_id===cid);
+  filtered.forEach(i=>{
+    if(cid===0 && i.category_id!==lastCat){
+      const cat = categories.find(c=>c.id===i.category_id);
+      if(cat) html+=`<div class="cat-title">${tn(cat)||cat.name}</div>`;
+      lastCat = i.category_id;
+    }
+    const q = cart[i.id]||0;
+    html+=`<div class="item">
+      <div class="item-img">${i.image_url?`<img src="${i.image_url}" alt="">`:'🍽️'}</div>
+      <div class="item-info"><h3>${tn(i)||i.name}</h3><p>${td(i)}</p></div>
+      <div class="item-action"><div class="item-price">${p(i.price)}</div>
+      <div class="qty-ctrl"><button onclick="changeQty(${i.id},-1)">−</button><span>${q}</span><button onclick="changeQty(${i.id},1)">+</button></div></div></div>`;
+  });
+  if(!filtered.length) html='<p style="text-align:center;color:var(--muted);padding:40px">Geen items beschikbaar</p>';
+  menu.innerHTML = html;
+}
+
+function changeQty(id,d){
+  if(!cart[id]) cart[id]=0;
+  cart[id]+=d;
+  if(cart[id]<=0) delete cart[id];
+  filterCat(document.querySelector('.cat-nav button.active')?.textContent===t('all')?0:(categories.find(c=>c.name===document.querySelector('.cat-nav button.active')?.textContent)||{}).id||0);
+  updateCart();
+}
+
+function updateCart(){
+  let count=0,total=0;
+  Object.entries(cart).forEach(([id,q])=>{
+    const item=items.find(i=>i.id===parseInt(id));
+    if(item){ count+=q; total+=item.price*q; }
+  });
+  document.getElementById('cart-count').textContent = count+' items';
+  document.getElementById('cart-total').textContent = p(total);
+  document.getElementById('cart-btn').disabled = count===0;
+}
+
+function showCheckout(){
+  if(!Object.keys(cart).length) return;
+  document.getElementById('checkout-modal').classList.remove('hidden');
+  document.getElementById('checkout-title').textContent = t('checkout_title');
+  document.getElementById('cust-name').placeholder = t('name_ph');
+  document.getElementById('cust-phone').placeholder = t('phone_ph');
+  document.getElementById('cust-note').placeholder = t('note_ph');
+  let summary='',total=0;
+  Object.entries(cart).forEach(([id,q])=>{
+    const item=items.find(i=>i.id===parseInt(id));
+    if(item){ summary+=`<div class="line"><span>${q}x ${tn(item)||item.name}</span><span>${p(item.price*q)}</span></div>`; total+=item.price*q; }
+  });
+  summary+=`<div class="line" style="font-weight:700;margin-top:8px;padding-top:8px;border-top:1px solid #ddd"><span>${t('total')}</span><span>${p(total)}</span></div>`;
+  document.getElementById('order-summary').innerHTML = summary;
+}
+
+function hideCheckout(){ document.getElementById('checkout-modal').classList.add('hidden'); }
+
+function setPickup(t){
+  pickupTime=t;
+  document.querySelectorAll('.pickup-time button').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+async function submitOrder(){
+  const name=document.getElementById('cust-name').value.trim();
+  if(!name) return alert('Vul uw naam in');
+  const items_arr = Object.entries(cart).map(([id,q])=>({id:parseInt(id),qty:q}));
+  const r = await fetch('/api/order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({shop_id:shopId,customer_name:name,customer_phone:document.getElementById('cust-phone').value.trim(),items:items_arr,note:document.getElementById('cust-note').value.trim(),pickup_time:pickupTime})});
+  if(!r.ok){ alert('Fout bij plaatsen bestelling'); return; }
+  const order=await r.json();
+  document.getElementById('checkout-modal').classList.add('hidden');
+  document.getElementById('cat-nav').classList.add('hidden');
+  document.getElementById('menu').classList.add('hidden');
+  document.getElementById('cart-bar').classList.add('hidden');
+  const sv = document.getElementById('success-view');
+  sv.classList.remove('hidden');
+  const link = `${location.origin}/order/${shopId}`;
+  sv.innerHTML = `<div class="success"><div class="icon">✅</div><h2>${t('success_title')}</h2><p>${t('success_msg')}</p><p style="font-weight:700;margin-top:8px">${t('order_id')}: #${order.order_id}</p><p>${t('total')}: ${p(order.total)}</p><a class="share-btn" href="https://wa.me/?text=${encodeURIComponent('🍽️ '+shop.name+' - Bestel online: '+link)}" target="_blank">📱 ${t('share')}</a><br><button style="margin-top:12px;padding:10px 20px;background:var(--pri);color:#fff;border:none;border-radius:10px;font-size:.9rem;cursor:pointer" onclick="location.reload()">Nieuwe bestelling</button></div>`;
+  cart={};updateCart();
+}
+
+init();
+</script>
+</body>
+</html>

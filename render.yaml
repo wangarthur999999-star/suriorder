@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: suriorder
+    env: node
+    buildCommand: npm install && node seed.js
+    startCommand: node server.js
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: BASE_URL
+        value: https://suriorder.onrender.com
+    disk:
+      name: sqlite-data
+      mountPath: /opt/render/project/src/data
+      sizeGB: 1

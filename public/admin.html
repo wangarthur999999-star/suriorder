@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SuriOrder Admin</title>
+<style>
+:root{--pri:#22c55e;--bg:#f5f5f5;--card:#fff;--text:#1a1a1a;--muted:#666;--warn:#f59e0b;--danger:#ef4444}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text)}
+.container{max-width:800px;margin:0 auto;padding:16px}
+.login-box{max-width:360px;margin:80px auto;background:var(--card);padding:32px 24px;border-radius:16px;box-shadow:0 2px 10px rgba(0,0,0,.08);text-align:center}
+.login-box h1{font-size:1.5rem;margin-bottom:8px;color:var(--pri)}
+.login-box p{color:var(--muted);margin-bottom:20px}
+.login-box input{width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;margin-bottom:12px;font-size:1rem;text-align:center}
+.login-box button{width:100%;padding:12px;background:var(--pri);color:#fff;border:none;border-radius:8px;font-weight:700;font-size:1rem;cursor:pointer}
+.login-box button:hover{opacity:.9}
+.dashboard{display:none}
+header.top{background:var(--pri);color:#fff;padding:16px;text-align:center;margin-bottom:16px}
+header.top h1{font-size:1.2rem}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px}
+.stat-card{background:var(--card);padding:16px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.stat-card .label{font-size:.75rem;color:var(--muted);text-transform:uppercase}
+.stat-card .value{font-size:1.5rem;font-weight:700;margin-top:4px}
+.tabs{display:flex;gap:4px;margin-bottom:16px;background:var(--card);border-radius:12px;padding:4px}
+.tabs button{flex:1;padding:10px;border:none;background:transparent;border-radius:8px;font-size:.85rem;font-weight:600;cursor:pointer}
+.tabs button.active{background:var(--pri);color:#fff}
+.panel{display:none}
+.panel.active{display:block}
+table{width:100%;background:var(--card);border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+th,td{padding:12px;text-align:left;font-size:.85rem;border-bottom:1px solid #f0f0f0}
+th{background:#fafafa;font-weight:700;color:var(--muted)}
+.order-status{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.75rem;font-weight:600}
+.status-pending{background:#fef3c7;color:#92400e}
+.status-confirmed{background:#dbeafe;color:#1e40af}
+.status-done{background:#d1fae5;color:#065f46}
+.form-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+input,textarea,select{flex:1;min-width:120px;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:.85rem}
+.btn{display:inline-block;padding:10px 16px;border:none;border-radius:8px;font-weight:700;font-size:.85rem;cursor:pointer}
+.btn-pri{background:var(--pri);color:#fff}
+.btn-warn{background:var(--warn);color:#fff}
+.btn-danger{background:var(--danger);color:#fff}
+.qr-section{text-align:center;padding:40px;background:var(--card);border-radius:12px;margin-top:16px}
+.qr-section canvas{display:block;margin:16px auto}
+.qr-section input{width:100%;padding:8px;border:1px solid #ddd;border-radius:8px;margin-top:8px;font-size:.8rem;text-align:center}
+.menu-link-box{background:#f0fdf4;border:2px dashed var(--pri);border-radius:12px;padding:16px;margin-bottom:16px;text-align:center;word-break:break-all}
+</style>
+</head>
+<body>
+<div class="login-box" id="login-box">
+  <h1>🍽️ SuriOrder</h1>
+  <p>Beheer uw menu en bestellingen</p>
+  <input type="text" id="login-shop-id" placeholder="Shop ID">
+  <input type="password" id="login-pin" placeholder="PIN Code">
+  <button onclick="login()">Inloggen</button>
+  <p style="margin-top:16px;font-size:.8rem;color:var(--muted)">Nog geen account? <a href="#" onclick="showRegister()" style="color:var(--pri)">Registreer</a></p>
+</div>
+<div class="login-box" id="register-box" style="display:none">
+  <h1>🍽️ Nieuwe Shop</h1>
+  <p>Maak uw gratis account aan</p>
+  <input type="text" id="reg-name" placeholder="Bedrijfsnaam / Business name">
+  <input type="tel" id="reg-phone" placeholder="Telefoonnummer">
+  <input type="password" id="reg-pin" placeholder="Kies een PIN code">
+  <select id="reg-lang"><option value="nl">Nederlands</option><option value="en">English</option><option value="zh">中文</option></select>
+  <button onclick="register()">Account aanmaken</button>
+  <p style="margin-top:12px;font-size:.8rem;color:var(--muted)"><a href="#" onclick="showLogin()" style="color:var(--pri)">Terug naar login</a></p>
+</div>
+<div class="container dashboard" id="dashboard">
+<div class="menu-link-box" id="menu-link-box"></div>
+<header class="top" style="border-radius:12px"><h1 id="dash-shop-name">Dashboard</h1><p style="font-size:.8rem;opacity:.8" id="dash-shop-id"></p></header>
+<div class="stats" id="stats"></div>
+<div class="tabs">
+  <button class="active" onclick="switchTab('orders')">Bestellingen</button>
+  <button onclick="switchTab('menu')">Menu</button>
+  <button onclick="switchTab('share')">Delen</button>
+</div>
+<div class="panel active" id="panel-orders">
+  <table><thead><tr><th>#</th><th>Klant</th><th>Items</th><th>Totaal</th><th>Tijd</th><th>Status</th><th>Actie</th></tr></thead><tbody id="orders-tbody"></tbody></table>
+</div>
+<div class="panel" id="panel-menu">
+  <div class="form-row">
+    <input type="text" id="item-name" placeholder="Naam gerecht (NL)">
+    <input type="text" id="item-name-zh" placeholder="名称 (中文)">
+    <input type="text" id="item-name-en" placeholder="Name (EN)">
+    <input type="number" id="item-price" placeholder="Prijs (SRD)" step="0.01">
+    <select id="item-cat"><option value="">Categorie</option></select>
+    <button class="btn btn-pri" onclick="addItem()">+ Toevoegen</button>
+  </div>
+  <div id="items-list"></div>
+</div>
+<div class="panel" id="panel-share">
+  <div class="qr-section">
+    <h3>📱 Deel uw menu link</h3>
+    <p style="margin:8px 0;color:var(--muted)">Klanten openen deze link op hun telefoon</p>
+    <input type="text" id="menu-url" readonly onclick="this.select()">
+    <p style="margin-top:8px"><strong>WhatsApp:</strong> kopieer de link en stuur naar klanten</p>
+    <p style="font-size:.8rem;color:var(--muted);margin-top:4px">Tip: zet deze link in uw WhatsApp bedrijfsprofiel</p>
+  </div>
+</div>
+</div>
+<script>
+let token = null, shop = null, tab = 'orders';
+function showRegister(){document.getElementById('login-box').style.display='none';document.getElementById('register-box').style.display='block'}
+function showLogin(){document.getElementById('register-box').style.display='none';document.getElementById('login-box').style.display='block'}
+
+async function register(){
+  const name=document.getElementById('reg-name').value.trim(),phone=document.getElementById('reg-phone').value.trim(),pin=document.getElementById('reg-pin').value.trim(),lang=document.getElementById('reg-lang').value;
+  if(!name||!pin) return alert('Vul bedrijfsnaam en PIN in');
+  const r=await fetch('/api/shops',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,phone,language:lang,admin_pin:pin,whatsapp_number:phone})});
+  if(!r.ok) return alert('Fout bij registratie');
+  const d=await r.json();
+  document.getElementById('login-shop-id').value=d.id;
+  document.getElementById('login-pin').value=pin;
+  alert('Account aangemaakt! Shop ID: '+d.id+' — bewaar dit goed.');
+  showLogin();login();
+}
+
+async function login(){
+  const id=document.getElementById('login-shop-id').value.trim(),pin=document.getElementById('login-pin').value.trim();
+  const r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({shop_id:id,admin_pin:pin})});
+  if(!r.ok) return alert('Ongeldige inloggegevens');
+  const d=await r.json();token=d.token;shop=d.shop;
+  document.getElementById('login-box').style.display='none';
+  document.getElementById('register-box').style.display='none';
+  document.getElementById('dashboard').style.display='block';
+  document.getElementById('dash-shop-name').textContent=shop.name;
+  document.getElementById('dash-shop-id').textContent='ID: '+shop.id;
+  const link=`${location.origin}/order/${shop.id}`;
+  document.getElementById('menu-link-box').innerHTML=`🔗 Uw bestellink: <strong><a href="${link}" target="_blank">${link}</a></strong> <button class="btn btn-pri" style="margin-left:8px;padding:4px 10px;font-size:.75rem" onclick="navigator.clipboard.writeText('${link}')">Kopiëren</button>`;
+  document.getElementById('menu-url').value=link;
+  loadDashboard();loadOrders();loadItems();
+}
+
+async function loadDashboard(){
+  const r=await fetch('/api/admin/dashboard',{headers:{'x-shop-id':token}});
+  const d=await r.json();
+  document.getElementById('stats').innerHTML=`
+    <div class="stat-card"><div class="label">Vandaag Orders</div><div class="value">${d.ordersToday?.count||0}</div></div>
+    <div class="stat-card"><div class="label">Vandaag Omzet</div><div class="value">SRD ${(d.ordersToday?.total||0).toFixed(0)}</div></div>
+    <div class="stat-card"><div class="label">7 Dagen Omzet</div><div class="value">SRD ${(d.ordersWeek?.total||0).toFixed(0)}</div></div>
+    <div class="stat-card"><div class="label">Openstaand</div><div class="value">${d.pending?.count||0}</div></div>`;
+}
+
+async function loadOrders(){
+  const r=await fetch('/api/admin/orders',{headers:{'x-shop-id':token}});
+  const orders=await r.json();
+  document.getElementById('orders-tbody').innerHTML=orders.map(o=>{
+    let items;try{items=JSON.parse(o.items_json)}catch(e){items=[]}
+    const sc='status-'+o.status;
+    return `<tr><td>#${o.id}</td><td>${o.customer_name}</td><td>${items.map(i=>`${i.qty}x ${i.name}`).join(', ')}</td><td>SRD ${o.total.toFixed(2)}</td><td>${o.created_at?.slice(11,16)||''}</td><td><span class="order-status ${sc}">${o.status}</span></td><td><select onchange="updateOrderStatus('${o.id}',this.value)" style="font-size:.75rem;padding:4px"><option value="">Actie</option><option value="confirmed">Bevestig</option><option value="done">Klaar</option><option value="cancelled">Annuleer</option></select></td></tr>`}).join('')||'<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--muted)">Geen bestellingen</td></tr>';
+}
+
+async function updateOrderStatus(id,s){
+  if(!s)return;
+  await fetch(`/api/admin/orders/${id}`,{method:'PUT',headers:{'Content-Type':'application/json','x-shop-id':token},body:JSON.stringify({status:s})});
+  loadOrders();loadDashboard();
+}
+
+async function loadItems(){
+  const r=await fetch('/api/admin/items',{headers:{'x-shop-id':token}});
+  const items=await r.json();
+  const cats=await (await fetch('/api/admin/categories',{headers:{'x-shop-id':token}})).json();
+  document.getElementById('item-cat').innerHTML='<option value="">Categorie</option>'+cats.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  document.getElementById('items-list').innerHTML='<table><thead><tr><th>Gerecht</th><th>Cat</th><th>Prijs</th><th></th></tr></thead><tbody>'+items.map(i=>`<tr><td>${i.name}${i.name_zh?' / '+i.name_zh:''}</td><td>${i.category_name||'-'}</td><td>SRD ${i.price.toFixed(2)}</td><td><button class="btn btn-danger" style="padding:2px 8px;font-size:.7rem" onclick="deleteItem(${i.id})">X</button></td></tr>`).join('')+'</tbody></table>';
+}
+
+async function addItem(){
+  const name=document.getElementById('item-name').value.trim(),name_zh=document.getElementById('item-name-zh').value.trim(),name_en=document.getElementById('item-name-en').value.trim(),price=parseFloat(document.getElementById('item-price').value),category_id=document.getElementById('item-cat').value||null;
+  if(!name||!price) return alert('Naam en prijs verplicht');
+  await fetch('/api/admin/items',{method:'POST',headers:{'Content-Type':'application/json','x-shop-id':token},body:JSON.stringify({name,name_zh,name_en,price,category_id:category_id?parseInt(category_id):null})});
+  document.getElementById('item-name').value='';document.getElementById('item-name-zh').value='';document.getElementById('item-name-en').value='';document.getElementById('item-price').value='';
+  loadItems();
+}
+
+async function deleteItem(id){if(confirm('Verwijderen?')){await fetch(`/api/admin/items/${id}`,{method:'DELETE',headers:{'x-shop-id':token}});loadItems()}}
+
+function switchTab(t){tab=t;document.querySelectorAll('.tabs button').forEach((b,i)=>{b.classList.toggle('active',i===['orders','menu','share'].indexOf(t))});document.querySelectorAll('.panel').forEach(p=>{p.classList.toggle('active',p.id==='panel-'+t)});if(t==='orders')loadOrders();if(t==='menu')loadItems()}
+
+async function loadMenuLink(){const r=await fetch(`/api/shop/${shop.id}/menu-link`);const d=await r.json();document.getElementById('menu-url').value=d.link}
+</script>
+</body>
+</html>

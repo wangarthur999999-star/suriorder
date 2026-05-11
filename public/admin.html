@@ -84,7 +84,7 @@ input,textarea,select{flex:1;min-width:120px;padding:10px;border:1px solid #ddd;
   <input type="text" id="reg-name" placeholder="Bedrijfsnaam / Business name">
   <input type="tel" id="reg-phone" placeholder="Telefoonnummer">
   <input type="password" id="reg-pin" placeholder="Kies een PIN code (min 4 cijfers)">
-  <select id="reg-lang"><option value="nl">Nederlands</option><option value="en">English</option><option value="zh">中文</option><option value="srn">Sranan Tongo</option></select>
+  <select id="reg-lang"><option value="nl">Nederlands</option><option value="en">English</option><option value="zh">中文</option></select>
   <button onclick="register()" id="reg-btn">Account aanmaken</button>
   <p style="margin-top:12px;font-size:.8rem;color:var(--muted)" id="back-login"><a href="#" onclick="showLogin()" style="color:var(--pri)">Terug naar login</a></p>
 </div>
@@ -99,7 +99,6 @@ input,textarea,select{flex:1;min-width:120px;padding:10px;border:1px solid #ddd;
     <button onclick="setAdminLang('nl')" class="active" id="adm-btn-nl">NL</button>
     <button onclick="setAdminLang('en')" id="adm-btn-en">EN</button>
     <button onclick="setAdminLang('zh')" id="adm-btn-zh">中文</button>
-    <button onclick="setAdminLang('srn')" id="adm-btn-srn">SRN</button>
   </div>
   <h1 id="dash-shop-name">Dashboard</h1>
   <p style="font-size:.8rem;opacity:.8" id="dash-shop-id"></p>
@@ -119,7 +118,6 @@ input,textarea,select{flex:1;min-width:120px;padding:10px;border:1px solid #ddd;
     <input type="text" id="item-name" placeholder="Naam gerecht (NL)">
     <input type="text" id="item-name-zh" placeholder="名称 (中文)">
     <input type="text" id="item-name-en" placeholder="Name (EN)">
-    <input type="text" id="item-name-srn" placeholder="Nen (SRN)">
     <input type="number" id="item-price" placeholder="Prijs (SRD)" step="0.01">
     <select id="item-cat"><option value="">Categorie</option></select>
     <button class="btn btn-pri" onclick="addItem()">+ Toevoegen</button>
@@ -145,7 +143,7 @@ input,textarea,select{flex:1;min-width:120px;padding:10px;border:1px solid #ddd;
     <input type="tel" id="set-wa" style="width:100%;margin-bottom:12px">
     <label style="font-size:.8rem;color:var(--muted)"><span id="lbl-lang">Taal</span></label>
     <select id="set-lang" style="width:100%;margin-bottom:12px">
-      <option value="nl">Nederlands</option><option value="en">English</option><option value="zh">中文</option><option value="srn">Sranan Tongo</option>
+      <option value="nl">Nederlands</option><option value="en">English</option><option value="zh">中文</option>
     </select>
     <hr style="margin:16px 0;border-color:#eee">
     <label style="font-size:.8rem;color:var(--muted)"><span id="lbl-bank-name">Bank naam</span></label>
@@ -363,73 +361,6 @@ const L_admin = {
     pay_unpaid: "未付", pay_paid: "已付", pay_refunded: "已退",
     mark_paid: "已付", mark_refunded: "退款"
   },
-  srn: {
-    login_subtitle: "Beheer yu menu nanga orders",
-    shop_id_ph: "Shop ID", pin_ph: "PIN Code",
-    login_btn: "Login", no_account: "No abra ete?", register_link: "Registreer",
-    reg_title: "Nyun Shop", reg_subtitle: "Meki yu gratis account",
-    name_ph: "Bisnis nen", phone_ph: "Telefon nummer",
-    pin_new_ph: "Kies wan PIN (min 4 nomru)", reg_btn: "Meki account",
-    back_login: "Go baka na login",
-    menu_link_label: "Yu order link:",
-    stats_today_orders: "Tide Orders", stats_today_revenue: "Tide Moni",
-    stats_week_revenue: "7 Dei Moni", stats_pending: "E wakti",
-    tab_orders: "Orders", tab_menu: "Menu", tab_share: "Sende",
-    th_customer: "Klant", th_items: "Sani", th_total: "Total",
-    th_time: "Ten", th_status: "Status", th_action: "Aksie",
-    th_name: "Nyanyan", th_cat: "Cat", th_price: "Prijs",
-    empty_orders: "No orders",
-    item_name_ph: "Nen nyanyan (NL)", item_name_zh_ph: "Nen (中文)",
-    item_name_en_ph: "Nen (EN)", item_name_srn_ph: "Nen (SRN)",
-    item_price_ph: "Prijs (SRD)",
-    add_btn: "+ Poti", cat_opt: "Categorie",
-    share_title: "Sende yu menu link",
-    share_desc: "Klant e opo a link disi na den telefon",
-    share_wa: "WhatsApp: kopieer a link nanga sende na klanten",
-    share_tip: "Tip: poti a link disi na ini yu WhatsApp bisnis profiel",
-    copy_btn: "Kopiëren",
-    actie: "Aksie", bevestig: "Bevestig", klaar: "Klaar", annuleer: "Tapu",
-    alert_name_pin: "Firi bisnis nen nanga PIN",
-    alert_pin_min: "PIN musu abi 4 nomru",
-    alert_reg_error: "Fout nanga registratie",
-    alert_account_created: "Account meki! Shop ID: {id} — kibri disi bun. Yu login nou.",
-    alert_invalid_login: "Verkeerde login",
-    alert_name_price: "Nen nanga prijs musu",
-    alert_delete: "Delete?",
-    alert_order_error: "Fout nanga order",
-    wizard_step1_title: "Welkom na SuriOrder!",
-    wizard_step1_desc: "Yu shop ID na — kibri en bun:",
-    wizard_step2_title: "WhatsApp Nummer",
-    wizard_step2_desc: "Klanten kan bereik yu nanga WhatsApp",
-    wizard_step2_ph: "WhatsApp nummer (+597...)",
-    wizard_step3_title: "Es'esi Menu Setup",
-    wizard_step3_desc: "Poti wantu nyanyan es'esi",
-    wizard_step3_name: "Nen nyanyan",
-    wizard_step3_price: "Prijs (SRD)",
-    wizard_step4_title: "Sende Yu Link",
-    wizard_step4_desc: "Klanten e order nanga a link disi:",
-    wizard_step5_title: "Klaar!",
-    wizard_step5_desc: "Yu shop de live nou. Sende a link na klanten.",
-    wizard_next: "Go doro",
-    wizard_skip: "Skip",
-    wizard_done: "Go na Dashboard",
-    wizard_copy: "Kopiëren",
-    wizard_add_item: "+ Poti wan tra nyanyan",
-    notif_new_order: "Nyun order!",
-    notif_from: "fu",
-    tab_settings: "Settings",
-    settings_title: "Shop Settings",
-    settings_welcome: "Welkom bericht",
-    settings_wa: "WhatsApp nummer",
-    settings_lang: "Tongo",
-    settings_bank_name: "Bank nen",
-    settings_bank_account: "Rekening nummer",
-    settings_bank_holder: "Na nen fu",
-    settings_save: "Save",
-    pm_cod: "Cash", pm_bank: "Transfer",
-    pay_unpaid: "No pay", pay_paid: "Pay", pay_refunded: "Refund",
-    mark_paid: "Pay", mark_refunded: "Refund"
-  }
 };
 
 let token = null, shop = null, tab = 'orders', adminLang = 'nl';
@@ -470,8 +401,7 @@ function updateUITexts() {
     document.getElementById('item-name').placeholder = t('item_name_ph');
     document.getElementById('item-name-zh').placeholder = t('item_name_zh_ph');
     document.getElementById('item-name-en').placeholder = t('item_name_en_ph');
-    document.getElementById('item-name-srn').placeholder = t('item_name_srn_ph');
-    document.getElementById('item-price').placeholder = t('item_price_ph');
+      document.getElementById('item-price').placeholder = t('item_price_ph');
     document.getElementById('item-cat').options[0].textContent = t('cat_opt');
     document.getElementById('share-title').textContent = t('share_title');
     document.getElementById('share-desc').textContent = t('share_desc');
@@ -598,12 +528,11 @@ async function addItem(){
   const name=document.getElementById('item-name').value.trim(),
         name_zh=document.getElementById('item-name-zh').value.trim(),
         name_en=document.getElementById('item-name-en').value.trim(),
-        name_srn=document.getElementById('item-name-srn').value.trim(),
-        price=parseFloat(document.getElementById('item-price').value),
+          price=parseFloat(document.getElementById('item-price').value),
         category_id=document.getElementById('item-cat').value||null;
   if(!name||!price) return alert(t('alert_name_price'));
-  await fetch('/api/admin/items',{method:'POST',headers:authHeaders(),body:JSON.stringify({name,name_zh,name_en,name_srn,price,category_id:category_id?parseInt(category_id):null})});
-  document.getElementById('item-name').value='';document.getElementById('item-name-zh').value='';document.getElementById('item-name-en').value='';document.getElementById('item-name-srn').value='';document.getElementById('item-price').value='';
+  await fetch('/api/admin/items',{method:'POST',headers:authHeaders(),body:JSON.stringify({name,name_zh,name_en,price,category_id:category_id?parseInt(category_id):null})});
+  document.getElementById('item-name').value='';document.getElementById('item-name-zh').value='';document.getElementById('item-name-en').value='';document.getElementById('item-price').value='';
   loadItems();
 }
 

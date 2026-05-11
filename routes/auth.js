@@ -2,7 +2,7 @@ const crypto = require("crypto");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-const validLangs = ["nl", "en", "zh", "srn"];
+const validLangs = ["nl", "en", "zh"];
 
 function registerAuthRoutes(app, db, { JWT_SECRET, auth }) {
 

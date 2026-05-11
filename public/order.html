@@ -70,7 +70,6 @@ header p{font-size:.85rem;opacity:.9}
     <button onclick="setLang('nl')" class="active" id="btn-nl">NL</button>
     <button onclick="setLang('zh')" id="btn-zh">中文</button>
     <button onclick="setLang('en')" id="btn-en">EN</button>
-    <button onclick="setLang('srn')" id="btn-srn">SRN</button>
   </div>
   <h1 id="shop-name">...</h1>
   <p id="shop-desc">Gerechten bestellen</p>
@@ -113,7 +112,6 @@ const L = {
   nl:{shop_desc:"Gerechten bestellen",all:"Alles",cart_empty:"0 items",order_btn:"Bestellen",checkout_title:"Uw bestelling",name_ph:"Naam",phone_ph:"Telefoon (optioneel)",note_ph:"Opmerkingen",submit:"Plaats bestelling",cancel:"Annuleren",success_title:"Gelukt!",success_msg:"Uw bestelling is geplaatst.",order_id:"Bestelling",total:"Totaal",share:"Delen via WhatsApp",annuleren:"Annuleren",pay_cod:"💵 Contant",pay_bank:"🏦 Overschrijving",bank_title:"Bank overschrijving",bank_details:"Maak over naar: "},
   zh:{shop_desc:"在线点餐",all:"全部",cart_empty:"0 件",order_btn:"下单",checkout_title:"确认订单",name_ph:"姓名",phone_ph:"电话（选填）",note_ph:"备注",submit:"提交订单",cancel:"取消",success_title:"下单成功！",success_msg:"您的订单已提交。",order_id:"订单号",total:"合计",share:"通过 WhatsApp 分享",annuleren:"取消",pay_cod:"💵 现金支付",pay_bank:"🏦 银行转账",bank_title:"银行转账信息",bank_details:"请转账至："},
   en:{shop_desc:"Order food",all:"All",cart_empty:"0 items",order_btn:"Order",checkout_title:"Your order",name_ph:"Name",phone_ph:"Phone (optional)",note_ph:"Note",submit:"Place order",cancel:"Cancel",success_title:"Success!",success_msg:"Your order has been placed.",order_id:"Order",total:"Total",share:"Share via WhatsApp",annuleren:"Cancel",pay_cod:"💵 Cash",pay_bank:"🏦 Bank Transfer",bank_title:"Bank Transfer",bank_details:"Transfer to: "},
-  srn:{shop_desc:"Order nyanyan",all:"Ala sani",cart_empty:"0 sani",order_btn:"Order",checkout_title:"Yu order",name_ph:"Nen",phone_ph:"Telefon (no musu)",note_ph:"Notiti",submit:"Sende order",cancel:"Tapu",success_title:"A waka!",success_msg:"Yu order seni.",order_id:"Order",total:"Total",share:"Sende nanga WhatsApp",annuleren:"Tapu",pay_cod:"💵 Cash",pay_bank:"🏦 Bank Transfer",bank_title:"Bank Transfer",bank_details:"Transfer go na: "}
 };
 let shopId, shop, categories=[], items=[], cart={}, lang='nl', pickupTime='Nu', paymentMethod='cod', activeCat=0;
 

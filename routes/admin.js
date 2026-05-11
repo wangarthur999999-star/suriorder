@@ -1,4 +1,4 @@
-const validLangs = ["nl", "en", "zh", "srn"];
+const validLangs = ["nl", "en", "zh"];
 
 function registerAdminRoutes(app, db, { auth }) {
 

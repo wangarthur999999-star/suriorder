@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 
 const validLangs = ["nl", "en", "zh", "srn"];
 
-function registerAuthRoutes(app, db, { JWT_SECRET, auth, BASE_URL }) {
+function registerAuthRoutes(app, db, { JWT_SECRET, auth }) {
 
   // Shop creation
   app.post("/api/shops", (req, res) => {
@@ -58,7 +58,7 @@ function registerAuthRoutes(app, db, { JWT_SECRET, auth, BASE_URL }) {
       }
     }
     db.prepare("UPDATE shops SET wizard_complete=1 WHERE id=?").run(req.shopId);
-    res.json({ ok: true, menu_link: `${BASE_URL}/order/${req.shopId}` });
+    res.json({ ok: true, menu_link: `${req.appBaseUrl}/order/${req.shopId}` });
   });
 
   // Translate helper

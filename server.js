@@ -44,9 +44,13 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use((req, res, next) => {
+  req.appBaseUrl = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
+  next();
+});
+
 const JWT_SECRET = process.env.JWT_SECRET || crypto.randomBytes(32).toString("hex");
 const PORT = process.env.PORT || 3456;
-const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 
 const ORDER_HTML = fs.readFileSync(path.join(__dirname, "public", "order.html"), "utf-8");
 
@@ -59,8 +63,8 @@ scheduleBackup(db);
 const auth = authMiddleware(JWT_SECRET);
 
 // Register all routes
-registerAuthRoutes(app, db, { JWT_SECRET, auth, BASE_URL });
-registerShopRoutes(app, db, { BASE_URL });
+registerAuthRoutes(app, db, { JWT_SECRET, auth });
+registerShopRoutes(app, db);
 registerOrderRoutes(app, db, { auth, orderLimiter });
 registerAdminRoutes(app, db, { auth });
 
@@ -78,7 +82,7 @@ app.get("/order/:shopId", (req, res) => {
     const esc = (s) => String(s).replace(/"/g, "&quot;");
     html = html.replace('content="" id="og-title"', `content="${esc(shop.name)}" id="og-title"`);
     html = html.replace('content="" id="og-desc"', `content="${esc(shop.welcome_msg || 'Gerechten bestellen')}" id="og-desc"`);
-    html = html.replace('content="" id="og-url"', `content="${BASE_URL}/order/${req.params.shopId}" id="og-url"`);
+    html = html.replace('content="" id="og-url"', `content="${req.appBaseUrl}/order/${req.params.shopId}" id="og-url"`);
   }
   res.send(html);
 });

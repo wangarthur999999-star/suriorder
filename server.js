@@ -74,9 +74,9 @@ db.exec(`
   );
 `);
 
-// Auto-seed demo shop if no shops exist
-const shopCount = db.prepare("SELECT COUNT(*) as cnt FROM shops").get().cnt;
-if (shopCount === 0) {
+// Auto-seed demo shop if not present
+const demoExists = db.prepare("SELECT 1 FROM shops WHERE id='demo'").get();
+if (!demoExists) {
   const demoHash = bcrypt.hashSync("1234", 10);
   db.prepare("INSERT INTO shops (id, name, phone, language, admin_pin, whatsapp_number) VALUES (?,?,?,?,?,?)").run("demo", "Wangs Eatery", "+5971234567", "nl", demoHash, "+5971234567");
   const cat1 = db.prepare("INSERT INTO categories (shop_id, name, name_zh, name_en, sort_order) VALUES (?,?,?,?,?)").run("demo", "Rijst gerechten", "饭类", "Rice dishes", 1).lastInsertRowid;

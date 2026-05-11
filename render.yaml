@@ -4,11 +4,14 @@ services:
     env: node
     buildCommand: npm install && node seed.js
     startCommand: node server.js
+    healthCheckPath: /health
     envVars:
       - key: PORT
         value: 10000
       - key: BASE_URL
         value: https://suriorder.onrender.com
+      - key: JWT_SECRET
+        value: QICuSpzjPZFewHobgAD2GdWEBltiTKmsx3vnXyVO9qhaYf6J
     disk:
       name: sqlite-data
       mountPath: /opt/render/project/src/data

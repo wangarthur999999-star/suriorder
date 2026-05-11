@@ -34,6 +34,7 @@ th{background:#fafafa;font-weight:700;color:var(--muted)}
 .status-pending{background:#fef3c7;color:#92400e}
 .status-confirmed{background:#dbeafe;color:#1e40af}
 .status-done{background:#d1fae5;color:#065f46}
+.status-cancelled{background:#fee2e2;color:#991b1b}
 .form-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
 input,textarea,select{flex:1;min-width:120px;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:.85rem}
 .btn{display:inline-block;padding:10px 16px;border:none;border-radius:8px;font-weight:700;font-size:.85rem;cursor:pointer}
@@ -60,7 +61,7 @@ input,textarea,select{flex:1;min-width:120px;padding:10px;border:1px solid #ddd;
   <p>Maak uw gratis account aan</p>
   <input type="text" id="reg-name" placeholder="Bedrijfsnaam / Business name">
   <input type="tel" id="reg-phone" placeholder="Telefoonnummer">
-  <input type="password" id="reg-pin" placeholder="Kies een PIN code">
+  <input type="password" id="reg-pin" placeholder="Kies een PIN code (min 4 cijfers)">
   <select id="reg-lang"><option value="nl">Nederlands</option><option value="en">English</option><option value="zh">中文</option></select>
   <button onclick="register()">Account aanmaken</button>
   <p style="margin-top:12px;font-size:.8rem;color:var(--muted)"><a href="#" onclick="showLogin()" style="color:var(--pri)">Terug naar login</a></p>
@@ -99,20 +100,31 @@ input,textarea,select{flex:1;min-width:120px;padding:10px;border:1px solid #ddd;
 </div>
 </div>
 <script>
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 let token = null, shop = null, tab = 'orders';
+
+function authHeaders() { return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }; }
+
 function showRegister(){document.getElementById('login-box').style.display='none';document.getElementById('register-box').style.display='block'}
 function showLogin(){document.getElementById('register-box').style.display='none';document.getElementById('login-box').style.display='block'}
 
 async function register(){
   const name=document.getElementById('reg-name').value.trim(),phone=document.getElementById('reg-phone').value.trim(),pin=document.getElementById('reg-pin').value.trim(),lang=document.getElementById('reg-lang').value;
   if(!name||!pin) return alert('Vul bedrijfsnaam en PIN in');
+  if(pin.length<4) return alert('PIN moet minimaal 4 tekens zijn');
   const r=await fetch('/api/shops',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,phone,language:lang,admin_pin:pin,whatsapp_number:phone})});
-  if(!r.ok) return alert('Fout bij registratie');
+  if(!r.ok){ const e=await r.json().catch(()=>({})); return alert(e.error||'Fout bij registratie'); }
   const d=await r.json();
+  token = d.token;
   document.getElementById('login-shop-id').value=d.id;
-  document.getElementById('login-pin').value=pin;
-  alert('Account aangemaakt! Shop ID: '+d.id+' — bewaar dit goed.');
-  showLogin();login();
+  document.getElementById('login-pin').value='';
+  alert('Account aangemaakt! Shop ID: '+d.id+' — bewaar dit goed. Je bent nu ingelogd.');
+  showLogin();
+  // Auto-login with returned token
+  const r2 = await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({shop_id:d.id,admin_pin:pin})});
+  const d2 = await r2.json();
+  token = d2.token; shop = d2.shop;
+  showDashboard();
 }
 
 async function login(){
@@ -120,19 +132,23 @@ async function login(){
   const r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({shop_id:id,admin_pin:pin})});
   if(!r.ok) return alert('Ongeldige inloggegevens');
   const d=await r.json();token=d.token;shop=d.shop;
+  showDashboard();
+}
+
+function showDashboard(){
   document.getElementById('login-box').style.display='none';
   document.getElementById('register-box').style.display='none';
   document.getElementById('dashboard').style.display='block';
   document.getElementById('dash-shop-name').textContent=shop.name;
   document.getElementById('dash-shop-id').textContent='ID: '+shop.id;
   const link=`${location.origin}/order/${shop.id}`;
-  document.getElementById('menu-link-box').innerHTML=`🔗 Uw bestellink: <strong><a href="${link}" target="_blank">${link}</a></strong> <button class="btn btn-pri" style="margin-left:8px;padding:4px 10px;font-size:.75rem" onclick="navigator.clipboard.writeText('${link}')">Kopiëren</button>`;
+  document.getElementById('menu-link-box').innerHTML=`🔗 Uw bestellink: <strong><a href="${esc(link)}" target="_blank">${esc(link)}</a></strong> <button class="btn btn-pri" style="margin-left:8px;padding:4px 10px;font-size:.75rem" onclick="navigator.clipboard.writeText('${esc(link)}')">Kopiëren</button>`;
   document.getElementById('menu-url').value=link;
   loadDashboard();loadOrders();loadItems();
 }
 
 async function loadDashboard(){
-  const r=await fetch('/api/admin/dashboard',{headers:{'x-shop-id':token}});
+  const r=await fetch('/api/admin/dashboard',{headers:authHeaders()});
   const d=await r.json();
   document.getElementById('stats').innerHTML=`
     <div class="stat-card"><div class="label">Vandaag Orders</div><div class="value">${d.ordersToday?.count||0}</div></div>
@@ -142,37 +158,37 @@ async function loadDashboard(){
 }
 
 async function loadOrders(){
-  const r=await fetch('/api/admin/orders',{headers:{'x-shop-id':token}});
+  const r=await fetch('/api/admin/orders',{headers:authHeaders()});
   const orders=await r.json();
   document.getElementById('orders-tbody').innerHTML=orders.map(o=>{
     let items;try{items=JSON.parse(o.items_json)}catch(e){items=[]}
-    const sc='status-'+o.status;
-    return `<tr><td>#${o.id}</td><td>${o.customer_name}</td><td>${items.map(i=>`${i.qty}x ${i.name}`).join(', ')}</td><td>SRD ${o.total.toFixed(2)}</td><td>${o.created_at?.slice(11,16)||''}</td><td><span class="order-status ${sc}">${o.status}</span></td><td><select onchange="updateOrderStatus('${o.id}',this.value)" style="font-size:.75rem;padding:4px"><option value="">Actie</option><option value="confirmed">Bevestig</option><option value="done">Klaar</option><option value="cancelled">Annuleer</option></select></td></tr>`}).join('')||'<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--muted)">Geen bestellingen</td></tr>';
+    const sc='status-'+esc(o.status);
+    return `<tr><td>#${esc(String(o.id))}</td><td>${esc(o.customer_name)}</td><td>${items.map(i=>`${i.qty}x ${esc(i.name)}`).join(', ')}</td><td>SRD ${o.total.toFixed(2)}</td><td>${esc(o.created_at?.slice(11,16)||'')}</td><td><span class="order-status ${sc}">${esc(o.status)}</span></td><td><select onchange="updateOrderStatus('${esc(o.id)}',this.value)" style="font-size:.75rem;padding:4px"><option value="">Actie</option><option value="confirmed">Bevestig</option><option value="done">Klaar</option><option value="cancelled">Annuleer</option></select></td></tr>`}).join('')||'<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--muted)">Geen bestellingen</td></tr>';
 }
 
 async function updateOrderStatus(id,s){
   if(!s)return;
-  await fetch(`/api/admin/orders/${id}`,{method:'PUT',headers:{'Content-Type':'application/json','x-shop-id':token},body:JSON.stringify({status:s})});
+  await fetch(`/api/admin/orders/${id}`,{method:'PUT',headers:authHeaders(),body:JSON.stringify({status:s})});
   loadOrders();loadDashboard();
 }
 
 async function loadItems(){
-  const r=await fetch('/api/admin/items',{headers:{'x-shop-id':token}});
+  const r=await fetch('/api/admin/items',{headers:authHeaders()});
   const items=await r.json();
-  const cats=await (await fetch('/api/admin/categories',{headers:{'x-shop-id':token}})).json();
-  document.getElementById('item-cat').innerHTML='<option value="">Categorie</option>'+cats.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
-  document.getElementById('items-list').innerHTML='<table><thead><tr><th>Gerecht</th><th>Cat</th><th>Prijs</th><th></th></tr></thead><tbody>'+items.map(i=>`<tr><td>${i.name}${i.name_zh?' / '+i.name_zh:''}</td><td>${i.category_name||'-'}</td><td>SRD ${i.price.toFixed(2)}</td><td><button class="btn btn-danger" style="padding:2px 8px;font-size:.7rem" onclick="deleteItem(${i.id})">X</button></td></tr>`).join('')+'</tbody></table>';
+  const cats=await (await fetch('/api/admin/categories',{headers:authHeaders()})).json();
+  document.getElementById('item-cat').innerHTML='<option value="">Categorie</option>'+cats.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
+  document.getElementById('items-list').innerHTML='<table><thead><tr><th>Gerecht</th><th>Cat</th><th>Prijs</th><th></th></tr></thead><tbody>'+items.map(i=>`<tr><td>${esc(i.name)}${i.name_zh?' / '+esc(i.name_zh):''}</td><td>${esc(i.category_name||'-')}</td><td>SRD ${i.price.toFixed(2)}</td><td><button class="btn btn-danger" style="padding:2px 8px;font-size:.7rem" onclick="deleteItem(${i.id})">X</button></td></tr>`).join('')+'</tbody></table>';
 }
 
 async function addItem(){
   const name=document.getElementById('item-name').value.trim(),name_zh=document.getElementById('item-name-zh').value.trim(),name_en=document.getElementById('item-name-en').value.trim(),price=parseFloat(document.getElementById('item-price').value),category_id=document.getElementById('item-cat').value||null;
   if(!name||!price) return alert('Naam en prijs verplicht');
-  await fetch('/api/admin/items',{method:'POST',headers:{'Content-Type':'application/json','x-shop-id':token},body:JSON.stringify({name,name_zh,name_en,price,category_id:category_id?parseInt(category_id):null})});
+  await fetch('/api/admin/items',{method:'POST',headers:authHeaders(),body:JSON.stringify({name,name_zh,name_en,price,category_id:category_id?parseInt(category_id):null})});
   document.getElementById('item-name').value='';document.getElementById('item-name-zh').value='';document.getElementById('item-name-en').value='';document.getElementById('item-price').value='';
   loadItems();
 }
 
-async function deleteItem(id){if(confirm('Verwijderen?')){await fetch(`/api/admin/items/${id}`,{method:'DELETE',headers:{'x-shop-id':token}});loadItems()}}
+async function deleteItem(id){if(confirm('Verwijderen?')){await fetch(`/api/admin/items/${id}`,{method:'DELETE',headers:authHeaders()});loadItems()}}
 
 function switchTab(t){tab=t;document.querySelectorAll('.tabs button').forEach((b,i)=>{b.classList.toggle('active',i===['orders','menu','share'].indexOf(t))});document.querySelectorAll('.panel').forEach(p=>{p.classList.toggle('active',p.id==='panel-'+t)});if(t==='orders')loadOrders();if(t==='menu')loadItems()}
 

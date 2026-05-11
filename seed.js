@@ -1,7 +1,12 @@
 // Seed demo shop for Suriname restaurant
 const Database = require("better-sqlite3");
+const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
+const fs = require("fs");
 const path = require("path");
+
+// Ensure data directory exists (needed for fresh Render deploys)
+fs.mkdirSync(path.join(__dirname, "data"), { recursive: true });
 
 const db = new Database(path.join(__dirname, "data", "suriorder.db"));
 db.pragma("journal_mode = WAL");
@@ -34,9 +39,10 @@ db.exec(`
 
 const shopId = "demo";
 const pin = "1234";
+const hash = bcrypt.hashSync(pin, 10);
 
 // Upsert demo shop
-db.prepare("INSERT OR REPLACE INTO shops (id, name, phone, language, admin_pin, whatsapp_number) VALUES (?,?,?,?,?,?)").run(shopId, "Wangs Eatery", "+5971234567", "nl", pin, "+5971234567");
+db.prepare("INSERT OR REPLACE INTO shops (id, name, phone, language, admin_pin, whatsapp_number) VALUES (?,?,?,?,?,?)").run(shopId, "Wangs Eatery", "+5971234567", "nl", hash, "+5971234567");
 
 // Delete old demo data
 db.prepare("DELETE FROM items WHERE shop_id=?").run(shopId);

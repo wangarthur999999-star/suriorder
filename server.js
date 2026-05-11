@@ -12,7 +12,19 @@ const rateLimit = require("express-rate-limit");
 fs.mkdirSync(path.join(__dirname, "data"), { recursive: true });
 
 const app = express();
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      "default-src": ["'self'"],
+      "script-src": ["'self'", "'unsafe-inline'"],
+      "script-src-attr": ["'unsafe-inline'"],
+      "style-src": ["'self'", "'unsafe-inline'"],
+      "img-src": ["'self'", "data:", "https:"],
+      "font-src": ["'self'", "https:", "data:"],
+      "connect-src": ["'self'"],
+    },
+  },
+}));
 app.use(express.json({ limit: "100kb" }));
 app.use(express.static("public"));
 

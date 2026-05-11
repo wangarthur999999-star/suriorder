@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Bestellen</title>
+<meta property="og:title" content="" id="og-title">
+<meta property="og:description" content="" id="og-desc">
+<meta property="og:url" content="" id="og-url">
+<meta property="og:type" content="website">
 <style>
 :root{--pri:#22c55e;--bg:#f5f5f5;--card:#fff;--text:#1a1a1a;--muted:#666;--danger:#ef4444}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -53,6 +57,11 @@ header p{font-size:.85rem;opacity:.9}
 .success p{color:var(--muted);margin-bottom:4px}
 .share-btn{display:inline-block;margin-top:16px;padding:10px 20px;background:#25D366;color:#fff;border-radius:20px;text-decoration:none;font-weight:600}
 .hidden{display:none}
+.pay-methods{display:flex;gap:8px;margin-bottom:12px}
+.pay-methods button{flex:1;padding:10px;border:2px solid #ddd;border-radius:8px;background:#fff;font-size:.82rem;cursor:pointer}
+.pay-methods button.active{border-color:var(--pri);background:#f0fdf4}
+.bank-instructions{background:#f0fdf4;padding:12px;border-radius:8px;margin-bottom:12px;font-size:.8rem;line-height:1.4}
+.bank-instructions strong{display:block;margin-bottom:4px}
 </style>
 </head>
 <body>
@@ -61,9 +70,11 @@ header p{font-size:.85rem;opacity:.9}
     <button onclick="setLang('nl')" class="active" id="btn-nl">NL</button>
     <button onclick="setLang('zh')" id="btn-zh">中文</button>
     <button onclick="setLang('en')" id="btn-en">EN</button>
+    <button onclick="setLang('srn')" id="btn-srn">SRN</button>
   </div>
   <h1 id="shop-name">...</h1>
   <p id="shop-desc">Gerechten bestellen</p>
+  <a id="wa-contact" href="#" target="_blank" style="display:none;position:absolute;top:16px;left:16px;background:#25D366;color:#fff;padding:6px 12px;border-radius:16px;font-size:.75rem;text-decoration:none;font-weight:600">💬 WhatsApp</a>
 </header>
 <nav class="cat-nav" id="cat-nav"></nav>
 <main class="menu" id="menu"></main>
@@ -81,10 +92,14 @@ header p{font-size:.85rem;opacity:.9}
     <input type="text" id="cust-name" placeholder="Naam / Name / 姓名" required>
     <input type="tel" id="cust-phone" placeholder="Telefoon (optioneel)">
     <div class="pickup-time" id="pickup-times">
-      <button onclick="setPickup('Nu')" class="active">Nu</button>
-      <button onclick="setPickup('12:00')">12:00</button>
-      <button onclick="setPickup('12:30')">12:30</button>
-      <button onclick="setPickup('13:00')">13:00</button>
+      <button onclick="setPickup('Nu',event)" class="active">Nu</button>
+      <button onclick="setPickup('12:00',event)">12:00</button>
+      <button onclick="setPickup('12:30',event)">12:30</button>
+      <button onclick="setPickup('13:00',event)">13:00</button>
+    </div>
+    <div class="bank-instructions hidden" id="bank-info">
+      <strong id="bank-title">Bank Transfer</strong>
+      <p id="bank-details"></p>
     </div>
     <textarea id="cust-note" placeholder="Opmerkingen / Notities / 备注"></textarea>
     <button class="submit-btn" onclick="submitOrder()">Plaats bestelling</button>
@@ -95,11 +110,12 @@ header p{font-size:.85rem;opacity:.9}
 <script>
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 const L = {
-  nl:{shop_desc:"Gerechten bestellen",all:"Alles",cart_empty:"0 items",order_btn:"Bestellen",checkout_title:"Uw bestelling",name_ph:"Naam",phone_ph:"Telefoon (optioneel)",note_ph:"Opmerkingen",submit:"Plaats bestelling",cancel:"Annuleren",success_title:"Gelukt!",success_msg:"Uw bestelling is geplaatst.",order_id:"Bestelling",total:"Totaal",share:"Delen via WhatsApp",annuleren:"Annuleren"},
-  zh:{shop_desc:"在线点餐",all:"全部",cart_empty:"0 件",order_btn:"下单",checkout_title:"确认订单",name_ph:"姓名",phone_ph:"电话（选填）",note_ph:"备注",submit:"提交订单",cancel:"取消",success_title:"下单成功！",success_msg:"您的订单已提交。",order_id:"订单号",total:"合计",share:"通过 WhatsApp 分享",annuleren:"取消"},
-  en:{shop_desc:"Order food",all:"All",cart_empty:"0 items",order_btn:"Order",checkout_title:"Your order",name_ph:"Name",phone_ph:"Phone (optional)",note_ph:"Note",submit:"Place order",cancel:"Cancel",success_title:"Success!",success_msg:"Your order has been placed.",order_id:"Order",total:"Total",share:"Share via WhatsApp",annuleren:"Cancel"}
+  nl:{shop_desc:"Gerechten bestellen",all:"Alles",cart_empty:"0 items",order_btn:"Bestellen",checkout_title:"Uw bestelling",name_ph:"Naam",phone_ph:"Telefoon (optioneel)",note_ph:"Opmerkingen",submit:"Plaats bestelling",cancel:"Annuleren",success_title:"Gelukt!",success_msg:"Uw bestelling is geplaatst.",order_id:"Bestelling",total:"Totaal",share:"Delen via WhatsApp",annuleren:"Annuleren",pay_cod:"💵 Contant",pay_bank:"🏦 Overschrijving",bank_title:"Bank overschrijving",bank_details:"Maak over naar: "},
+  zh:{shop_desc:"在线点餐",all:"全部",cart_empty:"0 件",order_btn:"下单",checkout_title:"确认订单",name_ph:"姓名",phone_ph:"电话（选填）",note_ph:"备注",submit:"提交订单",cancel:"取消",success_title:"下单成功！",success_msg:"您的订单已提交。",order_id:"订单号",total:"合计",share:"通过 WhatsApp 分享",annuleren:"取消",pay_cod:"💵 现金支付",pay_bank:"🏦 银行转账",bank_title:"银行转账信息",bank_details:"请转账至："},
+  en:{shop_desc:"Order food",all:"All",cart_empty:"0 items",order_btn:"Order",checkout_title:"Your order",name_ph:"Name",phone_ph:"Phone (optional)",note_ph:"Note",submit:"Place order",cancel:"Cancel",success_title:"Success!",success_msg:"Your order has been placed.",order_id:"Order",total:"Total",share:"Share via WhatsApp",annuleren:"Cancel",pay_cod:"💵 Cash",pay_bank:"🏦 Bank Transfer",bank_title:"Bank Transfer",bank_details:"Transfer to: "},
+  srn:{shop_desc:"Order nyanyan",all:"Ala sani",cart_empty:"0 sani",order_btn:"Order",checkout_title:"Yu order",name_ph:"Nen",phone_ph:"Telefon (no musu)",note_ph:"Notiti",submit:"Sende order",cancel:"Tapu",success_title:"A waka!",success_msg:"Yu order seni.",order_id:"Order",total:"Total",share:"Sende nanga WhatsApp",annuleren:"Tapu",pay_cod:"💵 Cash",pay_bank:"🏦 Bank Transfer",bank_title:"Bank Transfer",bank_details:"Transfer go na: "}
 };
-let shopId, shop, categories=[], items=[], cart={}, lang='nl', pickupTime='Nu';
+let shopId, shop, categories=[], items=[], cart={}, lang='nl', pickupTime='Nu', paymentMethod='cod', activeCat=0;
 
 async function init(){
   const p = window.location.pathname.split('/');
@@ -109,6 +125,18 @@ async function init(){
   const d = await r.json();
   shop = d.shop; categories = d.categories; items = d.items;
   lang = shop.language || 'nl';
+  // OG meta tags for WhatsApp preview
+  const menuUrl = location.origin + '/order/' + shopId;
+  document.getElementById('og-title').setAttribute('content', shop.name);
+  document.getElementById('og-desc').setAttribute('content', t('shop_desc'));
+  document.getElementById('og-url').setAttribute('content', menuUrl);
+  document.title = shop.name + ' — Bestellen';
+  // WhatsApp contact button
+  if (shop.whatsapp_number) {
+    const waBtn = document.getElementById('wa-contact');
+    waBtn.href = 'https://wa.me/' + shop.whatsapp_number.replace(/[^0-9]/g, '');
+    waBtn.style.display = '';
+  }
   setLang(lang);
   renderAll();
 }
@@ -128,14 +156,15 @@ function renderAll(){
   document.getElementById('shop-name').textContent = tn(shop) || shop.name;
   document.getElementById('shop-desc').textContent = t('shop_desc');
   const cn = document.getElementById('cat-nav');
-  cn.innerHTML = `<button class="active" onclick="filterCat(0)">${t('all')}</button>` + categories.map(c=>`<button onclick="filterCat(${c.id})">${esc(tn(c)||c.name)}</button>`).join('');
+  cn.innerHTML = `<button class="active" onclick="filterCat(0)" data-cat-id="0">${t('all')}</button>` + categories.map(c=>`<button onclick="filterCat(${c.id})" data-cat-id="${c.id}">${esc(tn(c)||c.name)}</button>`).join('');
   filterCat(0);
   updateCart();
 }
 
 function filterCat(cid){
+  activeCat=cid;
   document.querySelectorAll('.cat-nav button').forEach(b=>b.classList.remove('active'));
-  document.querySelectorAll('.cat-nav button').forEach(b=>{if(b.textContent===t('all')&&cid===0||b.textContent===(categories.find(c=>c.id===cid)||{}).name) b.classList.add('active')});
+  document.querySelectorAll('.cat-nav button').forEach(b=>{const catId=parseInt(b.dataset.catId); if(catId===cid||(cid===0&&!catId)) b.classList.add('active')});
   const menu = document.getElementById('menu');
   let html='', lastCat=null;
   const filtered = cid===0 ? items : items.filter(i=>i.category_id===cid);
@@ -160,7 +189,7 @@ function changeQty(id,d){
   if(!cart[id]) cart[id]=0;
   cart[id]+=d;
   if(cart[id]<=0) delete cart[id];
-  filterCat(document.querySelector('.cat-nav button.active')?.textContent===t('all')?0:(categories.find(c=>c.name===document.querySelector('.cat-nav button.active')?.textContent)||{}).id||0);
+  filterCat(activeCat);
   updateCart();
 }
 
@@ -193,17 +222,30 @@ function showCheckout(){
 
 function hideCheckout(){ document.getElementById('checkout-modal').classList.add('hidden'); }
 
-function setPickup(t){
+function setPickup(t,ev){
   pickupTime=t;
   document.querySelectorAll('.pickup-time button').forEach(b=>b.classList.remove('active'));
-  event.target.classList.add('active');
+  ev.target.classList.add('active');
+}
+
+function setPayment(m){
+  paymentMethod=m;
+  document.querySelectorAll('.pay-methods button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('pay-'+m).classList.add('active');
+  if (m==='bank_transfer') {
+    document.getElementById('bank-info').classList.remove('hidden');
+    const bnk = shop.bank_name ? `${shop.bank_name} — ${shop.bank_account||''} (${shop.bank_account_name||''})` : t('bank_details')+'[configureer in admin]';
+    document.getElementById('bank-details').textContent = t('bank_details') + bnk;
+  } else {
+    document.getElementById('bank-info').classList.add('hidden');
+  }
 }
 
 async function submitOrder(){
   const name=document.getElementById('cust-name').value.trim();
   if(!name) return alert('Vul uw naam in');
   const items_arr = Object.entries(cart).map(([id,q])=>({id:parseInt(id),qty:q}));
-  const r = await fetch('/api/order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({shop_id:shopId,customer_name:name,customer_phone:document.getElementById('cust-phone').value.trim(),items:items_arr,note:document.getElementById('cust-note').value.trim(),pickup_time:pickupTime})});
+  const r = await fetch('/api/order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({shop_id:shopId,customer_name:name,customer_phone:document.getElementById('cust-phone').value.trim(),items:items_arr,note:document.getElementById('cust-note').value.trim(),pickup_time:pickupTime,payment_method:paymentMethod})});
   if(!r.ok){ alert('Fout bij plaatsen bestelling'); return; }
   const order=await r.json();
   document.getElementById('checkout-modal').classList.add('hidden');

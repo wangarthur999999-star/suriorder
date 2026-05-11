@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SuriOrder — Bestel online bij Surinaamse restaurants</title>
+<meta name="description" content="Bestel eten online bij restaurants in Suriname. Snel, makkelijk, WhatsApp-first.">
+<meta property="og:title" content="SuriOrder — Bestel online">
+<meta property="og:description" content="Bestel eten online bij restaurants in Suriname">
+<meta property="og:type" content="website">
+<style>
+:root{--pri:#22c55e;--bg:#f5f5f5;--card:#fff;--text:#1a1a1a;--muted:#666}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);max-width:480px;margin:0 auto}
+header{background:var(--pri);color:#fff;padding:24px 16px;text-align:center}
+header h1{font-size:1.5rem;margin-bottom:4px}
+header p{font-size:.85rem;opacity:.9;margin-top:4px}
+.lang-row{display:flex;justify-content:center;gap:4px;margin-top:10px}
+.lang-row button{background:rgba(255,255,255,.25);border:none;color:#fff;padding:4px 10px;border-radius:4px;font-size:.75rem;cursor:pointer}
+.lang-row button.active{background:#fff;color:var(--pri);font-weight:600}
+.search-bar{padding:12px 16px;background:#fff;border-bottom:1px solid #eee;display:flex;gap:8px}
+.search-bar input{flex:1;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:.9rem}
+.shop-list{padding:12px 16px}
+.shop-card{background:var(--card);border-radius:12px;padding:16px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.06);display:flex;justify-content:space-between;align-items:center}
+.shop-card .info{flex:1}
+.shop-card .info h3{font-size:1rem;margin-bottom:2px}
+.shop-card .info p{font-size:.8rem;color:var(--muted)}
+.shop-card .lang-badge{display:inline-block;padding:1px 6px;border-radius:4px;font-size:.65rem;background:#e5e7eb;color:var(--muted);margin-left:4px}
+.shop-card .actions{display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+.shop-card .actions a{display:inline-block;padding:6px 14px;border-radius:8px;font-weight:600;font-size:.8rem;text-decoration:none;text-align:center}
+.btn-order{background:var(--pri);color:#fff}
+.btn-wa{background:#25D366;color:#fff}
+.empty-state{text-align:center;padding:60px 16px;color:var(--muted)}
+.empty-state .icon{font-size:3rem;margin-bottom:12px}
+.footer{text-align:center;padding:20px;color:var(--muted);font-size:.75rem}
+</style>
+</head>
+<body>
+<header>
+  <h1>🍽️ SuriOrder</h1>
+  <p id="tagline">Bestel online by Surinaamse restaurants</p>
+  <div class="lang-row">
+    <button onclick="setLang('nl')" class="active" id="btn-nl">NL</button>
+    <button onclick="setLang('en')" id="btn-en">EN</button>
+    <button onclick="setLang('zh')" id="btn-zh">中文</button>
+    <button onclick="setLang('srn')" id="btn-srn">SRN</button>
+  </div>
+</header>
+<div class="search-bar">
+  <input type="text" id="search-input" placeholder="Zoek restaurant..." oninput="loadShops()">
+</div>
+<div class="shop-list" id="shop-list"></div>
+<div class="footer">SuriOrder — WhatsApp-first ordering for Suriname</div>
+<script>
+const L = {
+  nl: { tagline:"Bestel online by Surinaamse restaurants", search:"Zoek restaurant...", empty:"Geen restaurants gevonden", empty_hint:"Vraag jouw favoriete restaurant om zich aan te melden!", view_menu:"Bekijk menu", wa_chat:"WhatsApp", powered:"WhatsApp-first ordering for Suriname" },
+  en: { tagline:"Order online from Surinamese restaurants", search:"Search restaurants...", empty:"No restaurants found", empty_hint:"Ask your favorite restaurant to sign up!", view_menu:"View Menu", wa_chat:"WhatsApp", powered:"WhatsApp-first ordering for Suriname" },
+  zh: { tagline:"在线订购苏里南美食", search:"搜索餐厅...", empty:"未找到餐厅", empty_hint:"邀请您喜欢的餐厅加入！", view_menu:"查看菜单", wa_chat:"WhatsApp", powered:"苏里南 WhatsApp 优先点餐平台" },
+  srn: { tagline:"Order online na Sranan restaurants", search:"Suk restaurant...", empty:"No restaurant feni", empty_hint:"Aksi yu favoriet restaurant fu registreer!", view_menu:"Luku menu", wa_chat:"WhatsApp", powered:"WhatsApp-first ordering gi Sranan" }
+};
+let lang = 'nl';
+
+function t(k) { return L[lang]?.[k] || L.nl[k] || k; }
+function setLang(l) {
+  lang = l;
+  document.querySelectorAll('.lang-row button').forEach(b => b.classList.toggle('active', b.id === 'btn-' + l));
+  document.getElementById('tagline').textContent = t('tagline');
+  document.getElementById('search-input').placeholder = t('search');
+  document.querySelector('.footer').textContent = t('powered');
+  loadShops();
+}
+
+async function loadShops() {
+  const search = document.getElementById('search-input').value.trim();
+  const params = new URLSearchParams();
+  if (search) params.set('search', search);
+  const r = await fetch('/api/shops?' + params);
+  const shops = await r.json();
+  const container = document.getElementById('shop-list');
+  if (!shops.length) {
+    container.innerHTML = `<div class="empty-state"><div class="icon">🍜</div><p>${t('empty')}</p><p style="font-size:.85rem;margin-top:4px">${t('empty_hint')}</p></div>`;
+    return;
+  }
+  container.innerHTML = shops.map(s => `
+    <div class="shop-card">
+      <div class="info">
+        <h3>${esc(s.name)}<span class="lang-badge">${s.language?.toUpperCase()||'NL'}</span></h3>
+        <p>${s.welcome_msg ? esc(s.welcome_msg) : ''}</p>
+      </div>
+      <div class="actions">
+        <a href="/order/${esc(s.id)}" class="btn-order">📋 ${t('view_menu')}</a>
+        ${s.whatsapp_number ? `<a href="https://wa.me/${s.whatsapp_number.replace(/[^0-9]/g,'')}" class="btn-wa" target="_blank">💬 ${t('wa_chat')}</a>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+loadShops();
+</script>
+</body>
+</html>

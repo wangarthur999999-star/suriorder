@@ -16,8 +16,11 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 .login-box button{width:100%;padding:12px;background:var(--pri);color:#fff;border:none;border-radius:8px;font-weight:700;font-size:1rem;cursor:pointer}
 .login-box button:hover{opacity:.9}
 .dashboard{display:none}
-header.top{background:var(--pri);color:#fff;padding:16px;text-align:center;margin-bottom:16px}
+header.top{background:var(--pri);color:#fff;padding:16px;text-align:center;margin-bottom:16px;position:relative}
 header.top h1{font-size:1.2rem}
+.admin-lang-switch{position:absolute;top:16px;right:16px;display:flex;gap:4px}
+.admin-lang-switch button{background:rgba(255,255,255,.25);border:none;color:#fff;padding:3px 7px;border-radius:4px;font-size:.7rem;cursor:pointer}
+.admin-lang-switch button.active{background:#fff;color:var(--pri);font-weight:600}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px}
 .stat-card{background:var(--card);padding:16px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
 .stat-card .label{font-size:.75rem;color:var(--muted);text-transform:uppercase}
@@ -45,44 +48,78 @@ input,textarea,select{flex:1;min-width:120px;padding:10px;border:1px solid #ddd;
 .qr-section canvas{display:block;margin:16px auto}
 .qr-section input{width:100%;padding:8px;border:1px solid #ddd;border-radius:8px;margin-top:8px;font-size:.8rem;text-align:center}
 .menu-link-box{background:#f0fdf4;border:2px dashed var(--pri);border-radius:12px;padding:16px;margin-bottom:16px;text-align:center;word-break:break-all}
-</style>
+.wizard-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:flex;align-items:center;justify-content:center}
+.wizard-box{background:var(--card);width:100%;max-width:440px;border-radius:16px;padding:32px 24px;text-align:center;max-height:90vh;overflow-y:auto}
+.wizard-box h2{color:var(--pri);margin-bottom:8px;font-size:1.2rem}
+.wizard-box p.step-hint{color:var(--muted);font-size:.8rem;margin-bottom:16px}
+.wizard-box .step-dots{display:flex;justify-content:center;gap:6px;margin-bottom:20px}
+.wizard-box .step-dot{width:8px;height:8px;border-radius:50%;background:#ddd}
+.wizard-box .step-dot.done{background:var(--pri)}
+.wizard-box input,.wizard-box textarea{width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;font-size:.9rem;margin-bottom:10px}
+.wizard-box textarea{height:60px;resize:none}
+.wizard-box button.wiz-next{width:100%;padding:12px;background:var(--pri);color:#fff;border:none;border-radius:10px;font-weight:700;font-size:1rem;cursor:pointer;margin-top:8px}
+.wizard-box button.wiz-skip{width:100%;padding:10px;background:transparent;color:var(--muted);border:none;font-size:.85rem;cursor:pointer;margin-top:4px}
+.wizard-box .shop-id-display{background:#f0fdf4;border:2px dashed var(--pri);border-radius:10px;padding:16px;font-size:1.5rem;font-weight:700;letter-spacing:2px;margin:12px 0;word-break:break-all}
+.shop-id-display-btn{background:var(--pri);color:#fff;border:none;padding:6px 14px;border-radius:6px;font-size:.8rem;cursor:pointer}
+.wizard-item-row{display:flex;gap:6px;margin-bottom:6px;align-items:center}
+.wizard-item-row input{flex:1;min-width:0;margin-bottom:0}
+.notification-banner{display:none;background:var(--warn);color:#fff;padding:10px 16px;border-radius:10px;margin-bottom:12px;text-align:center;font-weight:600;animation:pulse 1s ease-in-out 3}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.02)}}
+.stat-pulse{animation:statPulse .5s ease-in-out 3}
+@keyframes statPulse{0%,100%{background:var(--card)}50%{background:#fef3c7}}
+
 </head>
 <body>
 <div class="login-box" id="login-box">
   <h1>🍽️ SuriOrder</h1>
-  <p>Beheer uw menu en bestellingen</p>
+  <p id="login-subtitle">Beheer uw menu en bestellingen</p>
   <input type="text" id="login-shop-id" placeholder="Shop ID">
   <input type="password" id="login-pin" placeholder="PIN Code">
-  <button onclick="login()">Inloggen</button>
-  <p style="margin-top:16px;font-size:.8rem;color:var(--muted)">Nog geen account? <a href="#" onclick="showRegister()" style="color:var(--pri)">Registreer</a></p>
+  <button onclick="login()" id="login-btn">Inloggen</button>
+  <p style="margin-top:16px;font-size:.8rem;color:var(--muted)" id="no-account">Nog geen account? <a href="#" onclick="showRegister()" style="color:var(--pri)">Registreer</a></p>
 </div>
 <div class="login-box" id="register-box" style="display:none">
-  <h1>🍽️ Nieuwe Shop</h1>
-  <p>Maak uw gratis account aan</p>
+  <h1>🍽️ <span id="reg-title">Nieuwe Shop</span></h1>
+  <p id="reg-subtitle">Maak uw gratis account aan</p>
   <input type="text" id="reg-name" placeholder="Bedrijfsnaam / Business name">
   <input type="tel" id="reg-phone" placeholder="Telefoonnummer">
   <input type="password" id="reg-pin" placeholder="Kies een PIN code (min 4 cijfers)">
-  <select id="reg-lang"><option value="nl">Nederlands</option><option value="en">English</option><option value="zh">中文</option></select>
-  <button onclick="register()">Account aanmaken</button>
-  <p style="margin-top:12px;font-size:.8rem;color:var(--muted)"><a href="#" onclick="showLogin()" style="color:var(--pri)">Terug naar login</a></p>
+  <select id="reg-lang"><option value="nl">Nederlands</option><option value="en">English</option><option value="zh">中文</option><option value="srn">Sranan Tongo</option></select>
+  <button onclick="register()" id="reg-btn">Account aanmaken</button>
+  <p style="margin-top:12px;font-size:.8rem;color:var(--muted)" id="back-login"><a href="#" onclick="showLogin()" style="color:var(--pri)">Terug naar login</a></p>
 </div>
 <div class="container dashboard" id="dashboard">
+<div class="notification-banner" id="notif-banner"></div>
+<div class="wizard-overlay" id="wizard-overlay" style="display:none">
+  <div class="wizard-box" id="wizard-box"></div>
+</div>
 <div class="menu-link-box" id="menu-link-box"></div>
-<header class="top" style="border-radius:12px"><h1 id="dash-shop-name">Dashboard</h1><p style="font-size:.8rem;opacity:.8" id="dash-shop-id"></p></header>
+<header class="top" style="border-radius:12px">
+  <div class="admin-lang-switch">
+    <button onclick="setAdminLang('nl')" class="active" id="adm-btn-nl">NL</button>
+    <button onclick="setAdminLang('en')" id="adm-btn-en">EN</button>
+    <button onclick="setAdminLang('zh')" id="adm-btn-zh">中文</button>
+    <button onclick="setAdminLang('srn')" id="adm-btn-srn">SRN</button>
+  </div>
+  <h1 id="dash-shop-name">Dashboard</h1>
+  <p style="font-size:.8rem;opacity:.8" id="dash-shop-id"></p>
+</header>
 <div class="stats" id="stats"></div>
 <div class="tabs">
-  <button class="active" onclick="switchTab('orders')">Bestellingen</button>
-  <button onclick="switchTab('menu')">Menu</button>
-  <button onclick="switchTab('share')">Delen</button>
+  <button class="active" onclick="switchTab('orders')" id="tab-orders">Bestellingen</button>
+  <button onclick="switchTab('menu')" id="tab-menu">Menu</button>
+  <button onclick="switchTab('share')" id="tab-share">Delen</button>
+  <button onclick="switchTab('settings')" id="tab-settings">Instellingen</button>
 </div>
 <div class="panel active" id="panel-orders">
-  <table><thead><tr><th>#</th><th>Klant</th><th>Items</th><th>Totaal</th><th>Tijd</th><th>Status</th><th>Actie</th></tr></thead><tbody id="orders-tbody"></tbody></table>
+  <table><thead><tr><th>#</th><th id="th-customer">Klant</th><th id="th-items">Items</th><th id="th-total">Totaal</th><th id="th-time">Tijd</th><th id="th-status">Status</th><th id="th-action">Actie</th></tr></thead><tbody id="orders-tbody"></tbody></table>
 </div>
 <div class="panel" id="panel-menu">
   <div class="form-row">
     <input type="text" id="item-name" placeholder="Naam gerecht (NL)">
     <input type="text" id="item-name-zh" placeholder="名称 (中文)">
     <input type="text" id="item-name-en" placeholder="Name (EN)">
+    <input type="text" id="item-name-srn" placeholder="Nen (SRN)">
     <input type="number" id="item-price" placeholder="Prijs (SRD)" step="0.01">
     <select id="item-cat"><option value="">Categorie</option></select>
     <button class="btn btn-pri" onclick="addItem()">+ Toevoegen</button>
@@ -91,17 +128,381 @@ input,textarea,select{flex:1;min-width:120px;padding:10px;border:1px solid #ddd;
 </div>
 <div class="panel" id="panel-share">
   <div class="qr-section">
-    <h3>📱 Deel uw menu link</h3>
-    <p style="margin:8px 0;color:var(--muted)">Klanten openen deze link op hun telefoon</p>
+    <h3>📱 <span id="share-title">Deel uw menu link</span></h3>
+    <p style="margin:8px 0;color:var(--muted)" id="share-desc">Klanten openen deze link op hun telefoon</p>
     <input type="text" id="menu-url" readonly onclick="this.select()">
-    <p style="margin-top:8px"><strong>WhatsApp:</strong> kopieer de link en stuur naar klanten</p>
-    <p style="font-size:.8rem;color:var(--muted);margin-top:4px">Tip: zet deze link in uw WhatsApp bedrijfsprofiel</p>
+    <p style="margin-top:8px" id="share-wa"><strong>WhatsApp:</strong> kopieer de link en stuur naar klanten</p>
+    <img id="qr-image" src="" alt="QR Code" style="max-width:220px;margin:16px auto;display:block" onerror="this.style.display='none'">
+    <p style="font-size:.75rem;color:var(--muted)">Print deze QR code en hang in uw zaak</p>
+  </div>
+</div>
+<div class="panel" id="panel-settings">
+  <div style="background:var(--card);padding:24px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.06);max-width:500px">
+    <h3 id="settings-title" style="margin-bottom:12px">Winkel Instellingen</h3>
+    <label style="font-size:.8rem;color:var(--muted)"><span id="lbl-welcome">Welkomstbericht</span></label>
+    <textarea id="set-welcome" style="width:100%;margin-bottom:12px;min-height:50px"></textarea>
+    <label style="font-size:.8rem;color:var(--muted)"><span id="lbl-wa">WhatsApp nummer</span></label>
+    <input type="tel" id="set-wa" style="width:100%;margin-bottom:12px">
+    <label style="font-size:.8rem;color:var(--muted)"><span id="lbl-lang">Taal</span></label>
+    <select id="set-lang" style="width:100%;margin-bottom:12px">
+      <option value="nl">Nederlands</option><option value="en">English</option><option value="zh">中文</option><option value="srn">Sranan Tongo</option>
+    </select>
+    <hr style="margin:16px 0;border-color:#eee">
+    <label style="font-size:.8rem;color:var(--muted)"><span id="lbl-bank-name">Bank naam</span></label>
+    <input type="text" id="set-bank-name" style="width:100%;margin-bottom:12px" placeholder="DSB / Hakrinbank / ...">
+    <label style="font-size:.8rem;color:var(--muted)"><span id="lbl-bank-acc">Rekeningnummer</span></label>
+    <input type="text" id="set-bank-acc" style="width:100%;margin-bottom:12px">
+    <label style="font-size:.8rem;color:var(--muted)"><span id="lbl-bank-holder">Op naam van</span></label>
+    <input type="text" id="set-bank-holder" style="width:100%;margin-bottom:16px">
+    <button class="btn btn-pri" onclick="saveSettings()" style="width:100%" id="save-settings-btn">Opslaan</button>
   </div>
 </div>
 </div>
 <script>
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
-let token = null, shop = null, tab = 'orders';
+
+const L_admin = {
+  nl: {
+    login_subtitle: "Beheer uw menu en bestellingen",
+    shop_id_ph: "Shop ID", pin_ph: "PIN Code",
+    login_btn: "Inloggen", no_account: "Nog geen account?", register_link: "Registreer",
+    reg_title: "Nieuwe Shop", reg_subtitle: "Maak uw gratis account aan",
+    name_ph: "Bedrijfsnaam / Business name", phone_ph: "Telefoonnummer",
+    pin_new_ph: "Kies een PIN code (min 4 cijfers)", reg_btn: "Account aanmaken",
+    back_login: "Terug naar login",
+    menu_link_label: "Uw bestellink:",
+    stats_today_orders: "Vandaag Orders", stats_today_revenue: "Vandaag Omzet",
+    stats_week_revenue: "7 Dagen Omzet", stats_pending: "Openstaand",
+    tab_orders: "Bestellingen", tab_menu: "Menu", tab_share: "Delen",
+    th_customer: "Klant", th_items: "Items", th_total: "Totaal",
+    th_time: "Tijd", th_status: "Status", th_action: "Actie",
+    th_name: "Gerecht", th_cat: "Cat", th_price: "Prijs",
+    empty_orders: "Geen bestellingen",
+    item_name_ph: "Naam gerecht (NL)", item_name_zh_ph: "名称 (中文)",
+    item_name_en_ph: "Name (EN)", item_name_srn_ph: "Nen (SRN)",
+    item_price_ph: "Prijs (SRD)",
+    add_btn: "+ Toevoegen", cat_opt: "Categorie",
+    share_title: "Deel uw menu link",
+    share_desc: "Klanten openen deze link op hun telefoon",
+    share_wa: "WhatsApp: kopieer de link en stuur naar klanten",
+    share_tip: "Tip: zet deze link in uw WhatsApp bedrijfsprofiel",
+    copy_btn: "Kopiëren",
+    actie: "Actie", bevestig: "Bevestig", klaar: "Klaar", annuleer: "Annuleer",
+    alert_name_pin: "Vul bedrijfsnaam en PIN in",
+    alert_pin_min: "PIN moet minimaal 4 tekens zijn",
+    alert_reg_error: "Fout bij registratie",
+    alert_account_created: "Account aangemaakt! Shop ID: {id} — bewaar dit goed. Je bent nu ingelogd.",
+    alert_invalid_login: "Ongeldige inloggegevens",
+    alert_name_price: "Naam en prijs verplicht",
+    alert_delete: "Verwijderen?",
+    alert_order_error: "Fout bij plaatsen bestelling",
+    wizard_step1_title: "Welkom bij SuriOrder!",
+    wizard_step1_desc: "Uw shop ID is — bewaar deze goed:",
+    wizard_step2_title: "WhatsApp Nummer",
+    wizard_step2_desc: "Klanten kunnen u bereiken via WhatsApp",
+    wizard_step2_ph: "WhatsApp nummer (+597...)",
+    wizard_step3_title: "Snelle Menu Setup",
+    wizard_step3_desc: "Voeg snel een paar gerechten toe",
+    wizard_step3_name: "Naam gerecht",
+    wizard_step3_price: "Prijs (SRD)",
+    wizard_step4_title: "Deel Uw Link",
+    wizard_step4_desc: "Klanten bestellen via deze link:",
+    wizard_step5_title: "Klaar!",
+    wizard_step5_desc: "Uw shop is nu live. Deel uw link met klanten.",
+    wizard_next: "Volgende",
+    wizard_skip: "Overslaan",
+    wizard_done: "Naar Dashboard",
+    wizard_copy: "Kopiëren",
+    wizard_add_item: "+ Nog een gerecht",
+    notif_new_order: "Nieuwe bestelling!",
+    notif_from: "van",
+    tab_settings: "Instellingen",
+    settings_title: "Winkel Instellingen",
+    settings_welcome: "Welkomstbericht",
+    settings_wa: "WhatsApp nummer",
+    settings_lang: "Taal",
+    settings_bank_name: "Bank naam",
+    settings_bank_account: "Rekeningnummer",
+    settings_bank_holder: "Op naam van",
+    settings_save: "Opslaan",
+    pm_cod: "Contant", pm_bank: "Overschrijving",
+    pay_unpaid: "Onbetaald", pay_paid: "Betaald", pay_refunded: "Terugbetaald",
+    mark_paid: "Betaald", mark_refunded: "Terug"
+  },
+  en: {
+    login_subtitle: "Manage your menu and orders",
+    shop_id_ph: "Shop ID", pin_ph: "PIN Code",
+    login_btn: "Login", no_account: "No account yet?", register_link: "Register",
+    reg_title: "New Shop", reg_subtitle: "Create your free account",
+    name_ph: "Business name", phone_ph: "Phone number",
+    pin_new_ph: "Choose a PIN (min 4 digits)", reg_btn: "Create account",
+    back_login: "Back to login",
+    menu_link_label: "Your order link:",
+    stats_today_orders: "Today Orders", stats_today_revenue: "Today Revenue",
+    stats_week_revenue: "7 Day Revenue", stats_pending: "Pending",
+    tab_orders: "Orders", tab_menu: "Menu", tab_share: "Share",
+    th_customer: "Customer", th_items: "Items", th_total: "Total",
+    th_time: "Time", th_status: "Status", th_action: "Action",
+    th_name: "Dish", th_cat: "Cat", th_price: "Price",
+    empty_orders: "No orders",
+    item_name_ph: "Dish name (NL)", item_name_zh_ph: "Name (中文)",
+    item_name_en_ph: "Name (EN)", item_name_srn_ph: "Name (SRN)",
+    item_price_ph: "Price (SRD)",
+    add_btn: "+ Add", cat_opt: "Category",
+    share_title: "Share your menu link",
+    share_desc: "Customers open this link on their phone",
+    share_wa: "WhatsApp: copy the link and send to customers",
+    share_tip: "Tip: put this link in your WhatsApp business profile",
+    copy_btn: "Copy",
+    actie: "Action", bevestig: "Confirm", klaar: "Done", annuleer: "Cancel",
+    alert_name_pin: "Enter business name and PIN",
+    alert_pin_min: "PIN must be at least 4 characters",
+    alert_reg_error: "Registration error",
+    alert_account_created: "Account created! Shop ID: {id} — save this. You are now logged in.",
+    alert_invalid_login: "Invalid credentials",
+    alert_name_price: "Name and price required",
+    alert_delete: "Delete?",
+    alert_order_error: "Error placing order",
+    wizard_step1_title: "Welcome to SuriOrder!",
+    wizard_step1_desc: "Your shop ID is — keep it safe:",
+    wizard_step2_title: "WhatsApp Number",
+    wizard_step2_desc: "Customers can reach you via WhatsApp",
+    wizard_step2_ph: "WhatsApp number (+597...)",
+    wizard_step3_title: "Quick Menu Setup",
+    wizard_step3_desc: "Quickly add a few dishes",
+    wizard_step3_name: "Dish name",
+    wizard_step3_price: "Price (SRD)",
+    wizard_step4_title: "Share Your Link",
+    wizard_step4_desc: "Customers order via this link:",
+    wizard_step5_title: "All Done!",
+    wizard_step5_desc: "Your shop is now live. Share your link with customers.",
+    wizard_next: "Next",
+    wizard_skip: "Skip",
+    wizard_done: "Go to Dashboard",
+    wizard_copy: "Copy",
+    wizard_add_item: "+ Add another item",
+    notif_new_order: "New order!",
+    notif_from: "from",
+    tab_settings: "Settings",
+    settings_title: "Shop Settings",
+    settings_welcome: "Welcome message",
+    settings_wa: "WhatsApp number",
+    settings_lang: "Language",
+    settings_bank_name: "Bank name",
+    settings_bank_account: "Account number",
+    settings_bank_holder: "Account holder",
+    settings_save: "Save",
+    pm_cod: "Cash", pm_bank: "Transfer",
+    pay_unpaid: "Unpaid", pay_paid: "Paid", pay_refunded: "Refunded",
+    mark_paid: "Paid", mark_refunded: "Refund"
+  },
+  zh: {
+    login_subtitle: "管理菜单和订单",
+    shop_id_ph: "店铺 ID", pin_ph: "PIN 码",
+    login_btn: "登录", no_account: "还没有账号？", register_link: "注册",
+    reg_title: "新店铺", reg_subtitle: "创建免费账号",
+    name_ph: "公司名称", phone_ph: "电话号码",
+    pin_new_ph: "设置 PIN 码（至少4位）", reg_btn: "创建账号",
+    back_login: "返回登录",
+    menu_link_label: "您的点餐链接：",
+    stats_today_orders: "今日订单", stats_today_revenue: "今日营收",
+    stats_week_revenue: "7天营收", stats_pending: "待处理",
+    tab_orders: "订单", tab_menu: "菜单", tab_share: "分享",
+    th_customer: "客户", th_items: "菜品", th_total: "合计",
+    th_time: "时间", th_status: "状态", th_action: "操作",
+    th_name: "菜品", th_cat: "分类", th_price: "价格",
+    empty_orders: "暂无订单",
+    item_name_ph: "菜名 (NL)", item_name_zh_ph: "名称 (中文)",
+    item_name_en_ph: "名称 (EN)", item_name_srn_ph: "名称 (SRN)",
+    item_price_ph: "价格 (SRD)",
+    add_btn: "+ 添加", cat_opt: "分类",
+    share_title: "分享您的菜单链接",
+    share_desc: "客户在手机上打开此链接",
+    share_wa: "WhatsApp：复制链接发送给客户",
+    share_tip: "提示：将链接放在 WhatsApp 商家简介中",
+    copy_btn: "复制",
+    actie: "操作", bevestig: "确认", klaar: "完成", annuleer: "取消",
+    alert_name_pin: "请输入公司名称和 PIN",
+    alert_pin_min: "PIN 至少需要 4 个字符",
+    alert_reg_error: "注册失败",
+    alert_account_created: "账号已创建！店铺 ID：{id} — 请妥善保管。您已登录。",
+    alert_invalid_login: "登录信息无效",
+    alert_name_price: "名称和价格必填",
+    alert_delete: "确定删除？",
+    alert_order_error: "下单失败",
+    wizard_step1_title: "欢迎来到 SuriOrder！",
+    wizard_step1_desc: "您的店铺 ID — 请妥善保管：",
+    wizard_step2_title: "WhatsApp 号码",
+    wizard_step2_desc: "客户可以通过 WhatsApp 联系您",
+    wizard_step2_ph: "WhatsApp 号码 (+597...)",
+    wizard_step3_title: "快速菜单设置",
+    wizard_step3_desc: "快速添加几道菜",
+    wizard_step3_name: "菜品名称",
+    wizard_step3_price: "价格 (SRD)",
+    wizard_step4_title: "分享您的链接",
+    wizard_step4_desc: "客户通过此链接下单：",
+    wizard_step5_title: "设置完成！",
+    wizard_step5_desc: "您的店铺已上线。分享链接给客户吧。",
+    wizard_next: "下一步",
+    wizard_skip: "跳过",
+    wizard_done: "进入仪表盘",
+    wizard_copy: "复制",
+    wizard_add_item: "+ 添加菜品",
+    notif_new_order: "新订单！",
+    notif_from: "来自",
+    tab_settings: "设置",
+    settings_title: "店铺设置",
+    settings_welcome: "欢迎消息",
+    settings_wa: "WhatsApp 号码",
+    settings_lang: "语言",
+    settings_bank_name: "银行名称",
+    settings_bank_account: "账号",
+    settings_bank_holder: "账户名",
+    settings_save: "保存",
+    pm_cod: "现金", pm_bank: "转账",
+    pay_unpaid: "未付", pay_paid: "已付", pay_refunded: "已退",
+    mark_paid: "已付", mark_refunded: "退款"
+  },
+  srn: {
+    login_subtitle: "Beheer yu menu nanga orders",
+    shop_id_ph: "Shop ID", pin_ph: "PIN Code",
+    login_btn: "Login", no_account: "No abra ete?", register_link: "Registreer",
+    reg_title: "Nyun Shop", reg_subtitle: "Meki yu gratis account",
+    name_ph: "Bisnis nen", phone_ph: "Telefon nummer",
+    pin_new_ph: "Kies wan PIN (min 4 nomru)", reg_btn: "Meki account",
+    back_login: "Go baka na login",
+    menu_link_label: "Yu order link:",
+    stats_today_orders: "Tide Orders", stats_today_revenue: "Tide Moni",
+    stats_week_revenue: "7 Dei Moni", stats_pending: "E wakti",
+    tab_orders: "Orders", tab_menu: "Menu", tab_share: "Sende",
+    th_customer: "Klant", th_items: "Sani", th_total: "Total",
+    th_time: "Ten", th_status: "Status", th_action: "Aksie",
+    th_name: "Nyanyan", th_cat: "Cat", th_price: "Prijs",
+    empty_orders: "No orders",
+    item_name_ph: "Nen nyanyan (NL)", item_name_zh_ph: "Nen (中文)",
+    item_name_en_ph: "Nen (EN)", item_name_srn_ph: "Nen (SRN)",
+    item_price_ph: "Prijs (SRD)",
+    add_btn: "+ Poti", cat_opt: "Categorie",
+    share_title: "Sende yu menu link",
+    share_desc: "Klant e opo a link disi na den telefon",
+    share_wa: "WhatsApp: kopieer a link nanga sende na klanten",
+    share_tip: "Tip: poti a link disi na ini yu WhatsApp bisnis profiel",
+    copy_btn: "Kopiëren",
+    actie: "Aksie", bevestig: "Bevestig", klaar: "Klaar", annuleer: "Tapu",
+    alert_name_pin: "Firi bisnis nen nanga PIN",
+    alert_pin_min: "PIN musu abi 4 nomru",
+    alert_reg_error: "Fout nanga registratie",
+    alert_account_created: "Account meki! Shop ID: {id} — kibri disi bun. Yu login nou.",
+    alert_invalid_login: "Verkeerde login",
+    alert_name_price: "Nen nanga prijs musu",
+    alert_delete: "Delete?",
+    alert_order_error: "Fout nanga order",
+    wizard_step1_title: "Welkom na SuriOrder!",
+    wizard_step1_desc: "Yu shop ID na — kibri en bun:",
+    wizard_step2_title: "WhatsApp Nummer",
+    wizard_step2_desc: "Klanten kan bereik yu nanga WhatsApp",
+    wizard_step2_ph: "WhatsApp nummer (+597...)",
+    wizard_step3_title: "Es'esi Menu Setup",
+    wizard_step3_desc: "Poti wantu nyanyan es'esi",
+    wizard_step3_name: "Nen nyanyan",
+    wizard_step3_price: "Prijs (SRD)",
+    wizard_step4_title: "Sende Yu Link",
+    wizard_step4_desc: "Klanten e order nanga a link disi:",
+    wizard_step5_title: "Klaar!",
+    wizard_step5_desc: "Yu shop de live nou. Sende a link na klanten.",
+    wizard_next: "Go doro",
+    wizard_skip: "Skip",
+    wizard_done: "Go na Dashboard",
+    wizard_copy: "Kopiëren",
+    wizard_add_item: "+ Poti wan tra nyanyan",
+    notif_new_order: "Nyun order!",
+    notif_from: "fu",
+    tab_settings: "Settings",
+    settings_title: "Shop Settings",
+    settings_welcome: "Welkom bericht",
+    settings_wa: "WhatsApp nummer",
+    settings_lang: "Tongo",
+    settings_bank_name: "Bank nen",
+    settings_bank_account: "Rekening nummer",
+    settings_bank_holder: "Na nen fu",
+    settings_save: "Save",
+    pm_cod: "Cash", pm_bank: "Transfer",
+    pay_unpaid: "No pay", pay_paid: "Pay", pay_refunded: "Refund",
+    mark_paid: "Pay", mark_refunded: "Refund"
+  }
+};
+
+let token = null, shop = null, tab = 'orders', adminLang = 'nl';
+
+function t(key) {
+  return L_admin[adminLang]?.[key] || L_admin.nl[key] || key;
+}
+
+function setAdminLang(l) {
+  adminLang = l;
+  document.querySelectorAll('.admin-lang-switch button').forEach(b => b.classList.toggle('active', b.id === 'adm-btn-' + l));
+  updateUITexts();
+}
+
+function updateUITexts() {
+  document.getElementById('login-subtitle').textContent = t('login_subtitle');
+  document.getElementById('login-shop-id').placeholder = t('shop_id_ph');
+  document.getElementById('login-pin').placeholder = t('pin_ph');
+  document.getElementById('login-btn').textContent = t('login_btn');
+  document.getElementById('no-account').innerHTML = t('no_account') + ' <a href="#" onclick="showRegister()" style="color:var(--pri)">' + t('register_link') + '</a>';
+  document.getElementById('reg-title').textContent = t('reg_title');
+  document.getElementById('reg-subtitle').textContent = t('reg_subtitle');
+  document.getElementById('reg-name').placeholder = t('name_ph');
+  document.getElementById('reg-phone').placeholder = t('phone_ph');
+  document.getElementById('reg-pin').placeholder = t('pin_new_ph');
+  document.getElementById('reg-btn').textContent = t('reg_btn');
+  document.getElementById('back-login').innerHTML = '<a href="#" onclick="showLogin()" style="color:var(--pri)">' + t('back_login') + '</a>';
+  if (shop) {
+    document.getElementById('tab-orders').textContent = t('tab_orders');
+    document.getElementById('tab-menu').textContent = t('tab_menu');
+    document.getElementById('tab-share').textContent = t('tab_share');
+    document.getElementById('th-customer').textContent = t('th_customer');
+    document.getElementById('th-items').textContent = t('th_items');
+    document.getElementById('th-total').textContent = t('th_total');
+    document.getElementById('th-time').textContent = t('th_time');
+    document.getElementById('th-status').textContent = t('th_status');
+    document.getElementById('th-action').textContent = t('th_action');
+    document.getElementById('item-name').placeholder = t('item_name_ph');
+    document.getElementById('item-name-zh').placeholder = t('item_name_zh_ph');
+    document.getElementById('item-name-en').placeholder = t('item_name_en_ph');
+    document.getElementById('item-name-srn').placeholder = t('item_name_srn_ph');
+    document.getElementById('item-price').placeholder = t('item_price_ph');
+    document.getElementById('item-cat').options[0].textContent = t('cat_opt');
+    document.getElementById('share-title').textContent = t('share_title');
+    document.getElementById('share-desc').textContent = t('share_desc');
+    document.getElementById('share-wa').innerHTML = '<strong>WhatsApp:</strong> ' + t('share_wa');
+    document.getElementById('share-tip').textContent = t('share_tip');
+    document.getElementById('tab-settings').textContent = t('tab_settings');
+    document.getElementById('settings-title').textContent = t('settings_title');
+    document.getElementById('lbl-welcome').textContent = t('settings_welcome');
+    document.getElementById('lbl-wa').textContent = t('settings_wa');
+    document.getElementById('lbl-lang').textContent = t('settings_lang');
+    document.getElementById('lbl-bank-name').textContent = t('settings_bank_name');
+    document.getElementById('lbl-bank-acc').textContent = t('settings_bank_account');
+    document.getElementById('lbl-bank-holder').textContent = t('settings_bank_holder');
+    document.getElementById('save-settings-btn').textContent = t('settings_save');
+    updateMenuLinkBox();
+    loadOrders();
+    loadItems();
+  }
+}
+
+function loadShareTab() {
+  const qrImg = document.getElementById('qr-image');
+  if (qrImg) qrImg.src = '/api/shop/' + shop.id + '/qr';
+}
+
+function updateMenuLinkBox() {
+  if (!shop) return;
+  const link = `${location.origin}/order/${shop.id}`;
+  document.getElementById('menu-link-box').innerHTML = `🔗 ${t('menu_link_label')} <strong><a href="${esc(link)}" target="_blank">${esc(link)}</a></strong> <button class="btn btn-pri" style="margin-left:8px;padding:4px 10px;font-size:.75rem" onclick="navigator.clipboard.writeText('${esc(link)}')">${t('copy_btn')}</button>`;
+  document.getElementById('menu-url').value = link;
+}
 
 function authHeaders() { return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }; }
 
@@ -110,28 +511,30 @@ function showLogin(){document.getElementById('register-box').style.display='none
 
 async function register(){
   const name=document.getElementById('reg-name').value.trim(),phone=document.getElementById('reg-phone').value.trim(),pin=document.getElementById('reg-pin').value.trim(),lang=document.getElementById('reg-lang').value;
-  if(!name||!pin) return alert('Vul bedrijfsnaam en PIN in');
-  if(pin.length<4) return alert('PIN moet minimaal 4 tekens zijn');
+  if(!name||!pin) return alert(t('alert_name_pin'));
+  if(pin.length<4) return alert(t('alert_pin_min'));
   const r=await fetch('/api/shops',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,phone,language:lang,admin_pin:pin,whatsapp_number:phone})});
-  if(!r.ok){ const e=await r.json().catch(()=>({})); return alert(e.error||'Fout bij registratie'); }
+  if(!r.ok){ const e=await r.json().catch(()=>({})); return alert(e.error||t('alert_reg_error')); }
   const d=await r.json();
   token = d.token;
   document.getElementById('login-shop-id').value=d.id;
   document.getElementById('login-pin').value='';
-  alert('Account aangemaakt! Shop ID: '+d.id+' — bewaar dit goed. Je bent nu ingelogd.');
+  alert(t('alert_account_created').replace('{id}', d.id));
   showLogin();
-  // Auto-login with returned token
   const r2 = await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({shop_id:d.id,admin_pin:pin})});
   const d2 = await r2.json();
   token = d2.token; shop = d2.shop;
+  adminLang = shop.language || 'nl';
   showDashboard();
 }
 
 async function login(){
   const id=document.getElementById('login-shop-id').value.trim(),pin=document.getElementById('login-pin').value.trim();
   const r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({shop_id:id,admin_pin:pin})});
-  if(!r.ok) return alert('Ongeldige inloggegevens');
+  if(!r.ok) return alert(t('alert_invalid_login'));
   const d=await r.json();token=d.token;shop=d.shop;
+  adminLang = shop.language || 'nl';
+  setAdminLang(adminLang);
   showDashboard();
 }
 
@@ -141,20 +544,24 @@ function showDashboard(){
   document.getElementById('dashboard').style.display='block';
   document.getElementById('dash-shop-name').textContent=shop.name;
   document.getElementById('dash-shop-id').textContent='ID: '+shop.id;
-  const link=`${location.origin}/order/${shop.id}`;
-  document.getElementById('menu-link-box').innerHTML=`🔗 Uw bestellink: <strong><a href="${esc(link)}" target="_blank">${esc(link)}</a></strong> <button class="btn btn-pri" style="margin-left:8px;padding:4px 10px;font-size:.75rem" onclick="navigator.clipboard.writeText('${esc(link)}')">Kopiëren</button>`;
-  document.getElementById('menu-url').value=link;
+  updateMenuLinkBox();
+  updateUITexts();
   loadDashboard();loadOrders();loadItems();
+  if (!shop.wizard_complete) {
+    startWizard();
+  } else {
+    startNotificationPolling();
+  }
 }
 
 async function loadDashboard(){
   const r=await fetch('/api/admin/dashboard',{headers:authHeaders()});
   const d=await r.json();
   document.getElementById('stats').innerHTML=`
-    <div class="stat-card"><div class="label">Vandaag Orders</div><div class="value">${d.ordersToday?.count||0}</div></div>
-    <div class="stat-card"><div class="label">Vandaag Omzet</div><div class="value">SRD ${(d.ordersToday?.total||0).toFixed(0)}</div></div>
-    <div class="stat-card"><div class="label">7 Dagen Omzet</div><div class="value">SRD ${(d.ordersWeek?.total||0).toFixed(0)}</div></div>
-    <div class="stat-card"><div class="label">Openstaand</div><div class="value">${d.pending?.count||0}</div></div>`;
+    <div class="stat-card"><div class="label">${t('stats_today_orders')}</div><div class="value">${d.ordersToday?.count||0}</div></div>
+    <div class="stat-card"><div class="label">${t('stats_today_revenue')}</div><div class="value">SRD ${(d.ordersToday?.total||0).toFixed(0)}</div></div>
+    <div class="stat-card"><div class="label">${t('stats_week_revenue')}</div><div class="value">SRD ${(d.ordersWeek?.total||0).toFixed(0)}</div></div>
+    <div class="stat-card" id="stat-pending"><div class="label">${t('stats_pending')}</div><div class="value">${d.pending?.count||0}</div></div>`;
 }
 
 async function loadOrders(){
@@ -163,7 +570,14 @@ async function loadOrders(){
   document.getElementById('orders-tbody').innerHTML=orders.map(o=>{
     let items;try{items=JSON.parse(o.items_json)}catch(e){items=[]}
     const sc='status-'+esc(o.status);
-    return `<tr><td>#${esc(String(o.id))}</td><td>${esc(o.customer_name)}</td><td>${items.map(i=>`${i.qty}x ${esc(i.name)}`).join(', ')}</td><td>SRD ${o.total.toFixed(2)}</td><td>${esc(o.created_at?.slice(11,16)||'')}</td><td><span class="order-status ${sc}">${esc(o.status)}</span></td><td><select onchange="updateOrderStatus('${esc(o.id)}',this.value)" style="font-size:.75rem;padding:4px"><option value="">Actie</option><option value="confirmed">Bevestig</option><option value="done">Klaar</option><option value="cancelled">Annuleer</option></select></td></tr>`}).join('')||'<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--muted)">Geen bestellingen</td></tr>';
+    const pm=o.payment_method==='bank_transfer'?'🏦':'💵';
+    const psMap={unpaid:'pay_unpaid',paid:'pay_paid',refunded:'pay_refunded'};
+    const ps=psMap[o.payment_status]||'pay_unpaid';
+    const psBadge=o.payment_status==='paid'?'style="background:#d1fae5;color:#065f46"':(o.payment_status==='refunded'?'style="background:#fee2e2;color:#991b1b"':'style="background:#fef3c7;color:#92400e"');
+    let payBtn='';
+    if(o.payment_status==='unpaid')payBtn=`<button class="btn btn-pri" style="padding:2px 6px;font-size:.65rem;margin-right:2px" onclick="updatePaymentStatus('${esc(o.id)}','paid')">${t('mark_paid')}</button>`;
+    if(o.payment_status==='paid')payBtn=`<button class="btn btn-danger" style="padding:2px 6px;font-size:.65rem" onclick="updatePaymentStatus('${esc(o.id)}','refunded')">${t('mark_refunded')}</button>`;
+    return `<tr><td>#${esc(String(o.id))}</td><td>${esc(o.customer_name)}</td><td>${items.map(i=>`${i.qty}x ${esc(i.name)}`).join(', ')}</td><td>SRD ${o.total.toFixed(2)} <span ${psBadge} style="display:inline-block;padding:1px 5px;border-radius:8px;font-size:.7rem;margin-left:4px">${t(ps)}</span> ${payBtn}</td><td>${esc(o.created_at?.slice(11,16)||'')}</td><td><span class="order-status ${sc}">${esc(o.status)}</span></td><td><select onchange="updateOrderStatus('${esc(o.id)}',this.value)" style="font-size:.75rem;padding:4px"><option value="">${t('actie')}</option><option value="confirmed">${t('bevestig')}</option><option value="done">${t('klaar')}</option><option value="cancelled">${t('annuleer')}</option></select></td></tr>`}).join('')||'<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--muted)">'+t('empty_orders')+'</td></tr>';
 }
 
 async function updateOrderStatus(id,s){
@@ -176,23 +590,234 @@ async function loadItems(){
   const r=await fetch('/api/admin/items',{headers:authHeaders()});
   const items=await r.json();
   const cats=await (await fetch('/api/admin/categories',{headers:authHeaders()})).json();
-  document.getElementById('item-cat').innerHTML='<option value="">Categorie</option>'+cats.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
-  document.getElementById('items-list').innerHTML='<table><thead><tr><th>Gerecht</th><th>Cat</th><th>Prijs</th><th></th></tr></thead><tbody>'+items.map(i=>`<tr><td>${esc(i.name)}${i.name_zh?' / '+esc(i.name_zh):''}</td><td>${esc(i.category_name||'-')}</td><td>SRD ${i.price.toFixed(2)}</td><td><button class="btn btn-danger" style="padding:2px 8px;font-size:.7rem" onclick="deleteItem(${i.id})">X</button></td></tr>`).join('')+'</tbody></table>';
+  document.getElementById('item-cat').innerHTML='<option value="">'+t('cat_opt')+'</option>'+cats.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
+  document.getElementById('items-list').innerHTML='<table><thead><tr><th>'+t('th_name')+'</th><th>'+t('th_cat')+'</th><th>'+t('th_price')+'</th><th></th></tr></thead><tbody>'+items.map(i=>`<tr><td>${esc(i.name)}${i.name_zh?' / '+esc(i.name_zh):''}${i.name_srn?' / '+esc(i.name_srn):''}</td><td>${esc(i.category_name||'-')}</td><td>SRD ${i.price.toFixed(2)}</td><td><button class="btn btn-danger" style="padding:2px 8px;font-size:.7rem" onclick="deleteItem(${i.id})">X</button></td></tr>`).join('')+'</tbody></table>';
 }
 
 async function addItem(){
-  const name=document.getElementById('item-name').value.trim(),name_zh=document.getElementById('item-name-zh').value.trim(),name_en=document.getElementById('item-name-en').value.trim(),price=parseFloat(document.getElementById('item-price').value),category_id=document.getElementById('item-cat').value||null;
-  if(!name||!price) return alert('Naam en prijs verplicht');
-  await fetch('/api/admin/items',{method:'POST',headers:authHeaders(),body:JSON.stringify({name,name_zh,name_en,price,category_id:category_id?parseInt(category_id):null})});
-  document.getElementById('item-name').value='';document.getElementById('item-name-zh').value='';document.getElementById('item-name-en').value='';document.getElementById('item-price').value='';
+  const name=document.getElementById('item-name').value.trim(),
+        name_zh=document.getElementById('item-name-zh').value.trim(),
+        name_en=document.getElementById('item-name-en').value.trim(),
+        name_srn=document.getElementById('item-name-srn').value.trim(),
+        price=parseFloat(document.getElementById('item-price').value),
+        category_id=document.getElementById('item-cat').value||null;
+  if(!name||!price) return alert(t('alert_name_price'));
+  await fetch('/api/admin/items',{method:'POST',headers:authHeaders(),body:JSON.stringify({name,name_zh,name_en,name_srn,price,category_id:category_id?parseInt(category_id):null})});
+  document.getElementById('item-name').value='';document.getElementById('item-name-zh').value='';document.getElementById('item-name-en').value='';document.getElementById('item-name-srn').value='';document.getElementById('item-price').value='';
   loadItems();
 }
 
-async function deleteItem(id){if(confirm('Verwijderen?')){await fetch(`/api/admin/items/${id}`,{method:'DELETE',headers:authHeaders()});loadItems()}}
+async function deleteItem(id){if(confirm(t('alert_delete'))){await fetch(`/api/admin/items/${id}`,{method:'DELETE',headers:authHeaders()});loadItems()}}
 
-function switchTab(t){tab=t;document.querySelectorAll('.tabs button').forEach((b,i)=>{b.classList.toggle('active',i===['orders','menu','share'].indexOf(t))});document.querySelectorAll('.panel').forEach(p=>{p.classList.toggle('active',p.id==='panel-'+t)});if(t==='orders')loadOrders();if(t==='menu')loadItems()}
+function switchTab(t){tab=t;document.querySelectorAll('.tabs button').forEach((b,i)=>{b.classList.toggle('active',i===['orders','menu','share','settings'].indexOf(t))});document.querySelectorAll('.panel').forEach(p=>{p.classList.toggle('active',p.id==='panel-'+t)});if(t==='orders')loadOrders();if(t==='menu')loadItems();if(t==='share')loadShareTab();if(t==='settings')loadSettings()}
 
-async function loadMenuLink(){const r=await fetch(`/api/shop/${shop.id}/menu-link`);const d=await r.json();document.getElementById('menu-url').value=d.link}
+// ─ Payment ─
+async function updatePaymentStatus(id, ps) {
+  await fetch(`/api/admin/orders/${id}`, { method: 'PUT', headers: authHeaders(), body: JSON.stringify({ payment_status: ps }) });
+  loadOrders();
+}
+
+// ─ Settings ─
+function loadSettings() {
+  document.getElementById('set-welcome').value = shop.welcome_msg || '';
+  document.getElementById('set-wa').value = shop.whatsapp_number || '';
+  document.getElementById('set-lang').value = shop.language || 'nl';
+  document.getElementById('set-bank-name').value = shop.bank_name || '';
+  document.getElementById('set-bank-acc').value = shop.bank_account || '';
+  document.getElementById('set-bank-holder').value = shop.bank_account_name || '';
+}
+
+async function saveSettings() {
+  const data = {
+    welcome_msg: document.getElementById('set-welcome').value.trim(),
+    whatsapp_number: document.getElementById('set-wa').value.trim(),
+    language: document.getElementById('set-lang').value,
+    bank_name: document.getElementById('set-bank-name').value.trim(),
+    bank_account: document.getElementById('set-bank-acc').value.trim(),
+    bank_account_name: document.getElementById('set-bank-holder').value.trim()
+  };
+  const r = await fetch('/api/admin/shop', { method: 'PUT', headers: authHeaders(), body: JSON.stringify(data) });
+  if (r.ok) {
+    // Update local shop object
+    Object.assign(shop, data);
+    updateMenuLinkBox();
+    const btn = document.getElementById('save-settings-btn');
+    btn.textContent = '✓';
+    setTimeout(() => { btn.textContent = t('settings_save'); }, 1500);
+  }
+}
+
+// ─ Setup Wizard ─
+let wizStep = 0, wizData = {};
+
+function startWizard() {
+  wizStep = 1; wizData = {};
+  document.getElementById('wizard-overlay').style.display = 'flex';
+  renderWizard();
+}
+
+function endWizard() {
+  document.getElementById('wizard-overlay').style.display = 'none';
+  fetch(`/api/shops/${shop.id}/setup`, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify({ ...wizData, wizard_complete: true })
+  }).then(() => {
+    startNotificationPolling();
+  });
+}
+
+function renderWizard() {
+  const box = document.getElementById('wizard-box');
+  const dots = Array(5).fill(0).map((_,i) => `<span class="step-dot${i < wizStep ? ' done' : ''}"></span>`).join('');
+  let html = `<div class="step-dots">${dots}</div>`;
+
+  if (wizStep === 1) {
+    html += `<h2>${t('wizard_step1_title')}</h2><p class="step-hint">${t('wizard_step1_desc')}</p>`;
+    html += `<div class="shop-id-display">${shop.id}</div>`;
+    html += `<button class="shop-id-display-btn" onclick="copyShopId(event)">📋 ${t('wizard_copy')}</button>`;
+    html += `<button class="wiz-next" onclick="wizNext()">${t('wizard_next')}</button>`;
+  } else if (wizStep === 2) {
+    html += `<h2>${t('wizard_step2_title')}</h2><p class="step-hint">${t('wizard_step2_desc')}</p>`;
+    html += `<input type="tel" id="wiz-wa" placeholder="${t('wizard_step2_ph')}" value="${esc(shop.whatsapp_number || '')}">`;
+    html += `<button class="wiz-next" onclick="wizSave('whatsapp_number',document.getElementById('wiz-wa').value)">${t('wizard_next')}</button>`;
+    html += `<button class="wiz-skip" onclick="wizNext()">${t('wizard_skip')}</button>`;
+  } else if (wizStep === 3) {
+    html += `<h2>${t('wizard_step3_title')}</h2><p class="step-hint">${t('wizard_step3_desc')}</p>`;
+    html += `<div id="wiz-items"><div class="wizard-item-row"><input type="text" id="wiz-item-name-0" placeholder="${t('wizard_step3_name')}"><input type="number" id="wiz-item-price-0" placeholder="${t('wizard_step3_price')}" step="0.01" style="max-width:100px"></div></div>`;
+    html += `<button class="wiz-skip" onclick="addWizItemRow()" style="margin-bottom:8px">${t('wizard_add_item')}</button>`;
+    html += `<button class="wiz-next" onclick="wizSaveMenu()">${t('wizard_next')}</button>`;
+    html += `<button class="wiz-skip" onclick="wizNext()">${t('wizard_skip')}</button>`;
+    wizItemCount = 1;
+  } else if (wizStep === 4) {
+    const link = `${location.origin}/order/${shop.id}`;
+    html += `<h2>${t('wizard_step4_title')}</h2><p class="step-hint">${t('wizard_step4_desc')}</p>`;
+    html += `<div class="menu-link-box"><strong>${esc(link)}</strong></div>`;
+    html += `<button class="btn btn-pri" style="margin-bottom:8px" onclick="navigator.clipboard.writeText('${esc(link)}')">📋 ${t('wizard_copy')}</button><br>`;
+    html += `<a class="btn btn-pri" style="display:inline-block;margin-bottom:4px;background:#25D366;text-decoration:none" href="https://wa.me/?text=${encodeURIComponent(shop.name+' - '+t('share_desc')+': '+link)}" target="_blank">📱 WhatsApp</a><br>`;
+    html += `<button class="wiz-next" onclick="wizNext()">${t('wizard_next')}</button>`;
+  } else if (wizStep === 5) {
+    html += `<h2>${t('wizard_step5_title')}</h2><p class="step-hint">${t('wizard_step5_desc')}</p>`;
+    html += `<button class="wiz-next" onclick="endWizard()">${t('wizard_done')}</button>`;
+  }
+
+  box.innerHTML = html;
+}
+
+let wizItemCount = 1;
+function addWizItemRow() {
+  const container = document.getElementById('wiz-items');
+  const row = document.createElement('div');
+  row.className = 'wizard-item-row';
+  row.innerHTML = `<input type="text" id="wiz-item-name-${wizItemCount}" placeholder="${t('wizard_step3_name')}"><input type="number" id="wiz-item-price-${wizItemCount}" placeholder="${t('wizard_step3_price')}" step="0.01" style="max-width:100px">`;
+  container.appendChild(row);
+  wizItemCount++;
+}
+
+function wizSave(key, value) {
+  if (value) wizData[key] = value;
+  wizNext();
+}
+
+function wizSaveMenu() {
+  const menu_items = [];
+  for (let i = 0; i < wizItemCount; i++) {
+    const nameEl = document.getElementById('wiz-item-name-' + i);
+    const priceEl = document.getElementById('wiz-item-price-' + i);
+    if (nameEl && priceEl && nameEl.value.trim() && priceEl.value) {
+      menu_items.push({ name: nameEl.value.trim(), price: parseFloat(priceEl.value) });
+    }
+  }
+  if (menu_items.length) wizData.menu_items = menu_items;
+  wizNext();
+}
+
+function wizNext() { wizStep++; renderWizard(); }
+
+function copyShopId(ev) {
+  navigator.clipboard.writeText(shop.id);
+  const btn = ev.target;
+  btn.textContent = '✓ Gekopieerd!';
+  setTimeout(() => { btn.textContent = '📋 ' + t('wizard_copy'); }, 1500);
+}
+
+// ─ Order Notification Polling ─
+let lastOrderId = null, pollTimer = null;
+
+function startNotificationPolling() {
+  if (pollTimer) return;
+  if (Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+  fetch('/api/admin/orders?limit=5', { headers: authHeaders() })
+    .then(r => r.json())
+    .then(orders => {
+      if (orders.length) lastOrderId = orders[0].id;
+    });
+  pollTimer = setInterval(checkNewOrders, 15000);
+}
+
+async function checkNewOrders() {
+  try {
+    const r = await fetch('/api/admin/orders?limit=5', { headers: authHeaders() });
+    if (!r.ok) return;
+    const orders = await r.json();
+    if (!orders.length) return;
+    if (lastOrderId && orders[0].id !== lastOrderId) {
+      const newOrders = [];
+      for (const o of orders) {
+        if (o.id === lastOrderId) break;
+        newOrders.push(o);
+      }
+      if (newOrders.length) {
+        for (const o of newOrders.reverse()) {
+          showNotification(o);
+        }
+        lastOrderId = orders[0].id;
+        loadOrders();
+        loadDashboard();
+        document.getElementById('stat-pending').classList.add('stat-pulse');
+        setTimeout(() => document.getElementById('stat-pending').classList.remove('stat-pulse'), 1500);
+      }
+    }
+    if (!lastOrderId) lastOrderId = orders[0].id;
+  } catch (e) { /* ignore polling errors */ }
+}
+
+function showNotification(order) {
+  // Browser notification
+  if (Notification.permission === 'granted') {
+    new Notification(t('notif_new_order'), {
+      body: `${t('notif_from')} ${order.customer_name} — SRD ${order.total.toFixed(2)}`,
+      icon: '/favicon.ico'
+    });
+  }
+  // Sound
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.value = 880;
+    gain.gain.value = 0.2;
+    osc.start(); osc.stop(ctx.currentTime + 0.12);
+    setTimeout(() => {
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.connect(gain2); gain2.connect(ctx.destination);
+      osc2.frequency.value = 1100;
+      gain2.gain.value = 0.2;
+      osc2.start(); osc2.stop(ctx.currentTime + 0.15);
+    }, 150);
+  } catch (e) { /* audio not available */ }
+  // Banner
+  const banner = document.getElementById('notif-banner');
+  banner.textContent = `🔔 ${t('notif_new_order')} ${t('notif_from')} ${order.customer_name} — SRD ${order.total.toFixed(2)}`;
+  banner.style.display = 'block';
+  setTimeout(() => { banner.style.display = 'none'; }, 5000);
+}
+
+showLogin();
 </script>
 </body>
 </html>

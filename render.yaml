@@ -11,7 +11,7 @@ services:
       - key: BASE_URL
         value: https://suriorder.onrender.com
       - key: JWT_SECRET
-        value: QICuSpzjPZFewHobgAD2GdWEBltiTKmsx3vnXyVO9qhaYf6J
+        value: CsLi9DYEgYxHoh88L80yKkgp2GY4da5kn6sK1L5WY8k
     disk:
       name: sqlite-data
       mountPath: /opt/render/project/src/data

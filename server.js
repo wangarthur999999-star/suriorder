@@ -49,7 +49,16 @@ app.use((req, res, next) => {
   next();
 });
 
-const JWT_SECRET = process.env.JWT_SECRET || crypto.randomBytes(32).toString("hex");
+// JWT secret: env var > persisted file > generate once and save
+const JWT_SECRET_FILE = path.join(__dirname, "data", ".jwt_secret");
+let JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  try { JWT_SECRET = fs.readFileSync(JWT_SECRET_FILE, "utf-8").trim(); } catch (_) {}
+  if (!JWT_SECRET) {
+    JWT_SECRET = crypto.randomBytes(32).toString("hex");
+    fs.writeFileSync(JWT_SECRET_FILE, JWT_SECRET);
+  }
+}
 const PORT = process.env.PORT || 3456;
 
 const ORDER_HTML = fs.readFileSync(path.join(__dirname, "public", "order.html"), "utf-8");

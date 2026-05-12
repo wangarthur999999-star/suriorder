@@ -5,7 +5,8 @@ function registerOrderRoutes(app, db, { auth, orderLimiter }) {
   // Public: place order
   app.post("/api/order", orderLimiter, (req, res) => {
     const { shop_id, customer_name, customer_phone, items, note, pickup_time } = req.body;
-    if (!shop_id || !customer_name || !items || !items.length) return res.status(400).json({ error: "missing fields" });
+    if (!shop_id || !customer_name || !customer_phone || !items || !items.length) return res.status(400).json({ error: "missing fields" });
+    if (!/^\+?597\d{7}$/.test(customer_phone)) return res.status(400).json({ error: "invalid phone" });
     if (!Array.isArray(items) || items.length > 50) return res.status(400).json({ error: "too many items" });
     const shop = db.prepare("SELECT * FROM shops WHERE id=? AND active=1").get(shop_id);
     if (!shop) return res.status(404).json({ error: "shop not found" });
@@ -27,7 +28,7 @@ function registerOrderRoutes(app, db, { auth, orderLimiter }) {
     const paymentMethod = validPaymentMethods.includes(req.body.payment_method) ? req.body.payment_method : "cod";
 
     const orderId = crypto.randomBytes(4).toString("hex");
-    db.prepare("INSERT INTO orders (id, shop_id, customer_name, customer_phone, items_json, total, note, pickup_time, payment_method) VALUES (?,?,?,?,?,?,?,?,?)").run(orderId, shop_id, customer_name, customer_phone || null, JSON.stringify(orderItems), total, note || null, pickup_time || null, paymentMethod);
+    db.prepare("INSERT INTO orders (id, shop_id, customer_name, customer_phone, items_json, total, note, pickup_time, payment_method) VALUES (?,?,?,?,?,?,?,?,?)").run(orderId, shop_id, customer_name, customer_phone, JSON.stringify(orderItems), total, note || null, pickup_time || null, paymentMethod);
 
     res.json({ order_id: orderId, total, items: orderItems, payment_method: paymentMethod });
   });

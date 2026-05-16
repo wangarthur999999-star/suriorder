@@ -9,12 +9,14 @@ const helmet = require("helmet");
 const { initDb } = require("./db/schema");
 const { scheduleBackup } = require("./lib/backup");
 const { authMiddleware } = require("./middleware/auth");
-const { apiLimiter } = require("./middleware/rateLimit");
+const { apiLimiter, orderLimiter } = require("./middleware/rateLimit");
+const rateLimit = require("express-rate-limit");
+
+const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 5, standardHeaders: true, legacyHeaders: false, message: { error: "too many attempts" } });
 const { registerAuthRoutes } = require("./routes/auth");
 const { registerShopRoutes } = require("./routes/shops");
 const { registerOrderRoutes } = require("./routes/orders");
 const { registerAdminRoutes } = require("./routes/admin");
-const { orderLimiter } = require("./middleware/rateLimit");
 
 fs.mkdirSync(path.join(__dirname, "data"), { recursive: true });
 
@@ -72,14 +74,19 @@ scheduleBackup(db);
 const auth = authMiddleware(JWT_SECRET);
 
 // Register all routes
-registerAuthRoutes(app, db, { JWT_SECRET, auth });
+registerAuthRoutes(app, db, { JWT_SECRET, auth, loginLimiter });
 registerShopRoutes(app, db);
 registerOrderRoutes(app, db, { auth, orderLimiter });
 registerAdminRoutes(app, db, { auth });
 
 // Health check
 app.get("/health", (_req, res) => {
-  res.json({ status: "ok", uptime: process.uptime() });
+  try {
+    db.prepare("SELECT 1").get();
+    res.json({ status: "ok", uptime: process.uptime() });
+  } catch (e) {
+    res.status(503).json({ status: "error", message: e.message });
+  }
 });
 
 // Static pages
@@ -97,8 +104,14 @@ app.get("/order/:shopId", (req, res) => {
 });
 app.get("/admin/:shopId", (_req, res) => res.sendFile(path.join(__dirname, "public", "admin.html")));
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`SuriOrder running on http://localhost:${PORT}`);
   console.log(`Demo order page: http://localhost:${PORT}/order/demo`);
   console.log(`Admin panel: http://localhost:${PORT}/admin/demo`);
+});
+
+process.on("SIGTERM", () => {
+  console.log("SIGTERM received, shutting down gracefully...");
+  server.close(() => { console.log("Server closed"); process.exit(0); });
+  setTimeout(() => { process.exit(0); }, 9000);
 });

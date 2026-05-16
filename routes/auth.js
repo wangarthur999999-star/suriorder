@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 
 const validLangs = ["nl", "en", "zh"];
 
-function registerAuthRoutes(app, db, { JWT_SECRET, auth }) {
+function registerAuthRoutes(app, db, { JWT_SECRET, auth, loginLimiter }) {
 
   // Shop creation
   app.post("/api/shops", (req, res) => {
@@ -20,7 +20,7 @@ function registerAuthRoutes(app, db, { JWT_SECRET, auth }) {
   });
 
   // Login
-  app.post("/api/login", (req, res) => {
+  app.post("/api/login", loginLimiter, (req, res) => {
     const { shop_id, admin_pin } = req.body;
     if (!shop_id || !admin_pin) return res.status(400).json({ error: "shop_id and admin_pin required" });
     const shop = db.prepare("SELECT * FROM shops WHERE id=?").get(shop_id);

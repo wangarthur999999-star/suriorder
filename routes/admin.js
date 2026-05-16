@@ -40,7 +40,15 @@ function registerAdminRoutes(app, db, { auth }) {
   app.put("/api/admin/items/:id", auth, (req, res) => {
     const { name, name_zh, name_en, name_srn, desc, desc_zh, desc_en, desc_srn, price, available, category_id, image_url } = req.body;
     if (price != null && (typeof price !== "number" || price < 0)) return res.status(400).json({ error: "invalid price" });
-    db.prepare("UPDATE items SET name=?, name_zh=?, name_en=?, name_srn=?, desc=?, desc_zh=?, desc_en=?, desc_srn=?, price=?, available=?, category_id=?, image_url=? WHERE id=? AND shop_id=?").run(name, name_zh, name_en, name_srn, desc, desc_zh, desc_en, desc_srn, price, available ?? 1, category_id, image_url, req.params.id, req.shopId);
+    db.prepare(`UPDATE items SET
+      name=COALESCE(?,name), name_zh=COALESCE(?,name_zh), name_en=COALESCE(?,name_en), name_srn=COALESCE(?,name_srn),
+      desc=COALESCE(?,desc), desc_zh=COALESCE(?,desc_zh), desc_en=COALESCE(?,desc_en), desc_srn=COALESCE(?,desc_srn),
+      price=COALESCE(?,price), available=COALESCE(?,available), category_id=COALESCE(?,category_id), image_url=COALESCE(?,image_url)
+      WHERE id=? AND shop_id=?`)
+    .run(name ?? null, name_zh ?? null, name_en ?? null, name_srn ?? null,
+      desc ?? null, desc_zh ?? null, desc_en ?? null, desc_srn ?? null,
+      price ?? null, available ?? null, category_id ?? null, image_url ?? null,
+      req.params.id, req.shopId);
     res.json({ ok: true });
   });
 

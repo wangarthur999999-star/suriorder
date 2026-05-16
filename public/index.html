@@ -15,6 +15,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 header{background:var(--pri);color:#fff;padding:24px 16px;text-align:center}
 header h1{font-size:1.5rem;margin-bottom:4px}
 header p{font-size:.85rem;opacity:.9;margin-top:4px}
+.btn-register{display:inline-block;margin-top:12px;padding:8px 20px;background:#fff;color:var(--pri);border-radius:8px;font-weight:700;font-size:.85rem;text-decoration:none}
 .lang-row{display:flex;justify-content:center;gap:4px;margin-top:10px}
 .lang-row button{background:rgba(255,255,255,.25);border:none;color:#fff;padding:4px 10px;border-radius:4px;font-size:.75rem;cursor:pointer}
 .lang-row button.active{background:#fff;color:var(--pri);font-weight:600}
@@ -39,6 +40,7 @@ header p{font-size:.85rem;opacity:.9;margin-top:4px}
 <header>
   <h1>🍽️ SuriOrder</h1>
   <p id="tagline">Bestel online by Surinaamse restaurants</p>
+  <a href="/register" class="btn-register" id="btn-register">🏪 Registreer jouw restaurant</a>
   <div class="lang-row">
     <button onclick="setLang('nl')" class="active" id="btn-nl">NL</button>
     <button onclick="setLang('en')" id="btn-en">EN</button>
@@ -52,9 +54,9 @@ header p{font-size:.85rem;opacity:.9;margin-top:4px}
 <div class="footer">SuriOrder — WhatsApp-first ordering for Suriname</div>
 <script>
 const L = {
-  nl: { tagline:"Bestel online by Surinaamse restaurants", search:"Zoek restaurant...", empty:"Geen restaurants gevonden", empty_hint:"Vraag jouw favoriete restaurant om zich aan te melden!", view_menu:"Bekijk menu", wa_chat:"WhatsApp", powered:"WhatsApp-first ordering for Suriname" },
-  en: { tagline:"Order online from Surinamese restaurants", search:"Search restaurants...", empty:"No restaurants found", empty_hint:"Ask your favorite restaurant to sign up!", view_menu:"View Menu", wa_chat:"WhatsApp", powered:"WhatsApp-first ordering for Suriname" },
-  zh: { tagline:"在线订购苏里南美食", search:"搜索餐厅...", empty:"未找到餐厅", empty_hint:"邀请您喜欢的餐厅加入！", view_menu:"查看菜单", wa_chat:"WhatsApp", powered:"苏里南 WhatsApp 优先点餐平台" },
+  nl: { tagline:"Bestel online by Surinaamse restaurants", search:"Zoek restaurant...", empty:"Geen restaurants gevonden", empty_hint:"Vraag jouw favoriete restaurant om zich aan te melden!", view_menu:"Bekijk menu", wa_chat:"WhatsApp", powered:"WhatsApp-first ordering for Suriname", register:"🏪 Registreer jouw restaurant" },
+  en: { tagline:"Order online from Surinamese restaurants", search:"Search restaurants...", empty:"No restaurants found", empty_hint:"Ask your favorite restaurant to sign up!", view_menu:"View Menu", wa_chat:"WhatsApp", powered:"WhatsApp-first ordering for Suriname", register:"🏪 Register your restaurant" },
+  zh: { tagline:"在线订购苏里南美食", search:"搜索餐厅...", empty:"未找到餐厅", empty_hint:"邀请您喜欢的餐厅加入！", view_menu:"查看菜单", wa_chat:"WhatsApp", powered:"苏里南 WhatsApp 优先点餐平台", register:"🏪 餐厅入驻" },
 };
 let lang = 'nl';
 
@@ -63,6 +65,7 @@ function setLang(l) {
   lang = l;
   document.querySelectorAll('.lang-row button').forEach(b => b.classList.toggle('active', b.id === 'btn-' + l));
   document.getElementById('tagline').textContent = t('tagline');
+  document.getElementById('btn-register').textContent = t('register');
   document.getElementById('search-input').placeholder = t('search');
   document.querySelector('.footer').textContent = t('powered');
   loadShops();

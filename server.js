@@ -105,6 +105,7 @@ app.get("/order/:shopId", (req, res) => {
   res.send(html);
 });
 app.get("/admin/:shopId", (_req, res) => res.sendFile(path.join(__dirname, "public", "admin.html")));
+app.get("/register", (_req, res) => res.sendFile(path.join(__dirname, "public", "admin.html")));
 
 const server = app.listen(PORT, () => {
   console.log(`SuriOrder running on http://localhost:${PORT}`);

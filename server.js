@@ -4,6 +4,7 @@ const path = require("path");
 const fs = require("fs");
 const crypto = require("crypto");
 const helmet = require("helmet");
+const morgan = require("morgan");
 
 // Modules
 const { initDb } = require("./db/schema");
@@ -35,6 +36,7 @@ app.use(helmet({
     },
   },
 }));
+app.use(morgan("short"));
 app.use(express.json({ limit: "100kb" }));
 app.use(express.static("public"));
 app.use("/api", apiLimiter);
@@ -114,4 +116,12 @@ process.on("SIGTERM", () => {
   console.log("SIGTERM received, shutting down gracefully...");
   server.close(() => { console.log("Server closed"); process.exit(0); });
   setTimeout(() => { process.exit(0); }, 9000);
+});
+
+process.on("uncaughtException", (err) => {
+  console.error("UNCAUGHT EXCEPTION:", err.stack || err.message);
+  process.exit(1);
+});
+process.on("unhandledRejection", (reason) => {
+  console.error("UNHANDLED REJECTION:", reason.stack || reason);
 });

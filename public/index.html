@@ -3,96 +3,321 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>SuriOrder — Bestel online bij Surinaamse restaurants</title>
-<meta name="description" content="Bestel eten online bij restaurants in Suriname. Snel, makkelijk, WhatsApp-first.">
+<title>SuriOrder — WhatsApp-first ordering for Surinamese restaurants</title>
+<meta name="description" content="Online ordering for restaurants in Suriname. Fast, easy, no app download. Free for restaurants.">
 <meta property="og:title" content="SuriOrder — Bestel online">
 <meta property="og:description" content="Bestel eten online bij restaurants in Suriname">
 <meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%2316a34a'/><text x='16' y='24' text-anchor='middle' font-size='18'>🍽️</text></svg>">
+<link rel="stylesheet" href="/shared.css">
 <style>
-:root{--pri:#22c55e;--bg:#f5f5f5;--card:#fff;--text:#1a1a1a;--muted:#666}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);max-width:480px;margin:0 auto}
-header{background:var(--pri);color:#fff;padding:24px 16px;text-align:center}
-header h1{font-size:1.5rem;margin-bottom:4px}
-header p{font-size:.85rem;opacity:.9;margin-top:4px}
-.btn-register{display:inline-block;margin-top:12px;padding:8px 20px;background:#fff;color:var(--pri);border-radius:8px;font-weight:700;font-size:.85rem;text-decoration:none}
-.lang-row{display:flex;justify-content:center;gap:4px;margin-top:10px}
-.lang-row button{background:rgba(255,255,255,.25);border:none;color:#fff;padding:4px 10px;border-radius:4px;font-size:.75rem;cursor:pointer}
-.lang-row button.active{background:#fff;color:var(--pri);font-weight:600}
-.search-bar{padding:12px 16px;background:#fff;border-bottom:1px solid #eee;display:flex;gap:8px}
-.search-bar input{flex:1;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:.9rem}
-.shop-list{padding:12px 16px}
-.shop-card{background:var(--card);border-radius:12px;padding:16px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.06);display:flex;justify-content:space-between;align-items:center}
-.shop-card .info{flex:1}
-.shop-card .info h3{font-size:1rem;margin-bottom:2px}
-.shop-card .info p{font-size:.8rem;color:var(--muted)}
-.shop-card .lang-badge{display:inline-block;padding:1px 6px;border-radius:4px;font-size:.65rem;background:#e5e7eb;color:var(--muted);margin-left:4px}
-.shop-card .actions{display:flex;flex-direction:column;gap:6px;align-items:flex-end}
-.shop-card .actions a{display:inline-block;padding:6px 14px;border-radius:8px;font-weight:600;font-size:.8rem;text-decoration:none;text-align:center}
-.btn-order{background:var(--pri);color:#fff}
-.btn-wa{background:#25D366;color:#fff}
-.empty-state{text-align:center;padding:60px 16px;color:var(--muted)}
-.empty-state .icon{font-size:3rem;margin-bottom:12px}
-.footer{text-align:center;padding:20px;color:var(--muted);font-size:.75rem}
+  body { max-width: 100%; }
+  .page { width: 100%; max-width: 520px; margin: 0 auto; }
+
+  /* ── Hero ── */
+  .hero {
+    background: linear-gradient(135deg, var(--pri), var(--pri-dark));
+    color: #fff;
+    padding: 48px 20px 36px;
+    text-align: center;
+    border-radius: 0 0 var(--r-2xl) var(--r-2xl);
+  }
+  .hero__brand { font-size: .8rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; opacity: .8; margin-bottom: 8px; }
+  .hero h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; letter-spacing: -.5px; }
+  .hero__sub { font-size: .95rem; opacity: .9; line-height: 1.6; margin-bottom: 24px; }
+  .hero__cta { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .hero__cta .btn { box-shadow: var(--shadow-md); }
+  .hero__cta .btn--outline { color: #fff; border-color: rgba(255,255,255,.5); }
+  .hero__cta .btn--outline:hover { background: rgba(255,255,255,.15); color: #fff; }
+
+  /* ── Language Switch ── */
+  .lang-row {
+    display: flex; justify-content: center; gap: 4px; margin-top: 20px;
+    background: rgba(255,255,255,.2); border-radius: var(--r); padding: 3px; width: fit-content; margin-left: auto; margin-right: auto;
+  }
+  .lang-row button {
+    background: transparent; border: none; color: rgba(255,255,255,.7);
+    padding: 6px 12px; border-radius: var(--r-sm); font-size: .8rem; cursor: pointer;
+    font-weight: 500; transition: all var(--tran); min-height: var(--touch-sm);
+  }
+  .lang-row button.active { background: #fff; color: var(--pri); font-weight: 700; box-shadow: var(--shadow-sm); }
+
+  /* ── How It Works ── */
+  .how { padding: 36px 16px 24px; text-align: center; }
+  .how h2 { font-size: 1.25rem; font-weight: 700; margin-bottom: 24px; color: var(--text); }
+  .how__steps { display: flex; flex-direction: column; gap: 16px; }
+  .step {
+    display: flex; align-items: center; gap: 14px; text-align: left;
+    background: var(--card); padding: 14px 16px; border-radius: var(--r-lg);
+    box-shadow: var(--shadow-sm);
+  }
+  .step__num {
+    width: 36px; height: 36px; border-radius: 50%; background: var(--pri-light);
+    color: var(--pri-dark); display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 1rem; flex-shrink: 0;
+  }
+  .step__body strong { display: block; font-size: .9rem; margin-bottom: 2px; }
+  .step__body p { font-size: .8rem; color: var(--text-sec); line-height: 1.4; }
+
+  /* ── Divider ── */
+  .section-divider { height: 4px; background: var(--bg); }
+
+  /* ── Search ── */
+  .search-bar {
+    padding: 12px 16px; display: flex; gap: 8px;
+    background: var(--card); border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 5;
+  }
+  .search-bar input {
+    flex: 1; padding: 10px 14px; border: 2px solid var(--border); border-radius: var(--r-lg);
+    font-size: .9rem; min-height: var(--touch-sm); outline: none;
+    transition: border-color var(--tran); background: var(--bg);
+  }
+  .search-bar input:focus { border-color: var(--pri); }
+
+  /* ── Shop List ── */
+  .shop-list { padding: 12px 16px; }
+  .shop-card {
+    background: var(--card); border-radius: var(--r-lg); padding: 16px;
+    margin-bottom: 10px; box-shadow: var(--shadow);
+    display: flex; justify-content: space-between; align-items: center;
+    transition: transform var(--tran), box-shadow var(--tran);
+    cursor: pointer;
+  }
+  .shop-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+  .shop-card .info { flex: 1; min-width: 0; }
+  .shop-card .info h3 { font-size: 1rem; font-weight: 700; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .shop-card .info p { font-size: .8rem; color: var(--text-sec); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .shop-card .lang-badge {
+    display: inline-block; padding: 1px 6px; border-radius: var(--r-sm);
+    font-size: .65rem; background: var(--bg); color: var(--muted); margin-left: 4px;
+    font-weight: 600;
+  }
+  .shop-card .actions { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; flex-shrink: 0; margin-left: 12px; }
+  .shop-card .actions a {
+    display: inline-flex; align-items: center; gap: 4px; padding: 8px 14px;
+    border-radius: var(--r); font-weight: 600; font-size: .78rem;
+    text-decoration: none; white-space: nowrap;
+    min-height: var(--touch-sm); transition: background var(--tran), transform var(--tran);
+  }
+  .shop-card .actions a:active { transform: scale(.96); }
+  .btn-order { background: var(--pri); color: #fff; }
+  .btn-order:hover { background: var(--pri-dark); }
+  .btn-wa { background: #25D366; color: #fff; }
+  .btn-wa:hover { background: #1fa954; }
+
+  /* ── Empty State ── */
+  .empty-state { text-align: center; padding: 48px 16px; color: var(--muted); }
+  .empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
+  .empty-state p { margin-bottom: 4px; }
+  .empty-state .hint { font-size: .85rem; color: var(--muted); margin-top: 4px; }
+
+  /* ── CTA Banner ── */
+  .cta-banner {
+    margin: 24px 16px; padding: 28px 20px;
+    background: linear-gradient(135deg, var(--pri-bg), var(--pri-light));
+    border-radius: var(--r-xl); text-align: center;
+    border: 1px solid rgba(22,163,74,.15);
+  }
+  .cta-banner h2 { font-size: 1.15rem; font-weight: 700; margin-bottom: 4px; }
+  .cta-banner p { font-size: .85rem; color: var(--text-sec); margin-bottom: 16px; }
+  .cta-banner .btn { box-shadow: var(--shadow); }
+
+  /* ── Footer ── */
+  .footer { text-align: center; padding: 16px 16px 24px; color: var(--muted); font-size: .75rem; }
 </style>
 </head>
 <body>
-<header>
-  <h1>🍽️ SuriOrder</h1>
-  <p id="tagline">Bestel online by Surinaamse restaurants</p>
-  <a href="/register" class="btn-register" id="btn-register">🏪 Registreer jouw restaurant</a>
-  <div class="lang-row">
-    <button onclick="setLang('nl')" class="active" id="btn-nl">NL</button>
-    <button onclick="setLang('en')" id="btn-en">EN</button>
-    <button onclick="setLang('zh')" id="btn-zh">中文</button>
+
+<div class="page">
+
+  <!-- ═══ Hero ═══ -->
+  <section class="hero">
+    <div class="hero__brand" id="hero-brand">WhatsApp ordering</div>
+    <h1>SuriOrder</h1>
+    <p class="hero__sub" id="hero-sub">Free online ordering platform for restaurants in Suriname.<br>No app download. No monthly fees. WhatsApp-ready.</p>
+    <div class="hero__cta">
+      <a href="#shops" class="btn btn--white btn--lg" id="cta-order">Browse restaurants</a>
+      <a href="/register" class="btn btn--outline btn--lg" id="cta-register">Register your restaurant</a>
+    </div>
+    <div class="lang-row">
+      <button onclick="setLang('nl')" class="active" id="btn-nl">NL</button>
+      <button onclick="setLang('en')" id="btn-en">EN</button>
+      <button onclick="setLang('zh')" id="btn-zh">中文</button>
+    </div>
+  </section>
+
+  <!-- ═══ How It Works ═══ -->
+  <section class="how" id="how">
+    <h2 id="how-title">How it works</h2>
+    <div class="how__steps">
+      <div class="step">
+        <div class="step__num">1</div>
+        <div class="step__body">
+          <strong id="step1-title">Register your restaurant</strong>
+          <p id="step1-desc">Create a free account in under 2 minutes. All you need is your restaurant name and a PIN.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step__num">2</div>
+        <div class="step__body">
+          <strong id="step2-title">Set up your menu</strong>
+          <p id="step2-desc">Add your dishes, prices, and descriptions. Multi-language support for Dutch, English, and Chinese.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step__num">3</div>
+        <div class="step__body">
+          <strong id="step3-title">Share your link</strong>
+          <p id="step3-desc">Send your ordering link to customers via WhatsApp. Orders appear instantly in your dashboard.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ Search + Shop List ═══ -->
+  <div class="section-divider"></div>
+  <div class="search-bar" id="search-bar">
+    <input type="text" id="search-input" placeholder="Search restaurants..." oninput="loadShops()">
   </div>
-</header>
-<div class="search-bar">
-  <input type="text" id="search-input" placeholder="Zoek restaurant..." oninput="loadShops()">
+  <div class="shop-list" id="shop-list"></div>
+
+  <!-- ═══ CTA Banner ═══ -->
+  <section class="cta-banner">
+    <h2 id="cta-banner-title">Own a restaurant?</h2>
+    <p id="cta-banner-desc">Join SuriOrder for free. No setup fees, no monthly costs.</p>
+    <a href="/register" class="btn btn--pri btn--lg" id="cta-banner-btn">Register your restaurant</a>
+  </section>
+
+  <!-- ═══ Footer ═══ -->
+  <div class="footer">SuriOrder — WhatsApp-first ordering for Suriname</div>
+
 </div>
-<div class="shop-list" id="shop-list"></div>
-<div class="footer">SuriOrder — WhatsApp-first ordering for Suriname</div>
+
+<script src="/shared.js"></script>
 <script>
 const L = {
-  nl: { tagline:"Bestel online by Surinaamse restaurants", search:"Zoek restaurant...", empty:"Geen restaurants gevonden", empty_hint:"Vraag jouw favoriete restaurant om zich aan te melden!", view_menu:"Bekijk menu", wa_chat:"WhatsApp", powered:"WhatsApp-first ordering for Suriname", register:"🏪 Registreer jouw restaurant" },
-  en: { tagline:"Order online from Surinamese restaurants", search:"Search restaurants...", empty:"No restaurants found", empty_hint:"Ask your favorite restaurant to sign up!", view_menu:"View Menu", wa_chat:"WhatsApp", powered:"WhatsApp-first ordering for Suriname", register:"🏪 Register your restaurant" },
-  zh: { tagline:"在线订购苏里南美食", search:"搜索餐厅...", empty:"未找到餐厅", empty_hint:"邀请您喜欢的餐厅加入！", view_menu:"查看菜单", wa_chat:"WhatsApp", powered:"苏里南 WhatsApp 优先点餐平台", register:"🏪 餐厅入驻" },
+  nl: {
+    hero_brand: "WhatsApp bestellen",
+    hero_sub: "Gratis online bestelplatform voor restaurants in Suriname. Geen app download. Geen maandelijkse kosten. WhatsApp-klaar.",
+    cta_order: "Bekijk restaurants",
+    cta_register: "Jouw restaurant aanmelden",
+    how_title: "Hoe werkt het",
+    step1_title: "Registreer jouw restaurant",
+    step1_desc: "Maak gratis een account aan in 2 minuten. Je hebt alleen je restaurantnaam en een PIN nodig.",
+    step2_title: "Stel je menu samen",
+    step2_desc: "Voeg gerechten, prijzen en omschrijvingen toe. Meertalig: Nederlands, Engels en Chinees.",
+    step3_title: "Deel je link",
+    step3_desc: "Stuur je bestellink naar klanten via WhatsApp. Bestellingen verschijnen direct in je dashboard.",
+    search: "Zoek restaurant...",
+    empty: "Geen restaurants gevonden",
+    empty_hint: "Vraag jouw favoriete restaurant om zich aan te melden!",
+    view_menu: "Bekijk menu",
+    wa_chat: "WhatsApp",
+    cta_banner_title: "Een eigen restaurant?",
+    cta_banner_desc: "Word gratis lid van SuriOrder. Geen opstartkosten, geen maandelijkse kosten.",
+    cta_banner_btn: "Restaurant aanmelden",
+    powered: "WhatsApp-first ordering voor Suriname"
+  },
+  en: {
+    hero_brand: "WhatsApp ordering",
+    hero_sub: "Free online ordering platform for restaurants in Suriname. No app download. No monthly fees. WhatsApp-ready.",
+    cta_order: "Browse restaurants",
+    cta_register: "Register your restaurant",
+    how_title: "How it works",
+    step1_title: "Register your restaurant",
+    step1_desc: "Create a free account in under 2 minutes. All you need is your restaurant name and a PIN.",
+    step2_title: "Set up your menu",
+    step2_desc: "Add your dishes, prices, and descriptions. Multi-language support for Dutch, English, and Chinese.",
+    step3_title: "Share your link",
+    step3_desc: "Send your ordering link to customers via WhatsApp. Orders appear instantly in your dashboard.",
+    search: "Search restaurants...",
+    empty: "No restaurants found",
+    empty_hint: "Ask your favorite restaurant to sign up!",
+    view_menu: "View Menu",
+    wa_chat: "WhatsApp",
+    cta_banner_title: "Own a restaurant?",
+    cta_banner_desc: "Join SuriOrder for free. No setup fees, no monthly costs.",
+    cta_banner_btn: "Register your restaurant",
+    powered: "WhatsApp-first ordering for Suriname"
+  },
+  zh: {
+    hero_brand: "WhatsApp 点餐",
+    hero_sub: "苏里南餐厅免费在线点餐平台。无需下载APP，无需月费，WhatsApp 就绪。",
+    cta_order: "浏览餐厅",
+    cta_register: "餐厅入驻",
+    how_title: "使用流程",
+    step1_title: "注册餐厅账号",
+    step1_desc: "2 分钟内免费创建账号。只需餐厅名称和 PIN 码。",
+    step2_title: "设置菜单",
+    step2_desc: "添加菜品、价格和描述。支持荷兰语、英语和中文三种语言。",
+    step3_title: "分享链接",
+    step3_desc: "通过 WhatsApp 将点餐链接发送给顾客。订单实时显示在管理后台。",
+    search: "搜索餐厅...",
+    empty: "未找到餐厅",
+    empty_hint: "邀请您喜欢的餐厅加入！",
+    view_menu: "查看菜单",
+    wa_chat: "WhatsApp",
+    cta_banner_title: "您是餐厅老板？",
+    cta_banner_desc: "免费加入 SuriOrder。无开通费，无月费。",
+    cta_banner_btn: "立即入驻",
+    powered: "苏里南 WhatsApp 优先点餐平台"
+  }
 };
 let lang = 'nl';
 
 function t(k) { return L[lang]?.[k] || L.nl[k] || k; }
+
 function setLang(l) {
   lang = l;
   document.querySelectorAll('.lang-row button').forEach(b => b.classList.toggle('active', b.id === 'btn-' + l));
-  document.getElementById('tagline').textContent = t('tagline');
-  document.getElementById('btn-register').textContent = t('register');
+  document.getElementById('hero-brand').textContent = t('hero_brand');
+  document.getElementById('hero-sub').textContent = t('hero_sub');
+  document.getElementById('cta-order').textContent = t('cta_order');
+  document.getElementById('cta-register').textContent = t('cta_register');
+  document.getElementById('how-title').textContent = t('how_title');
+  document.getElementById('step1-title').textContent = t('step1_title');
+  document.getElementById('step1-desc').textContent = t('step1_desc');
+  document.getElementById('step2-title').textContent = t('step2_title');
+  document.getElementById('step2-desc').textContent = t('step2_desc');
+  document.getElementById('step3-title').textContent = t('step3_title');
+  document.getElementById('step3-desc').textContent = t('step3_desc');
   document.getElementById('search-input').placeholder = t('search');
+  document.getElementById('cta-banner-title').textContent = t('cta_banner_title');
+  document.getElementById('cta-banner-desc').textContent = t('cta_banner_desc');
+  document.getElementById('cta-banner-btn').textContent = t('cta_banner_btn');
   document.querySelector('.footer').textContent = t('powered');
   loadShops();
 }
 
 async function loadShops() {
-  const search = document.getElementById('search-input').value.trim();
-  const params = new URLSearchParams();
+  var container = document.getElementById('shop-list');
+  showSkeleton(container, 3);
+  var search = document.getElementById('search-input').value.trim();
+  var params = new URLSearchParams();
   if (search) params.set('search', search);
-  const r = await fetch('/api/shops?' + params);
-  const shops = await r.json();
-  const container = document.getElementById('shop-list');
-  if (!shops.length) {
-    container.innerHTML = `<div class="empty-state"><div class="icon">🍜</div><p>${t('empty')}</p><p style="font-size:.85rem;margin-top:4px">${t('empty_hint')}</p></div>`;
-    return;
+  try {
+    var r = await fetch('/api/shops?' + params);
+    var shops = await r.json();
+    if (!shops.length) {
+      container.innerHTML = '<div class="empty-state"><div class="icon">🍜</div><p>' + t('empty') + '</p><p class="hint">' + t('empty_hint') + '</p></div>';
+      return;
+    }
+    container.innerHTML = shops.map(function(s) {
+      return '<div class="shop-card" onclick="location.href=\'/order/' + esc(s.id) + '\'">' +
+        '<div class="info">' +
+          '<h3>' + esc(s.name) + '<span class="lang-badge">' + (s.language||'NL').toUpperCase() + '</span></h3>' +
+          '<p>' + (s.welcome_msg ? esc(s.welcome_msg) : '') + '</p>' +
+        '</div>' +
+        '<div class="actions" onclick="event.stopPropagation()">' +
+          '<a href="/order/' + esc(s.id) + '" class="btn-order">📋 ' + t('view_menu') + '</a>' +
+          (s.whatsapp_number ? '<a href="https://wa.me/' + s.whatsapp_number.replace(/[^0-9]/g,'') + '" class="btn-wa" target="_blank" rel="noopener">💬 ' + t('wa_chat') + '</a>' : '') +
+        '</div>' +
+      '</div>';
+    }).join('');
+  } catch (_) {
+    container.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><p>Failed to load restaurants</p><p class="hint">Please check your connection and refresh.</p></div>';
   }
-  container.innerHTML = shops.map(s => `
-    <div class="shop-card">
-      <div class="info">
-        <h3>${esc(s.name)}<span class="lang-badge">${s.language?.toUpperCase()||'NL'}</span></h3>
-        <p>${s.welcome_msg ? esc(s.welcome_msg) : ''}</p>
-      </div>
-      <div class="actions">
-        <a href="/order/${esc(s.id)}" class="btn-order">📋 ${t('view_menu')}</a>
-        ${s.whatsapp_number ? `<a href="https://wa.me/${s.whatsapp_number.replace(/[^0-9]/g,'')}" class="btn-wa" target="_blank">💬 ${t('wa_chat')}</a>` : ''}
-      </div>
-    </div>`).join('');
 }
 
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }

@@ -88,6 +88,34 @@ function registerAdminRoutes(app, db, { auth }) {
     }
     res.json({ ok: true });
   });
+
+  // SSE: real-time order events
+  app.get("/api/admin/events", auth, (req, res) => {
+    res.writeHead(200, {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      "Connection": "keep-alive",
+      "X-Accel-Buffering": "no",
+    });
+    res.write(": connected\n\n");
+
+    const events = require("../lib/events");
+    const onOrder = (data) => {
+      if (data.shop_id === req.shopId) {
+        res.write(`event: new-order\ndata: ${JSON.stringify(data)}\n\n`);
+      }
+    };
+    events.on("new-order", onOrder);
+
+    const heartbeat = setInterval(() => {
+      res.write(": heartbeat\n\n");
+    }, 30000);
+
+    req.on("close", () => {
+      events.off("new-order", onOrder);
+      clearInterval(heartbeat);
+    });
+  });
 }
 
 module.exports = { registerAdminRoutes };

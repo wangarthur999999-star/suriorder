@@ -28,11 +28,11 @@ app.use(helmet({
     directives: {
       "default-src": ["'self'"],
       "script-src": ["'self'", "'unsafe-inline'"],
-      "script-src-attr": ["'unsafe-inline'"],
       "style-src": ["'self'", "'unsafe-inline'"],
       "img-src": ["'self'", "data:", "https:"],
       "font-src": ["'self'", "https:", "data:"],
       "connect-src": ["'self'"],
+      "script-src-attr": ["'unsafe-inline'"],
     },
   },
 }));
@@ -62,6 +62,8 @@ if (!JWT_SECRET) {
     JWT_SECRET = crypto.randomBytes(32).toString("hex");
     fs.writeFileSync(JWT_SECRET_FILE, JWT_SECRET);
   }
+} else {
+  try { fs.writeFileSync(JWT_SECRET_FILE, JWT_SECRET); } catch (_) {}
 }
 const PORT = process.env.PORT || 3456;
 

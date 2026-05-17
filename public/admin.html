@@ -4,162 +4,337 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>SuriOrder Admin</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%2316a34a'/><text x='16' y='24' text-anchor='middle' font-size='18'>🍽️</text></svg>">
+<link rel="stylesheet" href="/shared.css">
 <style>
-:root{--pri:#22c55e;--bg:#f5f5f5;--card:#fff;--text:#1a1a1a;--muted:#666;--warn:#f59e0b;--danger:#ef4444}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text)}
-.container{max-width:800px;margin:0 auto;padding:16px}
-.login-box{max-width:360px;margin:80px auto;background:var(--card);padding:32px 24px;border-radius:16px;box-shadow:0 2px 10px rgba(0,0,0,.08);text-align:center}
-.login-box h1{font-size:1.5rem;margin-bottom:8px;color:var(--pri)}
-.login-box p{color:var(--muted);margin-bottom:20px}
-.login-box input{width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;margin-bottom:12px;font-size:1rem;text-align:center}
-.login-box button{width:100%;padding:12px;background:var(--pri);color:#fff;border:none;border-radius:8px;font-weight:700;font-size:1rem;cursor:pointer}
-.login-box button:hover{opacity:.9}
-.dashboard{display:none}
-header.top{background:var(--pri);color:#fff;padding:16px;text-align:center;margin-bottom:16px;position:relative}
-header.top h1{font-size:1.2rem}
-.admin-lang-switch{position:absolute;top:16px;right:16px;display:flex;gap:4px}
-.admin-lang-switch button{background:rgba(255,255,255,.25);border:none;color:#fff;padding:3px 7px;border-radius:4px;font-size:.7rem;cursor:pointer}
-.admin-lang-switch button.active{background:#fff;color:var(--pri);font-weight:600}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px}
-.stat-card{background:var(--card);padding:16px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
-.stat-card .label{font-size:.75rem;color:var(--muted);text-transform:uppercase}
-.stat-card .value{font-size:1.5rem;font-weight:700;margin-top:4px}
-.tabs{display:flex;gap:4px;margin-bottom:16px;background:var(--card);border-radius:12px;padding:4px}
-.tabs button{flex:1;padding:10px;border:none;background:transparent;border-radius:8px;font-size:.85rem;font-weight:600;cursor:pointer}
-.tabs button.active{background:var(--pri);color:#fff}
-.panel{display:none}
-.panel.active{display:block}
-table{width:100%;background:var(--card);border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06)}
-th,td{padding:12px;text-align:left;font-size:.85rem;border-bottom:1px solid #f0f0f0}
-th{background:#fafafa;font-weight:700;color:var(--muted)}
-.order-status{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.75rem;font-weight:600}
-.status-pending{background:#fef3c7;color:#92400e}
-.status-confirmed{background:#dbeafe;color:#1e40af}
-.status-done{background:#d1fae5;color:#065f46}
-.status-cancelled{background:#fee2e2;color:#991b1b}
-.form-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
-input,textarea,select{flex:1;min-width:120px;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:.85rem}
-.btn{display:inline-block;padding:10px 16px;border:none;border-radius:8px;font-weight:700;font-size:.85rem;cursor:pointer}
-.btn-pri{background:var(--pri);color:#fff}
-.btn-warn{background:var(--warn);color:#fff}
-.btn-danger{background:var(--danger);color:#fff}
-.qr-section{text-align:center;padding:40px;background:var(--card);border-radius:12px;margin-top:16px}
-.qr-section canvas{display:block;margin:16px auto}
-.qr-section input{width:100%;padding:8px;border:1px solid #ddd;border-radius:8px;margin-top:8px;font-size:.8rem;text-align:center}
-.menu-link-box{background:#f0fdf4;border:2px dashed var(--pri);border-radius:12px;padding:16px;margin-bottom:16px;text-align:center;word-break:break-all}
-.wizard-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:flex;align-items:center;justify-content:center}
-.wizard-box{background:var(--card);width:100%;max-width:440px;border-radius:16px;padding:32px 24px;text-align:center;max-height:90vh;overflow-y:auto}
-.wizard-box h2{color:var(--pri);margin-bottom:8px;font-size:1.2rem}
-.wizard-box p.step-hint{color:var(--muted);font-size:.8rem;margin-bottom:16px}
-.wizard-box .step-dots{display:flex;justify-content:center;gap:6px;margin-bottom:20px}
-.wizard-box .step-dot{width:8px;height:8px;border-radius:50%;background:#ddd}
-.wizard-box .step-dot.done{background:var(--pri)}
-.wizard-box input,.wizard-box textarea{width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;font-size:.9rem;margin-bottom:10px}
-.wizard-box textarea{height:60px;resize:none}
-.wizard-box button.wiz-next{width:100%;padding:12px;background:var(--pri);color:#fff;border:none;border-radius:10px;font-weight:700;font-size:1rem;cursor:pointer;margin-top:8px}
-.wizard-box button.wiz-skip{width:100%;padding:10px;background:transparent;color:var(--muted);border:none;font-size:.85rem;cursor:pointer;margin-top:4px}
-.wizard-box .shop-id-display{background:#f0fdf4;border:2px dashed var(--pri);border-radius:10px;padding:16px;font-size:1.5rem;font-weight:700;letter-spacing:2px;margin:12px 0;word-break:break-all}
-.shop-id-display-btn{background:var(--pri);color:#fff;border:none;padding:6px 14px;border-radius:6px;font-size:.8rem;cursor:pointer}
-.wizard-item-row{display:flex;gap:6px;margin-bottom:6px;align-items:center}
-.wizard-item-row input{flex:1;min-width:0;margin-bottom:0}
-.notification-banner{display:none;background:var(--warn);color:#fff;padding:10px 16px;border-radius:10px;margin-bottom:12px;text-align:center;font-weight:600;animation:pulse 1s ease-in-out 3}
-@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.02)}}
-.stat-pulse{animation:statPulse .5s ease-in-out 3}
-@keyframes statPulse{0%,100%{background:var(--card)}50%{background:#fef3c7}}
+  body { max-width: 100%; }
 
+  .container { max-width: 800px; margin: 0 auto; padding: 16px; }
+
+  /* ── Login / Register Boxes ── */
+  .login-box {
+    max-width: 380px; margin: 60px auto 0;
+    background: var(--card); padding: 36px 24px;
+    border-radius: var(--r-xl); box-shadow: var(--shadow-md);
+    text-align: center;
+  }
+  .login-box h1 { font-size: 1.5rem; font-weight: 800; margin-bottom: 6px; color: var(--pri); }
+  .login-box .sub { color: var(--text-sec); margin-bottom: 20px; font-size: .9rem; }
+  .login-box input, .login-box select {
+    width: 100%; padding: 12px; border: 2px solid var(--border);
+    border-radius: var(--r); margin-bottom: 12px; font-size: .95rem;
+    text-align: center; min-height: var(--touch);
+    outline: none; transition: border-color var(--tran); background: var(--bg);
+  }
+  .login-box input:focus, .login-box select:focus { border-color: var(--pri); }
+  .login-box .login-btn {
+    width: 100%; padding: 12px; background: var(--pri); color: #fff;
+    border: none; border-radius: var(--r); font-weight: 700; font-size: 1rem;
+    cursor: pointer; min-height: var(--touch); transition: background var(--tran);
+  }
+  .login-box .login-btn:hover { background: var(--pri-dark); }
+  .login-box .login-btn:disabled { opacity: .5; cursor: default; }
+  .login-box .link-row { margin-top: 16px; font-size: .8rem; color: var(--muted); }
+  .login-box .link-row a { color: var(--pri); text-decoration: none; font-weight: 600; }
+
+  .dashboard { display: none; }
+
+  /* ── Top Bar ── */
+  header.top {
+    background: linear-gradient(135deg, var(--pri), var(--pri-dark));
+    color: #fff; padding: 16px 60px 16px 20px; text-align: center;
+    margin-bottom: 16px; border-radius: var(--r-lg); position: relative;
+    box-shadow: var(--shadow);
+  }
+  header.top h1 { font-size: 1.15rem; font-weight: 700; }
+  header.top .shop-id { font-size: .75rem; opacity: .8; }
+
+  /* ── Admin Language Switch ── */
+  .admin-lang-switch { position: absolute; top: 14px; right: 12px; display: flex; gap: 2px; background: rgba(255,255,255,.2); border-radius: var(--r); padding: 2px; }
+  .admin-lang-switch button {
+    background: transparent; border: none; color: rgba(255,255,255,.7);
+    padding: 6px 10px; border-radius: var(--r-sm); font-size: .75rem; cursor: pointer;
+    font-weight: 500; transition: all var(--tran); min-height: var(--touch-sm);
+  }
+  .admin-lang-switch button.active { background: #fff; color: var(--pri); font-weight: 700; }
+
+  /* ── Stats Grid ── */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .stat-card {
+    background: var(--card); padding: 16px; border-radius: var(--r-lg);
+    box-shadow: var(--shadow); transition: background var(--tran);
+  }
+  .stat-card .label { font-size: .72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; font-weight: 600; }
+  .stat-card .value { font-size: 1.5rem; font-weight: 800; margin-top: 4px; }
+  .stat-pulse { animation: statPulse .5s ease-in-out 3; }
+  @keyframes statPulse { 0%, 100% { background: var(--card); } 50% { background: var(--warn-light); } }
+
+  /* ── Tabs ── */
+  .tabs { display: flex; gap: 4px; margin-bottom: 16px; background: var(--card); border-radius: var(--r-lg); padding: 4px; box-shadow: var(--shadow); }
+  .tabs button {
+    flex: 1; padding: 10px; border: none; background: transparent;
+    border-radius: var(--r); font-size: .82rem; font-weight: 600;
+    cursor: pointer; min-height: var(--touch-sm);
+    transition: all var(--tran); color: var(--text-sec);
+  }
+  .tabs button:hover { color: var(--pri); }
+  .tabs button.active { background: var(--pri); color: #fff; }
+
+  /* ── Panels ── */
+  .panel { display: none; animation: panelIn var(--tran-slow) ease; }
+  .panel.active { display: block; }
+  @keyframes panelIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── Table ── */
+  table { width: 100%; background: var(--card); border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--shadow); }
+  th, td { padding: 10px 12px; text-align: left; font-size: .82rem; border-bottom: 1px solid var(--border); }
+  th { background: var(--bg); font-weight: 700; color: var(--text-sec); font-size: .75rem; text-transform: uppercase; letter-spacing: .3px; }
+  tr:last-child td { border-bottom: none; }
+  .order-link { font-size: .72rem; color: #25D366; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 3px; }
+  .order-link:hover { text-decoration: underline; }
+
+  /* ── Order Status Badges ── */
+  .order-status { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: .72rem; font-weight: 600; }
+  .status-pending   { background: var(--warn-light); color: var(--warn-dark); }
+  .status-confirmed { background: var(--info-light); color: #1e40af; }
+  .status-done      { background: var(--pri-light); color: #065f46; }
+  .status-cancelled { background: var(--danger-light); color: #991b1b; }
+
+  /* ── Payment Badges ── */
+  .pay-badge {
+    display: inline-block; padding: 2px 6px; border-radius: var(--r-sm);
+    font-size: .68rem; font-weight: 600; margin-left: 4px;
+  }
+  .pay-unpaid   { background: var(--warn-light); color: var(--warn-dark); }
+  .pay-paid     { background: var(--pri-light); color: #065f46; }
+  .pay-refunded { background: var(--danger-light); color: #991b1b; }
+
+  /* ── Form Elements ── */
+  .form-row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  .form-row input, .form-row select, .form-row .btn {
+    flex: 1; min-width: 120px; padding: 10px;
+    border: 2px solid var(--border); border-radius: var(--r); font-size: .82rem;
+    min-height: var(--touch-sm); outline: none; transition: border-color var(--tran);
+  }
+  .form-row input:focus, .form-row select:focus { border-color: var(--pri); }
+  .form-row .btn { border: none; flex: 0 0 auto; }
+
+  /* ── Menu Link Box ── */
+  .menu-link-box {
+    background: var(--pri-bg); border: 2px solid var(--pri-light);
+    border-radius: var(--r-lg); padding: 14px 16px; margin-bottom: 16px;
+    text-align: center; word-break: break-all; font-size: .85rem;
+  }
+  .menu-link-box a { color: var(--pri-dark); font-weight: 600; }
+
+  /* ── QR Section ── */
+  .qr-section { text-align: center; padding: 40px; background: var(--card); border-radius: var(--r-lg); margin-top: 16px; box-shadow: var(--shadow); }
+  .qr-section h3 { margin-bottom: 8px; }
+  .qr-section input { width: 100%; padding: 10px; border: 2px solid var(--border); border-radius: var(--r); text-align: center; font-size: .85rem; margin-top: 8px; background: var(--bg); }
+  .qr-section img { max-width: 220px; margin: 16px auto; display: block; }
+
+  /* ── Settings Panel ── */
+  .settings-card { background: var(--card); padding: 24px; border-radius: var(--r-lg); box-shadow: var(--shadow); max-width: 500px; }
+  .settings-card h3 { margin-bottom: 12px; font-size: 1rem; }
+  .settings-card label { font-size: .78rem; color: var(--text-sec); display: block; margin-bottom: 4px; font-weight: 600; }
+  .settings-card input, .settings-card textarea, .settings-card select {
+    width: 100%; padding: 10px; border: 2px solid var(--border); border-radius: var(--r);
+    margin-bottom: 12px; font-size: .85rem; min-height: var(--touch-sm);
+    outline: none; transition: border-color var(--tran); background: var(--bg);
+  }
+  .settings-card input:focus, .settings-card textarea:focus, .settings-card select:focus { border-color: var(--pri); }
+  .settings-card textarea { min-height: 56px; resize: vertical; }
+  .settings-card hr { margin: 16px 0; border: none; border-top: 1px solid var(--border); }
+  .settings-card .save-btn { width: 100%; }
+
+  /* ── Button Extensions ── */
+  .btn--icon { padding: 4px 8px; font-size: .68rem; line-height: 1; margin-right: 3px; }
+  .btn--wa { background: #25D366; color: #fff; }
+  .btn--wa:hover { background: #1fa954; }
+
+  /* ── Wizard ── */
+  .wizard-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.55);
+    z-index: 200; display: flex; align-items: center; justify-content: center;
+    padding: 16px;
+  }
+  .wizard-box {
+    background: var(--card); width: 100%; max-width: 440px;
+    border-radius: var(--r-xl); padding: 32px 24px; text-align: center;
+    max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-lg);
+  }
+  .wizard-box h2 { color: var(--pri); margin-bottom: 8px; font-size: 1.15rem; font-weight: 800; }
+  .wizard-box .step-hint { color: var(--text-sec); font-size: .82rem; margin-bottom: 16px; line-height: 1.4; }
+  .wizard-box .step-dots { display: flex; justify-content: center; gap: 6px; margin-bottom: 20px; }
+  .wizard-box .step-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); transition: background var(--tran); }
+  .wizard-box .step-dot.done { background: var(--pri); }
+  .wizard-box input, .wizard-box textarea {
+    width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: var(--r);
+    font-size: .9rem; margin-bottom: 10px; min-height: var(--touch);
+    outline: none; transition: border-color var(--tran);
+  }
+  .wizard-box input:focus { border-color: var(--pri); }
+  .wizard-box textarea { height: 60px; resize: none; }
+  .wizard-box .wiz-next {
+    width: 100%; padding: 12px; background: var(--pri); color: #fff;
+    border: none; border-radius: var(--r); font-weight: 700; font-size: 1rem;
+    cursor: pointer; margin-top: 8px; min-height: var(--touch); transition: background var(--tran);
+  }
+  .wizard-box .wiz-next:hover { background: var(--pri-dark); }
+  .wizard-box .wiz-skip {
+    width: 100%; padding: 10px; background: transparent; color: var(--muted);
+    border: none; font-size: .85rem; cursor: pointer; margin-top: 4px;
+  }
+  .wizard-box .shop-id-display {
+    background: var(--pri-bg); border: 2px solid var(--pri-light);
+    border-radius: var(--r); padding: 16px; font-size: 1.4rem;
+    font-weight: 800; letter-spacing: 2px; margin: 12px 0; word-break: break-all;
+  }
+  .wizard-box .shop-id-display-btn { background: var(--pri); color: #fff; border: none; padding: 8px 16px; border-radius: var(--r-sm); font-size: .8rem; cursor: pointer; }
+  .wizard-item-row { display: flex; gap: 6px; margin-bottom: 6px; align-items: center; }
+  .wizard-item-row input { flex: 1; min-width: 0; margin-bottom: 0; }
+
+  /* ── Notification Banner ── */
+  .notification-banner {
+    display: none; background: var(--warn); color: #fff;
+    padding: 10px 16px; border-radius: var(--r); margin-bottom: 12px;
+    text-align: center; font-weight: 600;
+    animation: bannerPulse 1s ease-in-out 3;
+  }
+  @keyframes bannerPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+
+  /* ── Empty / Loading ── */
+  .empty-row { text-align: center; padding: 32px; color: var(--muted); }
+
+  /* ── Responsive ── */
+  @media (max-width: 600px) {
+    .container { padding: 8px; }
+    .stats { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .stat-card .value { font-size: 1.2rem; }
+    th, td { padding: 8px 6px; font-size: .75rem; }
+    .col-time { display: none; }
+    .form-row input, .form-row select { min-width: 100px; font-size: .78rem; }
+  }
+  @media (min-width: 1024px) {
+    .container { max-width: 960px; }
+  }
+</style>
 </head>
 <body>
+
+<!-- ═══ Login Box ═══ -->
 <div class="login-box" id="login-box">
-  <h1>🍽️ SuriOrder</h1>
-  <p id="login-subtitle">Beheer uw menu en bestellingen</p>
+  <h1>SuriOrder</h1>
+  <p class="sub" id="login-subtitle">Beheer uw menu en bestellingen</p>
   <input type="text" id="login-shop-id" placeholder="Shop ID">
   <input type="password" id="login-pin" placeholder="PIN Code">
-  <button onclick="login()" id="login-btn">Inloggen</button>
-  <p style="margin-top:16px;font-size:.8rem;color:var(--muted)" id="no-account">Nog geen account? <a href="#" onclick="showRegister()" style="color:var(--pri)">Registreer</a></p>
+  <button class="login-btn" onclick="login()" id="login-btn">Inloggen</button>
+  <p class="link-row" id="no-account">Nog geen account? <a href="#" onclick="showRegister()">Registreer</a></p>
 </div>
+
+<!-- ═══ Register Box ═══ -->
 <div class="login-box" id="register-box" style="display:none">
-  <h1>🍽️ <span id="reg-title">Nieuwe Shop</span></h1>
-  <p id="reg-subtitle">Maak uw gratis account aan</p>
+  <h1><span id="reg-title">Nieuwe Shop</span></h1>
+  <p class="sub" id="reg-subtitle">Maak uw gratis account aan</p>
   <input type="text" id="reg-name" placeholder="Bedrijfsnaam / Business name">
   <input type="tel" id="reg-phone" placeholder="Telefoonnummer">
   <input type="password" id="reg-pin" placeholder="Kies een PIN code (min 4 cijfers)">
   <select id="reg-lang"><option value="nl">Nederlands</option><option value="en">English</option><option value="zh">中文</option></select>
-  <button onclick="register()" id="reg-btn">Account aanmaken</button>
-  <p style="margin-top:12px;font-size:.8rem;color:var(--muted)" id="back-login"><a href="#" onclick="showLogin()" style="color:var(--pri)">Terug naar login</a></p>
+  <button class="login-btn" onclick="register()" id="reg-btn">Account aanmaken</button>
+  <p class="link-row" id="back-login"><a href="#" onclick="showLogin()">Terug naar login</a></p>
 </div>
+
+<!-- ═══ Dashboard ═══ -->
 <div class="container dashboard" id="dashboard">
-<div class="notification-banner" id="notif-banner"></div>
-<div class="wizard-overlay" id="wizard-overlay" style="display:none">
-  <div class="wizard-box" id="wizard-box"></div>
-</div>
-<div class="menu-link-box" id="menu-link-box"></div>
-<header class="top" style="border-radius:12px">
-  <div class="admin-lang-switch">
-    <button onclick="setAdminLang('nl')" class="active" id="adm-btn-nl">NL</button>
-    <button onclick="setAdminLang('en')" id="adm-btn-en">EN</button>
-    <button onclick="setAdminLang('zh')" id="adm-btn-zh">中文</button>
+
+  <div class="notification-banner" id="notif-banner"></div>
+
+  <div class="wizard-overlay" id="wizard-overlay" style="display:none">
+    <div class="wizard-box" id="wizard-box"></div>
   </div>
-  <h1 id="dash-shop-name">Dashboard</h1>
-  <p style="font-size:.8rem;opacity:.8" id="dash-shop-id"></p>
-</header>
-<div class="stats" id="stats"></div>
-<div class="tabs">
-  <button class="active" onclick="switchTab('orders')" id="tab-orders">Bestellingen</button>
-  <button onclick="switchTab('menu')" id="tab-menu">Menu</button>
-  <button onclick="switchTab('share')" id="tab-share">Delen</button>
-  <button onclick="switchTab('settings')" id="tab-settings">Instellingen</button>
-</div>
-<div class="panel active" id="panel-orders">
-  <table><thead><tr><th>#</th><th id="th-customer">Klant</th><th id="th-items">Items</th><th id="th-total">Totaal</th><th id="th-time">Tijd</th><th id="th-status">Status</th><th id="th-action">Actie</th></tr></thead><tbody id="orders-tbody"></tbody></table>
-</div>
-<div class="panel" id="panel-menu">
-  <div class="form-row">
-    <input type="text" id="item-name" placeholder="Naam gerecht (NL)">
-    <input type="text" id="item-name-zh" placeholder="名称 (中文)">
-    <input type="text" id="item-name-en" placeholder="Name (EN)">
-    <input type="number" id="item-price" placeholder="Prijs (SRD)" step="0.01">
-    <select id="item-cat"><option value="">Categorie</option></select>
-    <button class="btn btn-pri" onclick="addItem()">+ Toevoegen</button>
+
+  <div class="menu-link-box" id="menu-link-box"></div>
+
+  <header class="top">
+    <div class="admin-lang-switch">
+      <button onclick="setAdminLang('nl')" class="active" id="adm-btn-nl">NL</button>
+      <button onclick="setAdminLang('en')" id="adm-btn-en">EN</button>
+      <button onclick="setAdminLang('zh')" id="adm-btn-zh">中文</button>
+    </div>
+    <h1 id="dash-shop-name">Dashboard</h1>
+    <p class="shop-id" id="dash-shop-id"></p>
+  </header>
+
+  <div class="stats" id="stats">
+    <div class="stat-card skeleton" style="height:72px"></div>
+    <div class="stat-card skeleton" style="height:72px"></div>
+    <div class="stat-card skeleton" style="height:72px"></div>
+    <div class="stat-card skeleton" style="height:72px"></div>
   </div>
-  <div id="items-list"></div>
-</div>
-<div class="panel" id="panel-share">
-  <div class="qr-section">
-    <h3>📱 <span id="share-title">Deel uw menu link</span></h3>
-    <p style="margin:8px 0;color:var(--muted)" id="share-desc">Klanten openen deze link op hun telefoon</p>
-    <input type="text" id="menu-url" readonly onclick="this.select()">
-    <p style="margin-top:8px" id="share-wa"><strong>WhatsApp:</strong> kopieer de link en stuur naar klanten</p>
-    <img id="qr-image" src="" alt="QR Code" style="max-width:220px;margin:16px auto;display:block" onerror="this.style.display='none'">
-    <p style="font-size:.75rem;color:var(--muted)">Print deze QR code en hang in uw zaak</p>
+
+  <div class="tabs">
+    <button class="active" onclick="switchTab('orders')" id="tab-orders">Bestellingen</button>
+    <button onclick="switchTab('menu')" id="tab-menu">Menu</button>
+    <button onclick="switchTab('share')" id="tab-share">Delen</button>
+    <button onclick="switchTab('settings')" id="tab-settings">Instellingen</button>
   </div>
-</div>
-<div class="panel" id="panel-settings">
-  <div style="background:var(--card);padding:24px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.06);max-width:500px">
-    <h3 id="settings-title" style="margin-bottom:12px">Winkel Instellingen</h3>
-    <label style="font-size:.8rem;color:var(--muted)"><span id="lbl-welcome">Welkomstbericht</span></label>
-    <textarea id="set-welcome" style="width:100%;margin-bottom:12px;min-height:50px"></textarea>
-    <label style="font-size:.8rem;color:var(--muted)"><span id="lbl-wa">WhatsApp nummer</span></label>
-    <input type="tel" id="set-wa" style="width:100%;margin-bottom:12px">
-    <label style="font-size:.8rem;color:var(--muted)"><span id="lbl-lang">Taal</span></label>
-    <select id="set-lang" style="width:100%;margin-bottom:12px">
-      <option value="nl">Nederlands</option><option value="en">English</option><option value="zh">中文</option>
-    </select>
-    <hr style="margin:16px 0;border-color:#eee">
-    <label style="font-size:.8rem;color:var(--muted)"><span id="lbl-bank-name">Bank naam</span></label>
-    <input type="text" id="set-bank-name" style="width:100%;margin-bottom:12px" placeholder="DSB / Hakrinbank / ...">
-    <label style="font-size:.8rem;color:var(--muted)"><span id="lbl-bank-acc">Rekeningnummer</span></label>
-    <input type="text" id="set-bank-acc" style="width:100%;margin-bottom:12px">
-    <label style="font-size:.8rem;color:var(--muted)"><span id="lbl-bank-holder">Op naam van</span></label>
-    <input type="text" id="set-bank-holder" style="width:100%;margin-bottom:16px">
-    <button class="btn btn-pri" onclick="saveSettings()" style="width:100%" id="save-settings-btn">Opslaan</button>
+
+  <div class="panel active" id="panel-orders">
+    <table><thead><tr><th>#</th><th id="th-customer">Klant</th><th id="th-items">Items</th><th id="th-total">Totaal</th><th class="col-time" id="th-time">Tijd</th><th id="th-status">Status</th><th id="th-action">Actie</th></tr></thead><tbody id="orders-tbody"><tr><td colspan="7"><div style="display:flex;justify-content:center;padding:40px"><div class="spinner"></div></div></td></tr></tbody></table>
   </div>
+
+  <div class="panel" id="panel-menu">
+    <div class="form-row">
+      <input type="text" id="item-name" placeholder="Naam gerecht (NL)">
+      <input type="text" id="item-name-zh" placeholder="名称 (中文)">
+      <input type="text" id="item-name-en" placeholder="Name (EN)">
+      <input type="number" id="item-price" placeholder="Prijs (SRD)" step="0.01">
+      <select id="item-cat"><option value="">Categorie</option></select>
+      <button class="btn btn--pri" onclick="addItem()" id="add-btn">+ Toevoegen</button>
+    </div>
+    <div id="items-list"></div>
+  </div>
+
+  <div class="panel" id="panel-share">
+    <div class="qr-section">
+      <h3 id="share-title">Deel uw menu link</h3>
+      <p style="color:var(--text-sec);margin-bottom:12px" id="share-desc">Klanten openen deze link op hun telefoon</p>
+      <input type="text" id="menu-url" readonly onclick="this.select()">
+      <p style="margin-top:8px;font-size:.85rem" id="share-wa"><strong>WhatsApp:</strong> kopieer de link en stuur naar klanten</p>
+      <img id="qr-image" src="" alt="QR Code" onerror="this.style.display='none'">
+      <p style="font-size:.72rem;color:var(--muted)" id="share-tip">Tip: zet deze link in uw WhatsApp bedrijfsprofiel</p>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-settings">
+    <div class="settings-card">
+      <h3 id="settings-title">Winkel Instellingen</h3>
+      <label id="lbl-welcome">Welkomstbericht</label>
+      <textarea id="set-welcome"></textarea>
+      <label id="lbl-wa">WhatsApp nummer</label>
+      <input type="tel" id="set-wa">
+      <label id="lbl-lang">Taal</label>
+      <select id="set-lang">
+        <option value="nl">Nederlands</option><option value="en">English</option><option value="zh">中文</option>
+      </select>
+      <hr>
+      <label id="lbl-bank-name">Bank naam</label>
+      <input type="text" id="set-bank-name" placeholder="DSB / Hakrinbank / ...">
+      <label id="lbl-bank-acc">Rekeningnummer</label>
+      <input type="text" id="set-bank-acc">
+      <label id="lbl-bank-holder">Op naam van</label>
+      <input type="text" id="set-bank-holder">
+      <button class="btn btn--pri save-btn" onclick="saveSettings()" id="save-settings-btn">Opslaan</button>
+    </div>
+  </div>
+
 </div>
-</div>
+
+<script src="/shared.js"></script>
 <script>
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 
-const L_admin = {
+var L_admin = {
   nl: {
     login_subtitle: "Beheer uw menu en bestellingen",
     shop_id_ph: "Shop ID", pin_ph: "PIN Code",
@@ -180,8 +355,7 @@ const L_admin = {
     item_name_en_ph: "Name (EN)", item_name_srn_ph: "Nen (SRN)",
     item_price_ph: "Prijs (SRD)",
     add_btn: "+ Toevoegen", cat_opt: "Categorie",
-    share_title: "Deel uw menu link",
-    share_desc: "Klanten openen deze link op hun telefoon",
+    share_title: "Deel uw menu link", share_desc: "Klanten openen deze link op hun telefoon",
     share_wa: "WhatsApp: kopieer de link en stuur naar klanten",
     share_tip: "Tip: zet deze link in uw WhatsApp bedrijfsprofiel",
     copy_btn: "Kopiëren",
@@ -192,40 +366,26 @@ const L_admin = {
     alert_account_created: "Account aangemaakt! Shop ID: {id} — bewaar dit goed. Je bent nu ingelogd.",
     alert_invalid_login: "Ongeldige inloggegevens",
     alert_name_price: "Naam en prijs verplicht",
-    alert_delete: "Verwijderen?",
+    alert_delete: "Weet je zeker dat je dit item wilt verwijderen?",
     alert_order_error: "Fout bij plaatsen bestelling",
     wizard_step1_title: "Welkom bij SuriOrder!",
     wizard_step1_desc: "Uw shop ID is — bewaar deze goed:",
-    wizard_step2_title: "WhatsApp Nummer",
-    wizard_step2_desc: "Klanten kunnen u bereiken via WhatsApp",
-    wizard_step2_ph: "WhatsApp nummer (+597...)",
-    wizard_step3_title: "Snelle Menu Setup",
-    wizard_step3_desc: "Voeg snel een paar gerechten toe",
-    wizard_step3_name: "Naam gerecht",
-    wizard_step3_price: "Prijs (SRD)",
-    wizard_step4_title: "Deel Uw Link",
-    wizard_step4_desc: "Klanten bestellen via deze link:",
-    wizard_step5_title: "Klaar!",
-    wizard_step5_desc: "Uw shop is nu live. Deel uw link met klanten.",
-    wizard_next: "Volgende",
-    wizard_skip: "Overslaan",
-    wizard_done: "Naar Dashboard",
-    wizard_copy: "Kopiëren",
-    wizard_add_item: "+ Nog een gerecht",
-    notif_new_order: "Nieuwe bestelling!",
-    notif_from: "van",
-    tab_settings: "Instellingen",
-    settings_title: "Winkel Instellingen",
-    settings_welcome: "Welkomstbericht",
-    settings_wa: "WhatsApp nummer",
-    settings_lang: "Taal",
-    settings_bank_name: "Bank naam",
-    settings_bank_account: "Rekeningnummer",
-    settings_bank_holder: "Op naam van",
-    settings_save: "Opslaan",
+    wizard_step2_title: "WhatsApp Nummer", wizard_step2_desc: "Klanten kunnen u bereiken via WhatsApp", wizard_step2_ph: "WhatsApp nummer (+597...)",
+    wizard_step3_title: "Snelle Menu Setup", wizard_step3_desc: "Voeg snel een paar gerechten toe", wizard_step3_name: "Naam gerecht", wizard_step3_price: "Prijs (SRD)",
+    wizard_step4_title: "Deel Uw Link", wizard_step4_desc: "Klanten bestellen via deze link:",
+    wizard_step5_title: "Klaar!", wizard_step5_desc: "Uw shop is nu live. Deel uw link met klanten.",
+    wizard_next: "Volgende", wizard_skip: "Overslaan", wizard_done: "Naar Dashboard", wizard_copy: "Kopiëren", wizard_add_item: "+ Nog een gerecht",
+    notif_new_order: "Nieuwe bestelling!", notif_from: "van",
+    tab_settings: "Instellingen", settings_title: "Winkel Instellingen",
+    settings_welcome: "Welkomstbericht", settings_wa: "WhatsApp nummer", settings_lang: "Taal",
+    settings_bank_name: "Bank naam", settings_bank_account: "Rekeningnummer", settings_bank_holder: "Op naam van",
+    settings_save: "Opslaan", settings_saved: "Opgeslagen!",
     pm_cod: "Contant", pm_bank: "Overschrijving",
     pay_unpaid: "Onbetaald", pay_paid: "Betaald", pay_refunded: "Terugbetaald",
-    mark_paid: "Betaald", mark_refunded: "Terug"
+    mark_paid: "Betaald", mark_refunded: "Terug",
+    cancel: "Annuleer", delete_confirm: "Verwijder",
+    toast_item_added: "Gerecht toegevoegd", toast_save_error: "Fout bij opslaan",
+    wizard_copied: "Gekopieerd!"
   },
   en: {
     login_subtitle: "Manage your menu and orders",
@@ -247,8 +407,7 @@ const L_admin = {
     item_name_en_ph: "Name (EN)", item_name_srn_ph: "Name (SRN)",
     item_price_ph: "Price (SRD)",
     add_btn: "+ Add", cat_opt: "Category",
-    share_title: "Share your menu link",
-    share_desc: "Customers open this link on their phone",
+    share_title: "Share your menu link", share_desc: "Customers open this link on their phone",
     share_wa: "WhatsApp: copy the link and send to customers",
     share_tip: "Tip: put this link in your WhatsApp business profile",
     copy_btn: "Copy",
@@ -259,40 +418,26 @@ const L_admin = {
     alert_account_created: "Account created! Shop ID: {id} — save this. You are now logged in.",
     alert_invalid_login: "Invalid credentials",
     alert_name_price: "Name and price required",
-    alert_delete: "Delete?",
+    alert_delete: "Are you sure you want to delete this item?",
     alert_order_error: "Error placing order",
     wizard_step1_title: "Welcome to SuriOrder!",
     wizard_step1_desc: "Your shop ID is — keep it safe:",
-    wizard_step2_title: "WhatsApp Number",
-    wizard_step2_desc: "Customers can reach you via WhatsApp",
-    wizard_step2_ph: "WhatsApp number (+597...)",
-    wizard_step3_title: "Quick Menu Setup",
-    wizard_step3_desc: "Quickly add a few dishes",
-    wizard_step3_name: "Dish name",
-    wizard_step3_price: "Price (SRD)",
-    wizard_step4_title: "Share Your Link",
-    wizard_step4_desc: "Customers order via this link:",
-    wizard_step5_title: "All Done!",
-    wizard_step5_desc: "Your shop is now live. Share your link with customers.",
-    wizard_next: "Next",
-    wizard_skip: "Skip",
-    wizard_done: "Go to Dashboard",
-    wizard_copy: "Copy",
-    wizard_add_item: "+ Add another item",
-    notif_new_order: "New order!",
-    notif_from: "from",
-    tab_settings: "Settings",
-    settings_title: "Shop Settings",
-    settings_welcome: "Welcome message",
-    settings_wa: "WhatsApp number",
-    settings_lang: "Language",
-    settings_bank_name: "Bank name",
-    settings_bank_account: "Account number",
-    settings_bank_holder: "Account holder",
-    settings_save: "Save",
+    wizard_step2_title: "WhatsApp Number", wizard_step2_desc: "Customers can reach you via WhatsApp", wizard_step2_ph: "WhatsApp number (+597...)",
+    wizard_step3_title: "Quick Menu Setup", wizard_step3_desc: "Quickly add a few dishes", wizard_step3_name: "Dish name", wizard_step3_price: "Price (SRD)",
+    wizard_step4_title: "Share Your Link", wizard_step4_desc: "Customers order via this link:",
+    wizard_step5_title: "All Done!", wizard_step5_desc: "Your shop is now live. Share your link with customers.",
+    wizard_next: "Next", wizard_skip: "Skip", wizard_done: "Go to Dashboard", wizard_copy: "Copy", wizard_add_item: "+ Add another item",
+    notif_new_order: "New order!", notif_from: "from",
+    tab_settings: "Settings", settings_title: "Shop Settings",
+    settings_welcome: "Welcome message", settings_wa: "WhatsApp number", settings_lang: "Language",
+    settings_bank_name: "Bank name", settings_bank_account: "Account number", settings_bank_holder: "Account holder",
+    settings_save: "Save", settings_saved: "Saved!",
     pm_cod: "Cash", pm_bank: "Transfer",
     pay_unpaid: "Unpaid", pay_paid: "Paid", pay_refunded: "Refunded",
-    mark_paid: "Paid", mark_refunded: "Refund"
+    mark_paid: "Paid", mark_refunded: "Refund",
+    cancel: "Cancel", delete_confirm: "Delete",
+    toast_item_added: "Item added", toast_save_error: "Save failed",
+    wizard_copied: "Copied!"
   },
   zh: {
     login_subtitle: "管理菜单和订单",
@@ -314,8 +459,7 @@ const L_admin = {
     item_name_en_ph: "名称 (EN)", item_name_srn_ph: "名称 (SRN)",
     item_price_ph: "价格 (SRD)",
     add_btn: "+ 添加", cat_opt: "分类",
-    share_title: "分享您的菜单链接",
-    share_desc: "客户在手机上打开此链接",
+    share_title: "分享您的菜单链接", share_desc: "客户在手机上打开此链接",
     share_wa: "WhatsApp：复制链接发送给客户",
     share_tip: "提示：将链接放在 WhatsApp 商家简介中",
     copy_btn: "复制",
@@ -326,52 +470,36 @@ const L_admin = {
     alert_account_created: "账号已创建！店铺 ID：{id} — 请妥善保管。您已登录。",
     alert_invalid_login: "登录信息无效",
     alert_name_price: "名称和价格必填",
-    alert_delete: "确定删除？",
+    alert_delete: "确定要删除这个菜品吗？",
     alert_order_error: "下单失败",
     wizard_step1_title: "欢迎来到 SuriOrder！",
     wizard_step1_desc: "您的店铺 ID — 请妥善保管：",
-    wizard_step2_title: "WhatsApp 号码",
-    wizard_step2_desc: "客户可以通过 WhatsApp 联系您",
-    wizard_step2_ph: "WhatsApp 号码 (+597...)",
-    wizard_step3_title: "快速菜单设置",
-    wizard_step3_desc: "快速添加几道菜",
-    wizard_step3_name: "菜品名称",
-    wizard_step3_price: "价格 (SRD)",
-    wizard_step4_title: "分享您的链接",
-    wizard_step4_desc: "客户通过此链接下单：",
-    wizard_step5_title: "设置完成！",
-    wizard_step5_desc: "您的店铺已上线。分享链接给客户吧。",
-    wizard_next: "下一步",
-    wizard_skip: "跳过",
-    wizard_done: "进入仪表盘",
-    wizard_copy: "复制",
-    wizard_add_item: "+ 添加菜品",
-    notif_new_order: "新订单！",
-    notif_from: "来自",
-    tab_settings: "设置",
-    settings_title: "店铺设置",
-    settings_welcome: "欢迎消息",
-    settings_wa: "WhatsApp 号码",
-    settings_lang: "语言",
-    settings_bank_name: "银行名称",
-    settings_bank_account: "账号",
-    settings_bank_holder: "账户名",
-    settings_save: "保存",
+    wizard_step2_title: "WhatsApp 号码", wizard_step2_desc: "客户可以通过 WhatsApp 联系您", wizard_step2_ph: "WhatsApp 号码 (+597...)",
+    wizard_step3_title: "快速菜单设置", wizard_step3_desc: "快速添加几道菜", wizard_step3_name: "菜品名称", wizard_step3_price: "价格 (SRD)",
+    wizard_step4_title: "分享您的链接", wizard_step4_desc: "客户通过此链接下单：",
+    wizard_step5_title: "设置完成！", wizard_step5_desc: "您的店铺已上线。分享链接给客户吧。",
+    wizard_next: "下一步", wizard_skip: "跳过", wizard_done: "进入仪表盘", wizard_copy: "复制", wizard_add_item: "+ 添加菜品",
+    notif_new_order: "新订单！", notif_from: "来自",
+    tab_settings: "设置", settings_title: "店铺设置",
+    settings_welcome: "欢迎消息", settings_wa: "WhatsApp 号码", settings_lang: "语言",
+    settings_bank_name: "银行名称", settings_bank_account: "账号", settings_bank_holder: "账户名",
+    settings_save: "保存", settings_saved: "已保存！",
     pm_cod: "现金", pm_bank: "转账",
     pay_unpaid: "未付", pay_paid: "已付", pay_refunded: "已退",
-    mark_paid: "已付", mark_refunded: "退款"
-  },
+    mark_paid: "已付", mark_refunded: "退款",
+    cancel: "取消", delete_confirm: "删除",
+    toast_item_added: "菜品已添加", toast_save_error: "保存失败",
+    wizard_copied: "已复制！"
+  }
 };
 
-let token = null, shop = null, tab = 'orders', adminLang = 'nl';
+var token = null, shop = null, tab = 'orders', adminLang = 'nl';
 
-function t(key) {
-  return L_admin[adminLang]?.[key] || L_admin.nl[key] || key;
-}
+function t(key) { return L_admin[adminLang]?.[key] || L_admin.nl[key] || key; }
 
 function setAdminLang(l) {
   adminLang = l;
-  document.querySelectorAll('.admin-lang-switch button').forEach(b => b.classList.toggle('active', b.id === 'adm-btn-' + l));
+  document.querySelectorAll('.admin-lang-switch button').forEach(function(b){ b.classList.toggle('active', b.id === 'adm-btn-' + l); });
   updateUITexts();
 }
 
@@ -380,18 +508,19 @@ function updateUITexts() {
   document.getElementById('login-shop-id').placeholder = t('shop_id_ph');
   document.getElementById('login-pin').placeholder = t('pin_ph');
   document.getElementById('login-btn').textContent = t('login_btn');
-  document.getElementById('no-account').innerHTML = t('no_account') + ' <a href="#" onclick="showRegister()" style="color:var(--pri)">' + t('register_link') + '</a>';
+  document.getElementById('no-account').innerHTML = t('no_account') + ' <a href="#" onclick="showRegister()">' + t('register_link') + '</a>';
   document.getElementById('reg-title').textContent = t('reg_title');
   document.getElementById('reg-subtitle').textContent = t('reg_subtitle');
   document.getElementById('reg-name').placeholder = t('name_ph');
   document.getElementById('reg-phone').placeholder = t('phone_ph');
   document.getElementById('reg-pin').placeholder = t('pin_new_ph');
   document.getElementById('reg-btn').textContent = t('reg_btn');
-  document.getElementById('back-login').innerHTML = '<a href="#" onclick="showLogin()" style="color:var(--pri)">' + t('back_login') + '</a>';
+  document.getElementById('back-login').innerHTML = '<a href="#" onclick="showLogin()">' + t('back_login') + '</a>';
   if (shop) {
     document.getElementById('tab-orders').textContent = t('tab_orders');
     document.getElementById('tab-menu').textContent = t('tab_menu');
     document.getElementById('tab-share').textContent = t('tab_share');
+    document.getElementById('tab-settings').textContent = t('tab_settings');
     document.getElementById('th-customer').textContent = t('th_customer');
     document.getElementById('th-items').textContent = t('th_items');
     document.getElementById('th-total').textContent = t('th_total');
@@ -401,13 +530,13 @@ function updateUITexts() {
     document.getElementById('item-name').placeholder = t('item_name_ph');
     document.getElementById('item-name-zh').placeholder = t('item_name_zh_ph');
     document.getElementById('item-name-en').placeholder = t('item_name_en_ph');
-      document.getElementById('item-price').placeholder = t('item_price_ph');
+    document.getElementById('item-price').placeholder = t('item_price_ph');
     document.getElementById('item-cat').options[0].textContent = t('cat_opt');
+    document.getElementById('add-btn').textContent = t('add_btn');
     document.getElementById('share-title').textContent = t('share_title');
     document.getElementById('share-desc').textContent = t('share_desc');
     document.getElementById('share-wa').innerHTML = '<strong>WhatsApp:</strong> ' + t('share_wa');
     document.getElementById('share-tip').textContent = t('share_tip');
-    document.getElementById('tab-settings').textContent = t('tab_settings');
     document.getElementById('settings-title').textContent = t('settings_title');
     document.getElementById('lbl-welcome').textContent = t('settings_welcome');
     document.getElementById('lbl-wa').textContent = t('settings_wa');
@@ -417,55 +546,56 @@ function updateUITexts() {
     document.getElementById('lbl-bank-holder').textContent = t('settings_bank_holder');
     document.getElementById('save-settings-btn').textContent = t('settings_save');
     updateMenuLinkBox();
-    loadOrders();
-    loadItems();
+    loadOrders(); loadItems();
   }
 }
 
-function loadShareTab() {
-  const qrImg = document.getElementById('qr-image');
-  if (qrImg) qrImg.src = '/api/shop/' + shop.id + '/qr';
-}
+function loadShareTab() { var qrImg = document.getElementById('qr-image'); if (qrImg) qrImg.src = '/api/shop/' + shop.id + '/qr'; }
 
 function updateMenuLinkBox() {
   if (!shop) return;
-  const link = `${location.origin}/order/${shop.id}`;
-  document.getElementById('menu-link-box').innerHTML = `🔗 ${t('menu_link_label')} <strong><a href="${esc(link)}" target="_blank">${esc(link)}</a></strong> <button class="btn btn-pri" style="margin-left:8px;padding:4px 10px;font-size:.75rem" onclick="navigator.clipboard.writeText('${esc(link)}')">${t('copy_btn')}</button>`;
+  var link = location.origin + '/order/' + shop.id;
+  document.getElementById('menu-link-box').innerHTML = '🔗 ' + t('menu_link_label') + ' <strong><a href="' + esc(link) + '" target="_blank" rel="noopener">' + esc(link) + '</a></strong> <button class="btn btn--pri btn--xs" style="margin-left:8px" onclick="navigator.clipboard.writeText(\'' + esc(link) + '\')">' + t('copy_btn') + '</button>';
   document.getElementById('menu-url').value = link;
 }
 
 function authHeaders() { return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }; }
 
-function showRegister(){document.getElementById('login-box').style.display='none';document.getElementById('register-box').style.display='block'}
-function showLogin(){document.getElementById('register-box').style.display='none';document.getElementById('login-box').style.display='block'}
+function showRegister(){ document.getElementById('login-box').style.display='none'; document.getElementById('register-box').style.display='block'; }
+function showLogin(){ document.getElementById('register-box').style.display='none'; document.getElementById('login-box').style.display='block'; }
 
 async function register(){
-  const name=document.getElementById('reg-name').value.trim(),phone=document.getElementById('reg-phone').value.trim(),pin=document.getElementById('reg-pin').value.trim(),lang=document.getElementById('reg-lang').value;
-  if(!name||!pin) return alert(t('alert_name_pin'));
-  if(pin.length<4) return alert(t('alert_pin_min'));
-  const r=await fetch('/api/shops',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,phone,language:lang,admin_pin:pin,whatsapp_number:phone})});
-  if(!r.ok){ const e=await r.json().catch(()=>({})); return alert(e.error||t('alert_reg_error')); }
-  const d=await r.json();
-  token = d.token;
-  document.getElementById('login-shop-id').value=d.id;
-  document.getElementById('login-pin').value='';
-  alert(t('alert_account_created').replace('{id}', d.id));
-  showLogin();
-  const r2 = await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({shop_id:d.id,admin_pin:pin})});
-  const d2 = await r2.json();
-  token = d2.token; shop = d2.shop;
-  adminLang = shop.language || 'nl';
-  showDashboard();
+  var name=document.getElementById('reg-name').value.trim(), phone=document.getElementById('reg-phone').value.trim(), pin=document.getElementById('reg-pin').value.trim(), lang=document.getElementById('reg-lang').value;
+  if(!name||!pin) return Toast.warn(t('alert_name_pin'));
+  if(pin.length<4) return Toast.warn(t('alert_pin_min'));
+  var btn = document.getElementById('reg-btn');
+  btn.disabled = true; btn.textContent = '...';
+  try {
+    var r=await fetch('/api/shops',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:name,phone:phone,language:lang,admin_pin:pin,whatsapp_number:phone})});
+    if(!r.ok){ var e=await r.json().catch(function(){return{};}); Toast.error(e.error||t('alert_reg_error')); btn.disabled=false; btn.textContent=t('reg_btn'); return; }
+    var d=await r.json();
+    token = d.token; shop = d.shop;
+    document.getElementById('login-pin').value='';
+    Toast.success(t('alert_account_created').replace('{id}', d.id), 5000);
+    adminLang = shop.language || 'nl';
+    showDashboard();
+  } catch(err) { Toast.error(t('alert_reg_error')); }
+  btn.disabled = false; btn.textContent = t('reg_btn');
 }
 
 async function login(){
-  const id=document.getElementById('login-shop-id').value.trim(),pin=document.getElementById('login-pin').value.trim();
-  const r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({shop_id:id,admin_pin:pin})});
-  if(!r.ok) return alert(t('alert_invalid_login'));
-  const d=await r.json();token=d.token;shop=d.shop;
-  adminLang = shop.language || 'nl';
-  setAdminLang(adminLang);
-  showDashboard();
+  var id=document.getElementById('login-shop-id').value.trim(), pin=document.getElementById('login-pin').value.trim();
+  var btn = document.getElementById('login-btn');
+  btn.disabled = true; btn.textContent = '...';
+  try {
+    var r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({shop_id:id,admin_pin:pin})});
+    if(!r.ok){ Toast.error(t('alert_invalid_login')); btn.disabled=false; btn.textContent=t('login_btn'); return; }
+    var d=await r.json(); token=d.token; shop=d.shop;
+    adminLang = shop.language || 'nl';
+    setAdminLang(adminLang);
+    showDashboard();
+  } catch(err) { Toast.error(t('alert_invalid_login')); }
+  btn.disabled = false; btn.textContent = t('login_btn');
 }
 
 function showDashboard(){
@@ -476,77 +606,99 @@ function showDashboard(){
   document.getElementById('dash-shop-id').textContent='ID: '+shop.id;
   updateMenuLinkBox();
   updateUITexts();
-  loadDashboard();loadOrders();loadItems();
-  if (!shop.wizard_complete) {
-    startWizard();
-  } else {
-    startNotificationPolling();
-  }
+  loadDashboard(); loadOrders(); loadItems();
+  if (!shop.wizard_complete) { startWizard(); }
+  else { startNotificationStream(); }
 }
 
 async function loadDashboard(){
-  const r=await fetch('/api/admin/dashboard',{headers:authHeaders()});
-  const d=await r.json();
-  document.getElementById('stats').innerHTML=`
-    <div class="stat-card"><div class="label">${t('stats_today_orders')}</div><div class="value">${d.ordersToday?.count||0}</div></div>
-    <div class="stat-card"><div class="label">${t('stats_today_revenue')}</div><div class="value">SRD ${(d.ordersToday?.total||0).toFixed(0)}</div></div>
-    <div class="stat-card"><div class="label">${t('stats_week_revenue')}</div><div class="value">SRD ${(d.ordersWeek?.total||0).toFixed(0)}</div></div>
-    <div class="stat-card" id="stat-pending"><div class="label">${t('stats_pending')}</div><div class="value">${d.pending?.count||0}</div></div>`;
+  showSkeleton('stats', 4, '72px');
+  var r=await fetch('/api/admin/dashboard',{headers:authHeaders()});
+  var d=await r.json();
+  document.getElementById('stats').innerHTML=
+    '<div class="stat-card"><div class="label">'+t('stats_today_orders')+'</div><div class="value">'+(d.ordersToday?.count||0)+'</div></div>'+
+    '<div class="stat-card"><div class="label">'+t('stats_today_revenue')+'</div><div class="value">SRD '+((d.ordersToday?.total||0)).toFixed(0)+'</div></div>'+
+    '<div class="stat-card"><div class="label">'+t('stats_week_revenue')+'</div><div class="value">SRD '+((d.ordersWeek?.total||0)).toFixed(0)+'</div></div>'+
+    '<div class="stat-card" id="stat-pending"><div class="label">'+t('stats_pending')+'</div><div class="value">'+(d.pending?.count||0)+'</div></div>';
 }
 
 async function loadOrders(){
-  const r=await fetch('/api/admin/orders',{headers:authHeaders()});
-  const orders=await r.json();
-  document.getElementById('orders-tbody').innerHTML=orders.map(o=>{
-    let items;try{items=JSON.parse(o.items_json)}catch(e){items=[]}
-    const sc='status-'+esc(o.status);
-    const pm=o.payment_method==='bank_transfer'?'🏦':'💵';
-    const psMap={unpaid:'pay_unpaid',paid:'pay_paid',refunded:'pay_refunded'};
-    const ps=psMap[o.payment_status]||'pay_unpaid';
-    const psBadge=o.payment_status==='paid'?'style="background:#d1fae5;color:#065f46"':(o.payment_status==='refunded'?'style="background:#fee2e2;color:#991b1b"':'style="background:#fef3c7;color:#92400e"');
-    let payBtn='';
-    if(o.payment_status==='unpaid')payBtn=`<button class="btn btn-pri" style="padding:2px 6px;font-size:.65rem;margin-right:2px" onclick="updatePaymentStatus('${esc(o.id)}','paid')">${t('mark_paid')}</button>`;
-    if(o.payment_status==='paid')payBtn=`<button class="btn btn-danger" style="padding:2px 6px;font-size:.65rem" onclick="updatePaymentStatus('${esc(o.id)}','refunded')">${t('mark_refunded')}</button>`;
-    return `<tr><td>#${esc(String(o.id))}</td><td>${esc(o.customer_name)}${o.customer_phone ? `<br><a href="https://wa.me/${o.customer_phone.replace(/[^0-9]/g,'')}" target="_blank" style="font-size:.75rem;color:#25D366;text-decoration:none">💬 ${esc(o.customer_phone)}</a>` : ''}</td><td>${items.map(i=>`${i.qty}x ${esc(i.name)}`).join(', ')}</td><td>SRD ${o.total.toFixed(2)} <span ${psBadge} style="display:inline-block;padding:1px 5px;border-radius:8px;font-size:.7rem;margin-left:4px">${t(ps)}</span> ${payBtn}</td><td>${esc(o.created_at?.slice(11,16)||'')}</td><td><span class="order-status ${sc}">${esc(o.status)}</span></td><td><select onchange="updateOrderStatus('${esc(o.id)}',this.value)" style="font-size:.75rem;padding:4px"><option value="">${t('actie')}</option><option value="confirmed">${t('bevestig')}</option><option value="done">${t('klaar')}</option><option value="cancelled">${t('annuleer')}</option></select></td></tr>`}).join('')||'<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--muted)">'+t('empty_orders')+'</td></tr>';
+  var tbody = document.getElementById('orders-tbody');
+  tbody.innerHTML = '<tr><td colspan="7"><div style="display:flex;justify-content:center;padding:40px"><div class="spinner"></div></div></td></tr>';
+  var r=await fetch('/api/admin/orders',{headers:authHeaders()});
+  var orders=await r.json();
+  tbody.innerHTML=orders.map(function(o){
+    var items; try{items=JSON.parse(o.items_json)}catch(e){items=[]}
+    var sc='status-'+esc(o.status);
+    var psMap={unpaid:'pay_unpaid',paid:'pay_paid',refunded:'pay_refunded'};
+    var ps=psMap[o.payment_status]||'pay_unpaid';
+    var psClass='pay-badge pay-'+o.payment_status;
+    var payBtn='';
+    if(o.payment_status==='unpaid') payBtn='<button class="btn btn--pri btn--xs" onclick="updatePaymentStatus(\''+esc(o.id)+'\',\'paid\')">'+t('mark_paid')+'</button>';
+    if(o.payment_status==='paid') payBtn='<button class="btn btn--danger btn--xs" onclick="updatePaymentStatus(\''+esc(o.id)+'\',\'refunded\')">'+t('mark_refunded')+'</button>';
+    return '<tr>'+
+      '<td>#'+esc(String(o.id)).slice(0,8)+'</td>'+
+      '<td>'+esc(o.customer_name)+(o.customer_phone ? '<br><a class="order-link" href="https://wa.me/'+o.customer_phone.replace(/[^0-9]/g,'')+'" target="_blank" rel="noopener">💬 '+esc(o.customer_phone)+'</a>' : '')+'</td>'+
+      '<td>'+items.map(function(i){ return i.qty+'x '+esc(i.name); }).join(', ')+'</td>'+
+      '<td>SRD '+o.total.toFixed(2)+' <span class="'+psClass+'">'+t(ps)+'</span> '+payBtn+'</td>'+
+      '<td class="col-time">'+esc(o.created_at?.slice(11,16)||'')+'</td>'+
+      '<td><span class="order-status '+sc+'">'+esc(o.status)+'</span></td>'+
+      '<td><select onchange="updateOrderStatus(\''+esc(o.id)+'\',this.value)" style="font-size:.75rem;padding:4px;border-radius:var(--r-sm);border:1px solid var(--border)"><option value="">'+t('actie')+'</option><option value="confirmed">'+t('bevestig')+'</option><option value="done">'+t('klaar')+'</option><option value="cancelled">'+t('annuleer')+'</option></select></td>'+
+      '</tr>';
+  }).join('') || '<tr><td colspan="7" class="empty-row">'+t('empty_orders')+'</td></tr>';
 }
 
 async function updateOrderStatus(id,s){
   if(!s)return;
-  await fetch(`/api/admin/orders/${id}`,{method:'PUT',headers:authHeaders(),body:JSON.stringify({status:s})});
-  loadOrders();loadDashboard();
+  await fetch('/api/admin/orders/'+id,{method:'PUT',headers:authHeaders(),body:JSON.stringify({status:s})});
+  loadOrders(); loadDashboard();
 }
 
 async function loadItems(){
-  const r=await fetch('/api/admin/items',{headers:authHeaders()});
-  const items=await r.json();
-  const cats=await (await fetch('/api/admin/categories',{headers:authHeaders()})).json();
-  document.getElementById('item-cat').innerHTML='<option value="">'+t('cat_opt')+'</option>'+cats.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
-  document.getElementById('items-list').innerHTML='<table><thead><tr><th>'+t('th_name')+'</th><th>'+t('th_cat')+'</th><th>'+t('th_price')+'</th><th></th></tr></thead><tbody>'+items.map(i=>`<tr><td>${esc(i.name)}${i.name_zh?' / '+esc(i.name_zh):''}${i.name_srn?' / '+esc(i.name_srn):''}</td><td>${esc(i.category_name||'-')}</td><td>SRD ${i.price.toFixed(2)}</td><td><button class="btn btn-danger" style="padding:2px 8px;font-size:.7rem" onclick="deleteItem(${i.id})">X</button></td></tr>`).join('')+'</tbody></table>';
+  var r=await fetch('/api/admin/items',{headers:authHeaders()});
+  var items=await r.json();
+  var cats=await (await fetch('/api/admin/categories',{headers:authHeaders()})).json();
+  document.getElementById('item-cat').innerHTML='<option value="">'+t('cat_opt')+'</option>'+cats.map(function(c){ return '<option value="'+c.id+'">'+esc(c.name)+'</option>'; }).join('');
+  document.getElementById('items-list').innerHTML='<table><thead><tr><th>'+t('th_name')+'</th><th>'+t('th_cat')+'</th><th>'+t('th_price')+'</th><th></th></tr></thead><tbody>'+items.map(function(i){ return '<tr><td>'+esc(i.name)+(i.name_zh?' / '+esc(i.name_zh):'')+(i.name_srn?' / '+esc(i.name_srn):'')+'</td><td>'+esc(i.category_name||'-')+'</td><td>SRD '+i.price.toFixed(2)+'</td><td><button class="btn btn--danger btn--xs" onclick="deleteItem('+i.id+')">✕</button></td></tr>'; }).join('')+'</tbody></table>';
 }
 
 async function addItem(){
-  const name=document.getElementById('item-name').value.trim(),
-        name_zh=document.getElementById('item-name-zh').value.trim(),
-        name_en=document.getElementById('item-name-en').value.trim(),
-          price=parseFloat(document.getElementById('item-price').value),
-        category_id=document.getElementById('item-cat').value||null;
-  if(!name||!price) return alert(t('alert_name_price'));
-  await fetch('/api/admin/items',{method:'POST',headers:authHeaders(),body:JSON.stringify({name,name_zh,name_en,price,category_id:category_id?parseInt(category_id):null})});
-  document.getElementById('item-name').value='';document.getElementById('item-name-zh').value='';document.getElementById('item-name-en').value='';document.getElementById('item-price').value='';
+  var name=document.getElementById('item-name').value.trim(),
+      name_zh=document.getElementById('item-name-zh').value.trim(),
+      name_en=document.getElementById('item-name-en').value.trim(),
+      price=parseFloat(document.getElementById('item-price').value),
+      category_id=document.getElementById('item-cat').value||null;
+  if(!name||!price) return Toast.warn(t('alert_name_price'));
+  await fetch('/api/admin/items',{method:'POST',headers:authHeaders(),body:JSON.stringify({name:name,name_zh:name_zh,name_en:name_en,price:price,category_id:category_id?parseInt(category_id):null})});
+  document.getElementById('item-name').value=''; document.getElementById('item-name-zh').value=''; document.getElementById('item-name-en').value=''; document.getElementById('item-price').value='';
+  Toast.success(t('toast_item_added'));
   loadItems();
 }
 
-async function deleteItem(id){if(confirm(t('alert_delete'))){await fetch(`/api/admin/items/${id}`,{method:'DELETE',headers:authHeaders()});loadItems()}}
+function deleteItem(id){
+  showConfirm(t('alert_delete'), function(){
+    fetch('/api/admin/items/'+id,{method:'DELETE',headers:authHeaders()}).then(function(){ loadItems(); });
+  }, t('cancel'), t('delete_confirm'));
+}
 
-function switchTab(t){tab=t;document.querySelectorAll('.tabs button').forEach((b,i)=>{b.classList.toggle('active',i===['orders','menu','share','settings'].indexOf(t))});document.querySelectorAll('.panel').forEach(p=>{p.classList.toggle('active',p.id==='panel-'+t)});if(t==='orders')loadOrders();if(t==='menu')loadItems();if(t==='share')loadShareTab();if(t==='settings')loadSettings()}
+function switchTab(t){
+  tab=t;
+  var tabs = ['orders','menu','share','settings'];
+  document.querySelectorAll('.tabs button').forEach(function(b,i){ b.classList.toggle('active', i===tabs.indexOf(t)); });
+  document.querySelectorAll('.panel').forEach(function(p){ p.classList.toggle('active', p.id==='panel-'+t); });
+  if(t==='orders') loadOrders();
+  if(t==='menu') loadItems();
+  if(t==='share') loadShareTab();
+  if(t==='settings') loadSettings();
+}
 
-// ─ Payment ─
+// ── Payment ──
 async function updatePaymentStatus(id, ps) {
-  await fetch(`/api/admin/orders/${id}`, { method: 'PUT', headers: authHeaders(), body: JSON.stringify({ payment_status: ps }) });
+  await fetch('/api/admin/orders/'+id, { method: 'PUT', headers: authHeaders(), body: JSON.stringify({ payment_status: ps }) });
   loadOrders();
 }
 
-// ─ Settings ─
+// ── Settings ──
 function loadSettings() {
   document.getElementById('set-welcome').value = shop.welcome_msg || '';
   document.getElementById('set-wa').value = shop.whatsapp_number || '';
@@ -557,7 +709,7 @@ function loadSettings() {
 }
 
 async function saveSettings() {
-  const data = {
+  var data = {
     welcome_msg: document.getElementById('set-welcome').value.trim(),
     whatsapp_number: document.getElementById('set-wa').value.trim(),
     language: document.getElementById('set-lang').value,
@@ -565,19 +717,18 @@ async function saveSettings() {
     bank_account: document.getElementById('set-bank-acc').value.trim(),
     bank_account_name: document.getElementById('set-bank-holder').value.trim()
   };
-  const r = await fetch('/api/admin/shop', { method: 'PUT', headers: authHeaders(), body: JSON.stringify(data) });
+  var r = await fetch('/api/admin/shop', { method: 'PUT', headers: authHeaders(), body: JSON.stringify(data) });
   if (r.ok) {
-    // Update local shop object
     Object.assign(shop, data);
     updateMenuLinkBox();
-    const btn = document.getElementById('save-settings-btn');
-    btn.textContent = '✓';
-    setTimeout(() => { btn.textContent = t('settings_save'); }, 1500);
+    Toast.success(t('settings_saved'));
+  } else {
+    Toast.error(t('toast_save_error'));
   }
 }
 
-// ─ Setup Wizard ─
-let wizStep = 0, wizData = {};
+// ── Setup Wizard ──
+var wizStep = 0, wizData = {};
 
 function startWizard() {
   wizStep = 1; wizData = {};
@@ -587,72 +738,64 @@ function startWizard() {
 
 function endWizard() {
   document.getElementById('wizard-overlay').style.display = 'none';
-  fetch(`/api/shops/${shop.id}/setup`, {
-    method: 'POST',
-    headers: authHeaders(),
-    body: JSON.stringify({ ...wizData, wizard_complete: true })
-  }).then(() => {
-    startNotificationPolling();
-  });
+  fetch('/api/shops/'+shop.id+'/setup', {
+    method: 'POST', headers: authHeaders(),
+    body: JSON.stringify(Object.assign({}, wizData, { wizard_complete: true }))
+  }).then(function(){ startNotificationStream(); });
 }
 
 function renderWizard() {
-  const box = document.getElementById('wizard-box');
-  const dots = Array(5).fill(0).map((_,i) => `<span class="step-dot${i < wizStep ? ' done' : ''}"></span>`).join('');
-  let html = `<div class="step-dots">${dots}</div>`;
+  var box = document.getElementById('wizard-box');
+  var dots = Array(5).fill(0).map(function(_,i){ return '<span class="step-dot'+(i < wizStep ? ' done' : '')+'"></span>'; }).join('');
+  var html = '<div class="step-dots">'+dots+'</div>';
 
   if (wizStep === 1) {
-    html += `<h2>${t('wizard_step1_title')}</h2><p class="step-hint">${t('wizard_step1_desc')}</p>`;
-    html += `<div class="shop-id-display">${shop.id}</div>`;
-    html += `<button class="shop-id-display-btn" onclick="copyShopId(event)">📋 ${t('wizard_copy')}</button>`;
-    html += `<button class="wiz-next" onclick="wizNext()">${t('wizard_next')}</button>`;
+    html += '<h2>'+t('wizard_step1_title')+'</h2><p class="step-hint">'+t('wizard_step1_desc')+'</p>';
+    html += '<div class="shop-id-display">'+shop.id+'</div>';
+    html += '<button class="shop-id-display-btn" onclick="copyShopId(event)">📋 '+t('wizard_copy')+'</button>';
+    html += '<button class="wiz-next" onclick="wizNext()">'+t('wizard_next')+'</button>';
   } else if (wizStep === 2) {
-    html += `<h2>${t('wizard_step2_title')}</h2><p class="step-hint">${t('wizard_step2_desc')}</p>`;
-    html += `<input type="tel" id="wiz-wa" placeholder="${t('wizard_step2_ph')}" value="${esc(shop.whatsapp_number || '')}">`;
-    html += `<button class="wiz-next" onclick="wizSave('whatsapp_number',document.getElementById('wiz-wa').value)">${t('wizard_next')}</button>`;
-    html += `<button class="wiz-skip" onclick="wizNext()">${t('wizard_skip')}</button>`;
+    html += '<h2>'+t('wizard_step2_title')+'</h2><p class="step-hint">'+t('wizard_step2_desc')+'</p>';
+    html += '<input type="tel" id="wiz-wa" placeholder="'+t('wizard_step2_ph')+'" value="'+esc(shop.whatsapp_number || '')+'">';
+    html += '<button class="wiz-next" onclick="wizSave(\'whatsapp_number\',document.getElementById(\'wiz-wa\').value)">'+t('wizard_next')+'</button>';
+    html += '<button class="wiz-skip" onclick="wizNext()">'+t('wizard_skip')+'</button>';
   } else if (wizStep === 3) {
-    html += `<h2>${t('wizard_step3_title')}</h2><p class="step-hint">${t('wizard_step3_desc')}</p>`;
-    html += `<div id="wiz-items"><div class="wizard-item-row"><input type="text" id="wiz-item-name-0" placeholder="${t('wizard_step3_name')}"><input type="number" id="wiz-item-price-0" placeholder="${t('wizard_step3_price')}" step="0.01" style="max-width:100px"></div></div>`;
-    html += `<button class="wiz-skip" onclick="addWizItemRow()" style="margin-bottom:8px">${t('wizard_add_item')}</button>`;
-    html += `<button class="wiz-next" onclick="wizSaveMenu()">${t('wizard_next')}</button>`;
-    html += `<button class="wiz-skip" onclick="wizNext()">${t('wizard_skip')}</button>`;
+    html += '<h2>'+t('wizard_step3_title')+'</h2><p class="step-hint">'+t('wizard_step3_desc')+'</p>';
+    html += '<div id="wiz-items"><div class="wizard-item-row"><input type="text" id="wiz-item-name-0" placeholder="'+t('wizard_step3_name')+'"><input type="number" id="wiz-item-price-0" placeholder="'+t('wizard_step3_price')+'" step="0.01" style="max-width:100px"></div></div>';
+    html += '<button class="wiz-skip" onclick="addWizItemRow()" style="margin-bottom:8px">'+t('wizard_add_item')+'</button>';
+    html += '<button class="wiz-next" onclick="wizSaveMenu()">'+t('wizard_next')+'</button>';
+    html += '<button class="wiz-skip" onclick="wizNext()">'+t('wizard_skip')+'</button>';
     wizItemCount = 1;
   } else if (wizStep === 4) {
-    const link = `${location.origin}/order/${shop.id}`;
-    html += `<h2>${t('wizard_step4_title')}</h2><p class="step-hint">${t('wizard_step4_desc')}</p>`;
-    html += `<div class="menu-link-box"><strong>${esc(link)}</strong></div>`;
-    html += `<button class="btn btn-pri" style="margin-bottom:8px" onclick="navigator.clipboard.writeText('${esc(link)}')">📋 ${t('wizard_copy')}</button><br>`;
-    html += `<a class="btn btn-pri" style="display:inline-block;margin-bottom:4px;background:#25D366;text-decoration:none" href="https://wa.me/?text=${encodeURIComponent(shop.name+' - '+t('share_desc')+': '+link)}" target="_blank">📱 WhatsApp</a><br>`;
-    html += `<button class="wiz-next" onclick="wizNext()">${t('wizard_next')}</button>`;
+    var link = location.origin + '/order/' + shop.id;
+    html += '<h2>'+t('wizard_step4_title')+'</h2><p class="step-hint">'+t('wizard_step4_desc')+'</p>';
+    html += '<div class="shop-id-display" style="font-size:1rem;font-weight:600;letter-spacing:0">'+esc(link)+'</div>';
+    html += '<button class="btn btn--pri" style="margin-bottom:6px;width:100%" onclick="navigator.clipboard.writeText(\''+esc(link)+'\')">📋 '+t('wizard_copy')+'</button>';
+    html += '<a class="btn btn--pri btn--wa" style="display:block;margin-bottom:6px;text-decoration:none;text-align:center" href="https://wa.me/?text='+encodeURIComponent(shop.name+' - '+t('share_desc')+': '+link)+'" target="_blank" rel="noopener">📱 WhatsApp</a>';
+    html += '<button class="wiz-next" onclick="wizNext()">'+t('wizard_next')+'</button>';
   } else if (wizStep === 5) {
-    html += `<h2>${t('wizard_step5_title')}</h2><p class="step-hint">${t('wizard_step5_desc')}</p>`;
-    html += `<button class="wiz-next" onclick="endWizard()">${t('wizard_done')}</button>`;
+    html += '<h2>'+t('wizard_step5_title')+'</h2><p class="step-hint">'+t('wizard_step5_desc')+'</p>';
+    html += '<button class="wiz-next" onclick="endWizard()">'+t('wizard_done')+'</button>';
   }
-
   box.innerHTML = html;
 }
 
-let wizItemCount = 1;
+var wizItemCount = 1;
 function addWizItemRow() {
-  const container = document.getElementById('wiz-items');
-  const row = document.createElement('div');
+  var container = document.getElementById('wiz-items');
+  var row = document.createElement('div');
   row.className = 'wizard-item-row';
-  row.innerHTML = `<input type="text" id="wiz-item-name-${wizItemCount}" placeholder="${t('wizard_step3_name')}"><input type="number" id="wiz-item-price-${wizItemCount}" placeholder="${t('wizard_step3_price')}" step="0.01" style="max-width:100px">`;
+  row.innerHTML = '<input type="text" id="wiz-item-name-'+wizItemCount+'" placeholder="'+t('wizard_step3_name')+'"><input type="number" id="wiz-item-price-'+wizItemCount+'" placeholder="'+t('wizard_step3_price')+'" step="0.01" style="max-width:100px">';
   container.appendChild(row);
   wizItemCount++;
 }
 
-function wizSave(key, value) {
-  if (value) wizData[key] = value;
-  wizNext();
-}
-
+function wizSave(key, value) { if (value) wizData[key] = value; wizNext(); }
 function wizSaveMenu() {
-  const menu_items = [];
-  for (let i = 0; i < wizItemCount; i++) {
-    const nameEl = document.getElementById('wiz-item-name-' + i);
-    const priceEl = document.getElementById('wiz-item-price-' + i);
+  var menu_items = [];
+  for (var i = 0; i < wizItemCount; i++) {
+    var nameEl = document.getElementById('wiz-item-name-' + i);
+    var priceEl = document.getElementById('wiz-item-price-' + i);
     if (nameEl && priceEl && nameEl.value.trim() && priceEl.value) {
       menu_items.push({ name: nameEl.value.trim(), price: parseFloat(priceEl.value) });
     }
@@ -660,90 +803,75 @@ function wizSaveMenu() {
   if (menu_items.length) wizData.menu_items = menu_items;
   wizNext();
 }
-
 function wizNext() { wizStep++; renderWizard(); }
-
 function copyShopId(ev) {
   navigator.clipboard.writeText(shop.id);
-  const btn = ev.target;
-  btn.textContent = '✓ Gekopieerd!';
-  setTimeout(() => { btn.textContent = '📋 ' + t('wizard_copy'); }, 1500);
+  var btn = ev.target;
+  var orig = btn.textContent;
+  btn.textContent = '✓ ' + t('wizard_copied');
+  setTimeout(function(){ btn.textContent = '📋 ' + t('wizard_copy'); }, 1500);
 }
 
-// ─ Order Notification Polling ─
-let lastOrderId = null, pollTimer = null;
+// ── SSE Notifications ──
+var eventSource = null;
 
-function startNotificationPolling() {
-  if (pollTimer) return;
-  if (Notification.permission === 'default') {
+function startNotificationStream() {
+  if (eventSource) return;
+  if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
     Notification.requestPermission();
   }
-  fetch('/api/admin/orders?limit=5', { headers: authHeaders() })
-    .then(r => r.json())
-    .then(orders => {
-      if (orders.length) lastOrderId = orders[0].id;
-    });
-  pollTimer = setInterval(checkNewOrders, 15000);
+  var url = '/api/admin/events?token=' + encodeURIComponent(token);
+  eventSource = new EventSource(url);
+
+  eventSource.addEventListener('new-order', function(e) {
+    try {
+      var order = JSON.parse(e.data);
+      showNotification(order);
+      loadOrders();
+      loadDashboard();
+      var pendingEl = document.getElementById('stat-pending');
+      if (pendingEl) {
+        pendingEl.classList.add('stat-pulse');
+        setTimeout(function(){ pendingEl.classList.remove('stat-pulse'); }, 1500);
+      }
+    } catch (_) { /* ignore malformed events */ }
+  });
+
+  eventSource.onerror = function() {};
 }
 
-async function checkNewOrders() {
-  try {
-    const r = await fetch('/api/admin/orders?limit=5', { headers: authHeaders() });
-    if (!r.ok) return;
-    const orders = await r.json();
-    if (!orders.length) return;
-    if (lastOrderId && orders[0].id !== lastOrderId) {
-      const newOrders = [];
-      for (const o of orders) {
-        if (o.id === lastOrderId) break;
-        newOrders.push(o);
-      }
-      if (newOrders.length) {
-        for (const o of newOrders.reverse()) {
-          showNotification(o);
-        }
-        lastOrderId = orders[0].id;
-        loadOrders();
-        loadDashboard();
-        document.getElementById('stat-pending').classList.add('stat-pulse');
-        setTimeout(() => document.getElementById('stat-pending').classList.remove('stat-pulse'), 1500);
-      }
-    }
-    if (!lastOrderId) lastOrderId = orders[0].id;
-  } catch (e) { /* ignore polling errors */ }
+function stopNotificationStream() {
+  if (eventSource) { eventSource.close(); eventSource = null; }
 }
 
 function showNotification(order) {
-  // Browser notification
-  if (Notification.permission === 'granted') {
+  if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
     new Notification(t('notif_new_order'), {
-      body: `${t('notif_from')} ${order.customer_name} — SRD ${order.total.toFixed(2)}`,
+      body: t('notif_from') + ' ' + order.customer_name + ' — SRD ' + order.total.toFixed(2),
       icon: '/favicon.ico'
     });
   }
-  // Sound
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
+    var ctx = new (window.AudioContext || window.webkitAudioContext)();
+    var osc = ctx.createOscillator();
+    var gain = ctx.createGain();
     osc.connect(gain); gain.connect(ctx.destination);
     osc.frequency.value = 880;
     gain.gain.value = 0.2;
     osc.start(); osc.stop(ctx.currentTime + 0.12);
-    setTimeout(() => {
-      const osc2 = ctx.createOscillator();
-      const gain2 = ctx.createGain();
+    setTimeout(function(){
+      var osc2 = ctx.createOscillator();
+      var gain2 = ctx.createGain();
       osc2.connect(gain2); gain2.connect(ctx.destination);
       osc2.frequency.value = 1100;
       gain2.gain.value = 0.2;
       osc2.start(); osc2.stop(ctx.currentTime + 0.15);
     }, 150);
   } catch (e) { /* audio not available */ }
-  // Banner
-  const banner = document.getElementById('notif-banner');
-  banner.textContent = `🔔 ${t('notif_new_order')} ${t('notif_from')} ${order.customer_name} — SRD ${order.total.toFixed(2)}`;
+  var banner = document.getElementById('notif-banner');
+  banner.textContent = '🔔 ' + t('notif_new_order') + ' ' + t('notif_from') + ' ' + order.customer_name + ' — SRD ' + order.total.toFixed(2);
   banner.style.display = 'block';
-  setTimeout(() => { banner.style.display = 'none'; }, 5000);
+  setTimeout(function(){ banner.style.display = 'none'; }, 5000);
 }
 
 showLogin();

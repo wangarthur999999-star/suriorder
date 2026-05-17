@@ -5,7 +5,9 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "node --watch server.js",
+    "test": "node --test tests/api.test.js",
+    "test:watch": "node --test --watch tests/api.test.js"
   },
   "dependencies": {
     "@playwright/test": "^1.59.1",

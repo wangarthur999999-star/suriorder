@@ -30,6 +30,15 @@ function registerOrderRoutes(app, db, { auth, orderLimiter }) {
     const orderId = crypto.randomBytes(4).toString("hex");
     db.prepare("INSERT INTO orders (id, shop_id, customer_name, customer_phone, items_json, total, note, pickup_time, payment_method) VALUES (?,?,?,?,?,?,?,?,?)").run(orderId, shop_id, customer_name, customer_phone, JSON.stringify(orderItems), total, note || null, pickup_time || null, paymentMethod);
 
+    const events = require("../lib/events");
+    events.emit("new-order", {
+      id: orderId, shop_id, customer_name, customer_phone,
+      items: orderItems, total, note: note || null,
+      pickup_time: pickup_time || null, status: "pending",
+      payment_method: paymentMethod, payment_status: "unpaid",
+      created_at: new Date().toISOString(),
+    });
+
     res.json({ order_id: orderId, total, items: orderItems, payment_method: paymentMethod });
   });
 

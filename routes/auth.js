@@ -16,7 +16,9 @@ function registerAuthRoutes(app, db, { JWT_SECRET, auth, loginLimiter }) {
     const hash = bcrypt.hashSync(admin_pin, 10);
     db.prepare("INSERT INTO shops (id, name, phone, language, admin_pin, whatsapp_number) VALUES (?,?,?,?,?,?)").run(id, name, phone, lang, hash, whatsapp_number);
     const token = jwt.sign({ shopId: id }, JWT_SECRET, { expiresIn: "7d" });
-    res.json({ id, name, token });
+    const created = db.prepare("SELECT * FROM shops WHERE id=?").get(id);
+    const { admin_pin: _, ...safeShop } = created;
+    res.json({ id, name, token, shop: safeShop });
   });
 
   // Login
@@ -61,15 +63,9 @@ function registerAuthRoutes(app, db, { JWT_SECRET, auth, loginLimiter }) {
     res.json({ ok: true, menu_link: `${req.appBaseUrl}/order/${req.shopId}` });
   });
 
-  // Translate helper
+  // Translate helper (disabled — requires LLM API key)
   app.post("/api/translate", auth, (req, res) => {
-    const { text, from, to } = req.body;
-    if (!text || !to) return res.status(400).json({ error: "text and to required" });
-    res.json({
-      original: text,
-      suggestion: `[${to.toUpperCase()}] ${text}`,
-      hint: "In production, attach an LLM API key for instant translation"
-    });
+    res.status(501).json({ error: "translation not available", hint: "configure an LLM API key to enable" });
   });
 }
 

@@ -1,6 +1,7 @@
 const crypto = require("crypto");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { sanitizeName, sanitizeText } = require("../lib/sanitize");
 
 const validLangs = ["nl", "en", "zh"];
 
@@ -14,7 +15,7 @@ function registerAuthRoutes(app, db, { JWT_SECRET, auth, loginLimiter }) {
     const id = crypto.randomBytes(6).toString("hex");
     const lang = validLangs.includes(language) ? language : "nl";
     const hash = bcrypt.hashSync(admin_pin, 10);
-    db.prepare("INSERT INTO shops (id, name, phone, language, admin_pin, whatsapp_number) VALUES (?,?,?,?,?,?)").run(id, name, phone, lang, hash, whatsapp_number);
+    db.prepare("INSERT INTO shops (id, name, phone, language, admin_pin, whatsapp_number) VALUES (?,?,?,?,?,?)").run(id, sanitizeName(name), sanitizeName(phone), lang, hash, sanitizeName(whatsapp_number));
     const token = jwt.sign({ shopId: id }, JWT_SECRET, { expiresIn: "7d" });
     const created = db.prepare("SELECT * FROM shops WHERE id=?").get(id);
     const { admin_pin: _, ...safeShop } = created;
@@ -42,21 +43,21 @@ function registerAuthRoutes(app, db, { JWT_SECRET, auth, loginLimiter }) {
       db.prepare("UPDATE shops SET language=? WHERE id=?").run(language, req.shopId);
     }
     if (welcome_msg !== undefined) {
-      db.prepare("UPDATE shops SET welcome_msg=? WHERE id=?").run(welcome_msg, req.shopId);
+      db.prepare("UPDATE shops SET welcome_msg=? WHERE id=?").run(sanitizeText(welcome_msg), req.shopId);
     }
     if (whatsapp_number !== undefined) {
-      db.prepare("UPDATE shops SET whatsapp_number=? WHERE id=?").run(whatsapp_number, req.shopId);
+      db.prepare("UPDATE shops SET whatsapp_number=? WHERE id=?").run(sanitizeName(whatsapp_number), req.shopId);
     }
     if (Array.isArray(categories)) {
       const insCat = db.prepare("INSERT INTO categories (shop_id, name, name_zh, name_en, name_srn) VALUES (?,?,?,?,?)");
       for (const c of categories) {
-        if (c.name) insCat.run(req.shopId, c.name, c.name_zh || null, c.name_en || null, c.name_srn || null);
+        if (c.name) insCat.run(req.shopId, sanitizeName(c.name), sanitizeName(c.name_zh), sanitizeName(c.name_en), sanitizeName(c.name_srn));
       }
     }
     if (Array.isArray(menu_items)) {
       const insItem = db.prepare("INSERT INTO items (shop_id, category_id, name, name_zh, name_en, name_srn, price) VALUES (?,?,?,?,?,?,?)");
       for (const i of menu_items) {
-        if (i.name && i.price != null) insItem.run(req.shopId, i.category_id || null, i.name, i.name_zh || null, i.name_en || null, i.name_srn || null, i.price);
+        if (i.name && i.price != null) insItem.run(req.shopId, i.category_id || null, sanitizeName(i.name), sanitizeName(i.name_zh), sanitizeName(i.name_en), sanitizeName(i.name_srn), i.price);
       }
     }
     db.prepare("UPDATE shops SET wizard_complete=1 WHERE id=?").run(req.shopId);

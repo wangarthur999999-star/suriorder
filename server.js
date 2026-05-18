@@ -99,7 +99,7 @@ app.get("/order/:shopId", (req, res) => {
   const shop = db.prepare("SELECT name, welcome_msg FROM shops WHERE id=? AND active=1").get(req.params.shopId);
   let html = ORDER_HTML;
   if (shop) {
-    const esc = (s) => String(s).replace(/"/g, "&quot;");
+    const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&#39;');
     html = html.replace('content="" id="og-title"', `content="${esc(shop.name)}" id="og-title"`);
     html = html.replace('content="" id="og-desc"', `content="${esc(shop.welcome_msg || 'Gerechten bestellen')}" id="og-desc"`);
     html = html.replace('content="" id="og-url"', `content="${req.appBaseUrl}/order/${req.params.shopId}" id="og-url"`);

@@ -1,4 +1,5 @@
 const validLangs = ["nl", "en", "zh"];
+const { sanitizeName, sanitizeText } = require("../lib/sanitize");
 
 function registerAdminRoutes(app, db, { auth }) {
 
@@ -32,7 +33,7 @@ function registerAdminRoutes(app, db, { auth }) {
     const { name, name_zh, name_en, name_srn, desc, desc_zh, desc_en, desc_srn, price, category_id, image_url } = req.body;
     if (!name || price == null) return res.status(400).json({ error: "name and price required" });
     if (typeof price !== "number" || price < 0) return res.status(400).json({ error: "invalid price" });
-    db.prepare("INSERT INTO items (shop_id, category_id, name, name_zh, name_en, name_srn, desc, desc_zh, desc_en, desc_srn, price, image_url) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)").run(req.shopId, category_id || null, name, name_zh || null, name_en || null, name_srn || null, desc || null, desc_zh || null, desc_en || null, desc_srn || null, price, image_url || null);
+    db.prepare("INSERT INTO items (shop_id, category_id, name, name_zh, name_en, name_srn, desc, desc_zh, desc_en, desc_srn, price, image_url) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)").run(req.shopId, category_id || null, sanitizeName(name), sanitizeName(name_zh), sanitizeName(name_en), sanitizeName(name_srn), sanitizeText(desc), sanitizeText(desc_zh), sanitizeText(desc_en), sanitizeText(desc_srn), price, image_url || null);
     res.json({ ok: true });
   });
 
@@ -45,8 +46,8 @@ function registerAdminRoutes(app, db, { auth }) {
       desc=COALESCE(?,desc), desc_zh=COALESCE(?,desc_zh), desc_en=COALESCE(?,desc_en), desc_srn=COALESCE(?,desc_srn),
       price=COALESCE(?,price), available=COALESCE(?,available), category_id=COALESCE(?,category_id), image_url=COALESCE(?,image_url)
       WHERE id=? AND shop_id=?`)
-    .run(name ?? null, name_zh ?? null, name_en ?? null, name_srn ?? null,
-      desc ?? null, desc_zh ?? null, desc_en ?? null, desc_srn ?? null,
+    .run(name != null ? sanitizeName(name) : null, name_zh != null ? sanitizeName(name_zh) : null, name_en != null ? sanitizeName(name_en) : null, name_srn != null ? sanitizeName(name_srn) : null,
+      desc != null ? sanitizeText(desc) : null, desc_zh != null ? sanitizeText(desc_zh) : null, desc_en != null ? sanitizeText(desc_en) : null, desc_srn != null ? sanitizeText(desc_srn) : null,
       price ?? null, available ?? null, category_id ?? null, image_url ?? null,
       req.params.id, req.shopId);
     res.json({ ok: true });
@@ -67,7 +68,7 @@ function registerAdminRoutes(app, db, { auth }) {
   app.post("/api/admin/categories", auth, (req, res) => {
     const { name, name_zh, name_en, name_srn } = req.body;
     if (!name) return res.status(400).json({ error: "name required" });
-    db.prepare("INSERT INTO categories (shop_id, name, name_zh, name_en, name_srn) VALUES (?,?,?,?,?)").run(req.shopId, name, name_zh || null, name_en || null, name_srn || null);
+    db.prepare("INSERT INTO categories (shop_id, name, name_zh, name_en, name_srn) VALUES (?,?,?,?,?)").run(req.shopId, sanitizeName(name), sanitizeName(name_zh), sanitizeName(name_en), sanitizeName(name_srn));
     res.json({ ok: true });
   });
 
@@ -76,12 +77,12 @@ function registerAdminRoutes(app, db, { auth }) {
     const { welcome_msg, whatsapp_number, language, bank_name, bank_account, bank_account_name } = req.body;
     const fields = [];
     const values = [];
-    if (welcome_msg !== undefined) { fields.push("welcome_msg=?"); values.push(welcome_msg); }
-    if (whatsapp_number !== undefined) { fields.push("whatsapp_number=?"); values.push(whatsapp_number); }
+    if (welcome_msg !== undefined) { fields.push("welcome_msg=?"); values.push(sanitizeText(welcome_msg)); }
+    if (whatsapp_number !== undefined) { fields.push("whatsapp_number=?"); values.push(sanitizeName(whatsapp_number)); }
     if (language !== undefined && validLangs.includes(language)) { fields.push("language=?"); values.push(language); }
-    if (bank_name !== undefined) { fields.push("bank_name=?"); values.push(bank_name); }
-    if (bank_account !== undefined) { fields.push("bank_account=?"); values.push(bank_account); }
-    if (bank_account_name !== undefined) { fields.push("bank_account_name=?"); values.push(bank_account_name); }
+    if (bank_name !== undefined) { fields.push("bank_name=?"); values.push(sanitizeName(bank_name)); }
+    if (bank_account !== undefined) { fields.push("bank_account=?"); values.push(sanitizeName(bank_account)); }
+    if (bank_account_name !== undefined) { fields.push("bank_account_name=?"); values.push(sanitizeName(bank_account_name)); }
     if (fields.length) {
       values.push(req.shopId);
       db.prepare(`UPDATE shops SET ${fields.join(",")} WHERE id=?`).run(...values);

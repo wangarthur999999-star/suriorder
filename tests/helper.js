@@ -15,6 +15,7 @@ const { registerAdminRoutes } = require("../routes/admin");
 const rateLimit = require("express-rate-limit");
 
 function createTestApp() {
+  process.env.ALLOW_QUERY_TOKEN = '1';
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "suriorder-test-"));
   const dbPath = path.join(tmpDir, "test.db");
   const db = new Database(dbPath);

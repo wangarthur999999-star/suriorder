@@ -19,7 +19,8 @@ function registerOrderRoutes(app, db, { auth, orderLimiter }) {
     for (const oi of items) {
       const dbi = dbItems.find(d => d.id === oi.id);
       if (!dbi) return res.status(400).json({ error: `item ${oi.id} not found` });
-      const qty = oi.qty || 1;
+      const qty = parseInt(oi.qty);
+      if (!Number.isFinite(qty) || qty < 1 || qty > 999) return res.status(400).json({ error: "invalid quantity" });
       total += dbi.price * qty;
       orderItems.push({ id: dbi.id, name: dbi.name, price: dbi.price, qty });
     }

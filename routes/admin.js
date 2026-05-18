@@ -72,6 +72,12 @@ function registerAdminRoutes(app, db, { auth }) {
     res.json({ ok: true });
   });
 
+  // Delete category
+  app.delete("/api/admin/categories/:id", auth, (req, res) => {
+    db.prepare("DELETE FROM categories WHERE id=? AND shop_id=?").run(req.params.id, req.shopId);
+    res.json({ ok: true });
+  });
+
   // Update shop settings
   app.put("/api/admin/shop", auth, (req, res) => {
     const { welcome_msg, whatsapp_number, language, bank_name, bank_account, bank_account_name } = req.body;

@@ -109,6 +109,19 @@
   .pay-paid     { background: var(--pri-light); color: #065f46; }
   .pay-refunded { background: var(--danger-light); color: #991b1b; }
 
+  /* ── Category Chips ── */
+  .cat-chips { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+  .cat-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: var(--bg); padding: 4px 8px;
+    border-radius: var(--r); font-size: .78rem; font-weight: 600;
+  }
+  .cat-chip .cat-del {
+    cursor: pointer; border: none; background: transparent;
+    font-size: .9rem; line-height: 1; color: var(--muted); padding: 0 2px;
+  }
+  .cat-chip .cat-del:hover { color: var(--danger); }
+
   /* ── Form Elements ── */
   .form-row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
   .form-row input, .form-row select, .form-row .btn {
@@ -284,6 +297,17 @@
   </div>
 
   <div class="panel" id="panel-menu">
+    <div style="margin-bottom:12px">
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+        <span style="font-weight:700;font-size:.75rem;text-transform:uppercase;letter-spacing:.3px;color:var(--text-sec);white-space:nowrap" id="cat-label">Categorieën</span>
+        <div class="cat-chips" id="cat-chips"></div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <input type="text" id="cat-name" placeholder="Nieuwe categorienaam" style="flex:1;padding:8px;border:2px solid var(--border);border-radius:var(--r);font-size:.8rem;min-height:var(--touch-sm);outline:none">
+        <button class="btn btn--pri btn--xs" onclick="addCategory()" id="cat-add-btn" style="min-height:var(--touch-sm)">+ Toevoegen</button>
+      </div>
+    </div>
+    <hr style="margin:12px 0;border:none;border-top:1px solid var(--border)">
     <div class="form-row">
       <input type="text" id="item-name" placeholder="Naam gerecht (NL)">
       <input type="text" id="item-name-zh" placeholder="名称 (中文)">
@@ -371,7 +395,7 @@ var L_admin = {
     wizard_step1_title: "Welkom bij SuriOrder!",
     wizard_step1_desc: "Uw shop ID is — bewaar deze goed:",
     wizard_step2_title: "WhatsApp Nummer", wizard_step2_desc: "Klanten kunnen u bereiken via WhatsApp", wizard_step2_ph: "WhatsApp nummer (+597...)",
-    wizard_step3_title: "Snelle Menu Setup", wizard_step3_desc: "Voeg snel een paar gerechten toe", wizard_step3_name: "Naam gerecht", wizard_step3_price: "Prijs (SRD)",
+    wizard_step3_title: "Snelle Menu Setup", wizard_step3_desc: "Voeg snel een paar gerechten toe", wizard_step3_name: "Naam gerecht", wizard_step3_price: "Prijs (SRD)", wizard_step3_cat: "Categorie (optioneel)",
     wizard_step4_title: "Deel Uw Link", wizard_step4_desc: "Klanten bestellen via deze link:",
     wizard_step5_title: "Klaar!", wizard_step5_desc: "Uw shop is nu live. Deel uw link met klanten.",
     wizard_next: "Volgende", wizard_skip: "Overslaan", wizard_done: "Naar Dashboard", wizard_copy: "Kopiëren", wizard_add_item: "+ Nog een gerecht",
@@ -385,7 +409,9 @@ var L_admin = {
     mark_paid: "Betaald", mark_refunded: "Terug",
     cancel: "Annuleer", delete_confirm: "Verwijder",
     toast_item_added: "Gerecht toegevoegd", toast_save_error: "Fout bij opslaan",
-    wizard_copied: "Gekopieerd!"
+    wizard_copied: "Gekopieerd!",
+    cat_label: "Categorieën", cat_new_ph: "Nieuwe categorienaam", cat_add_btn: "+ Toevoegen",
+    cat_delete_confirm: "Categorie en items verwijderen?"
   },
   en: {
     login_subtitle: "Manage your menu and orders",
@@ -423,7 +449,7 @@ var L_admin = {
     wizard_step1_title: "Welcome to SuriOrder!",
     wizard_step1_desc: "Your shop ID is — keep it safe:",
     wizard_step2_title: "WhatsApp Number", wizard_step2_desc: "Customers can reach you via WhatsApp", wizard_step2_ph: "WhatsApp number (+597...)",
-    wizard_step3_title: "Quick Menu Setup", wizard_step3_desc: "Quickly add a few dishes", wizard_step3_name: "Dish name", wizard_step3_price: "Price (SRD)",
+    wizard_step3_title: "Quick Menu Setup", wizard_step3_desc: "Quickly add a few dishes", wizard_step3_name: "Dish name", wizard_step3_price: "Price (SRD)", wizard_step3_cat: "Category (optional)",
     wizard_step4_title: "Share Your Link", wizard_step4_desc: "Customers order via this link:",
     wizard_step5_title: "All Done!", wizard_step5_desc: "Your shop is now live. Share your link with customers.",
     wizard_next: "Next", wizard_skip: "Skip", wizard_done: "Go to Dashboard", wizard_copy: "Copy", wizard_add_item: "+ Add another item",
@@ -437,7 +463,9 @@ var L_admin = {
     mark_paid: "Paid", mark_refunded: "Refund",
     cancel: "Cancel", delete_confirm: "Delete",
     toast_item_added: "Item added", toast_save_error: "Save failed",
-    wizard_copied: "Copied!"
+    wizard_copied: "Copied!",
+    cat_label: "Categories", cat_new_ph: "New category name", cat_add_btn: "+ Add",
+    cat_delete_confirm: "Delete category and its items?"
   },
   zh: {
     login_subtitle: "管理菜单和订单",
@@ -475,7 +503,7 @@ var L_admin = {
     wizard_step1_title: "欢迎来到 SuriOrder！",
     wizard_step1_desc: "您的店铺 ID — 请妥善保管：",
     wizard_step2_title: "WhatsApp 号码", wizard_step2_desc: "客户可以通过 WhatsApp 联系您", wizard_step2_ph: "WhatsApp 号码 (+597...)",
-    wizard_step3_title: "快速菜单设置", wizard_step3_desc: "快速添加几道菜", wizard_step3_name: "菜品名称", wizard_step3_price: "价格 (SRD)",
+    wizard_step3_title: "快速菜单设置", wizard_step3_desc: "快速添加几道菜", wizard_step3_name: "菜品名称", wizard_step3_price: "价格 (SRD)", wizard_step3_cat: "分类 (可选)",
     wizard_step4_title: "分享您的链接", wizard_step4_desc: "客户通过此链接下单：",
     wizard_step5_title: "设置完成！", wizard_step5_desc: "您的店铺已上线。分享链接给客户吧。",
     wizard_next: "下一步", wizard_skip: "跳过", wizard_done: "进入仪表盘", wizard_copy: "复制", wizard_add_item: "+ 添加菜品",
@@ -489,7 +517,9 @@ var L_admin = {
     mark_paid: "已付", mark_refunded: "退款",
     cancel: "取消", delete_confirm: "删除",
     toast_item_added: "菜品已添加", toast_save_error: "保存失败",
-    wizard_copied: "已复制！"
+    wizard_copied: "已复制！",
+    cat_label: "分类", cat_new_ph: "新分类名称", cat_add_btn: "+ 添加",
+    cat_delete_confirm: "确定删除分类及其菜品？"
   }
 };
 
@@ -533,6 +563,9 @@ function updateUITexts() {
     document.getElementById('item-price').placeholder = t('item_price_ph');
     document.getElementById('item-cat').options[0].textContent = t('cat_opt');
     document.getElementById('add-btn').textContent = t('add_btn');
+    document.getElementById('cat-label').textContent = t('cat_label');
+    document.getElementById('cat-name').placeholder = t('cat_new_ph');
+    document.getElementById('cat-add-btn').textContent = t('cat_add_btn');
     document.getElementById('share-title').textContent = t('share_title');
     document.getElementById('share-desc').textContent = t('share_desc');
     document.getElementById('share-wa').innerHTML = '<strong>WhatsApp:</strong> ' + t('share_wa');
@@ -657,8 +690,6 @@ async function updateOrderStatus(id,s){
 async function loadItems(){
   var r=await fetch('/api/admin/items',{headers:authHeaders()});
   var items=await r.json();
-  var cats=await (await fetch('/api/admin/categories',{headers:authHeaders()})).json();
-  document.getElementById('item-cat').innerHTML='<option value="">'+t('cat_opt')+'</option>'+cats.map(function(c){ return '<option value="'+c.id+'">'+esc(c.name)+'</option>'; }).join('');
   document.getElementById('items-list').innerHTML='<table><thead><tr><th>'+t('th_name')+'</th><th>'+t('th_cat')+'</th><th>'+t('th_price')+'</th><th></th></tr></thead><tbody>'+items.map(function(i){ return '<tr><td>'+esc(i.name)+(i.name_zh?' / '+esc(i.name_zh):'')+(i.name_srn?' / '+esc(i.name_srn):'')+'</td><td>'+esc(i.category_name||'-')+'</td><td>SRD '+i.price.toFixed(2)+'</td><td><button class="btn btn--danger btn--xs" onclick="deleteItem('+i.id+')">✕</button></td></tr>'; }).join('')+'</tbody></table>';
 }
 
@@ -681,13 +712,40 @@ function deleteItem(id){
   }, t('cancel'), t('delete_confirm'));
 }
 
+async function loadCategories() {
+  var r = await fetch('/api/admin/categories', { headers: authHeaders() });
+  var cats = await r.json();
+  document.getElementById('cat-chips').innerHTML = cats.map(function(c) {
+    return '<span class="cat-chip">'+esc(c.name)+'<button class="cat-del" onclick="deleteCategory('+c.id+')" title="'+t('delete_confirm')+'">×</button></span>';
+  }).join('');
+  document.getElementById('item-cat').innerHTML = '<option value="">'+t('cat_opt')+'</option>'+cats.map(function(c){ return '<option value="'+c.id+'">'+esc(c.name)+'</option>'; }).join('');
+}
+
+async function addCategory() {
+  var el = document.getElementById('cat-name');
+  var name = el.value.trim();
+  if (!name) return;
+  await fetch('/api/admin/categories', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ name: name }) });
+  el.value = '';
+  Toast.success(t('toast_item_added'));
+  loadCategories();
+}
+
+function deleteCategory(id) {
+  showConfirm(t('cat_delete_confirm'), function() {
+    fetch('/api/admin/categories/'+id, { method: 'DELETE', headers: authHeaders() }).then(function() {
+      loadCategories(); loadItems();
+    });
+  }, t('cancel'), t('delete_confirm'));
+}
+
 function switchTab(t){
   tab=t;
   var tabs = ['orders','menu','share','settings'];
   document.querySelectorAll('.tabs button').forEach(function(b,i){ b.classList.toggle('active', i===tabs.indexOf(t)); });
   document.querySelectorAll('.panel').forEach(function(p){ p.classList.toggle('active', p.id==='panel-'+t); });
   if(t==='orders') loadOrders();
-  if(t==='menu') loadItems();
+  if(t==='menu') { loadCategories(); loadItems(); }
   if(t==='share') loadShareTab();
   if(t==='settings') loadSettings();
 }
@@ -738,9 +796,12 @@ function startWizard() {
 
 function endWizard() {
   document.getElementById('wizard-overlay').style.display = 'none';
+  var data = Object.assign({}, wizData);
+  // Ensure categories (if any) are sent under the key the API expects
+  if (wizData.categories && wizData.categories.length) data.categories = wizData.categories;
   fetch('/api/shops/'+shop.id+'/setup', {
     method: 'POST', headers: authHeaders(),
-    body: JSON.stringify(Object.assign({}, wizData, { wizard_complete: true }))
+    body: JSON.stringify(data)
   }).then(function(){ startNotificationStream(); });
 }
 
@@ -761,6 +822,7 @@ function renderWizard() {
     html += '<button class="wiz-skip" onclick="wizNext()">'+t('wizard_skip')+'</button>';
   } else if (wizStep === 3) {
     html += '<h2>'+t('wizard_step3_title')+'</h2><p class="step-hint">'+t('wizard_step3_desc')+'</p>';
+    html += '<input type="text" id="wiz-cat-name" placeholder="'+t('wizard_step3_cat')+'" style="margin-bottom:10px">';
     html += '<div id="wiz-items"><div class="wizard-item-row"><input type="text" id="wiz-item-name-0" placeholder="'+t('wizard_step3_name')+'"><input type="number" id="wiz-item-price-0" placeholder="'+t('wizard_step3_price')+'" step="0.01" style="max-width:100px"></div></div>';
     html += '<button class="wiz-skip" onclick="addWizItemRow()" style="margin-bottom:8px">'+t('wizard_add_item')+'</button>';
     html += '<button class="wiz-next" onclick="wizSaveMenu()">'+t('wizard_next')+'</button>';
@@ -792,6 +854,10 @@ function addWizItemRow() {
 
 function wizSave(key, value) { if (value) wizData[key] = value; wizNext(); }
 function wizSaveMenu() {
+  var catName = document.getElementById('wiz-cat-name');
+  if (catName && catName.value.trim()) {
+    wizData.categories = [{ name: catName.value.trim() }];
+  }
   var menu_items = [];
   for (var i = 0; i < wizItemCount; i++) {
     var nameEl = document.getElementById('wiz-item-name-' + i);
@@ -874,7 +940,7 @@ function showNotification(order) {
   setTimeout(function(){ banner.style.display = 'none'; }, 5000);
 }
 
-showLogin();
+if (window.location.pathname === '/register') { showRegister(); } else { showLogin(); }
 </script>
 </body>
 </html>

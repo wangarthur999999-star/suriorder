@@ -3,7 +3,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { sanitizeName, sanitizeText } = require("../lib/sanitize");
 
-const validLangs = ["nl", "en", "zh"];
+const validLangs = ["nl", "en", "zh", "es"];
 
 function registerAuthRoutes(app, db, { JWT_SECRET, auth, loginLimiter }) {
 
@@ -49,19 +49,29 @@ function registerAuthRoutes(app, db, { JWT_SECRET, auth, loginLimiter }) {
       db.prepare("UPDATE shops SET whatsapp_number=? WHERE id=?").run(sanitizeName(whatsapp_number), req.shopId);
     }
     if (Array.isArray(categories)) {
-      const insCat = db.prepare("INSERT INTO categories (shop_id, name, name_zh, name_en, name_srn) VALUES (?,?,?,?,?)");
+      const insCat = db.prepare("INSERT INTO categories (shop_id, name, name_zh, name_en, name_es) VALUES (?,?,?,?,?)");
       for (const c of categories) {
-        if (c.name) insCat.run(req.shopId, sanitizeName(c.name), sanitizeName(c.name_zh), sanitizeName(c.name_en), sanitizeName(c.name_srn));
+        if (c.name) insCat.run(req.shopId, sanitizeName(c.name), sanitizeName(c.name_zh), sanitizeName(c.name_en), sanitizeName(c.name_es));
       }
     }
     if (Array.isArray(menu_items)) {
-      const insItem = db.prepare("INSERT INTO items (shop_id, category_id, name, name_zh, name_en, name_srn, price) VALUES (?,?,?,?,?,?,?)");
+      const insItem = db.prepare("INSERT INTO items (shop_id, category_id, name, name_zh, name_en, name_es, price) VALUES (?,?,?,?,?,?,?)");
       for (const i of menu_items) {
-        if (i.name && i.price != null) insItem.run(req.shopId, i.category_id || null, sanitizeName(i.name), sanitizeName(i.name_zh), sanitizeName(i.name_en), sanitizeName(i.name_srn), i.price);
+        if (i.name && i.price != null) insItem.run(req.shopId, i.category_id || null, sanitizeName(i.name), sanitizeName(i.name_zh), sanitizeName(i.name_en), sanitizeName(i.name_es), i.price);
       }
     }
     db.prepare("UPDATE shops SET wizard_complete=1 WHERE id=?").run(req.shopId);
     res.json({ ok: true, menu_link: `${req.appBaseUrl}/order/${req.shopId}` });
+  });
+
+  // Delete account and all associated data
+  app.delete("/api/shops/:id", auth, (req, res) => {
+    if (req.shopId !== req.params.id) return res.status(403).json({ error: "forbidden" });
+    db.prepare("DELETE FROM orders WHERE shop_id=?").run(req.shopId);
+    db.prepare("DELETE FROM items WHERE shop_id=?").run(req.shopId);
+    db.prepare("DELETE FROM categories WHERE shop_id=?").run(req.shopId);
+    db.prepare("DELETE FROM shops WHERE id=?").run(req.shopId);
+    res.json({ ok: true });
   });
 
   // Translate helper (disabled — requires LLM API key)

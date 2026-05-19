@@ -125,9 +125,13 @@
 
   /* ── Footer ── */
   .footer { text-align: center; padding: 16px 16px 24px; color: var(--muted); font-size: .75rem; }
+  .footer-links { margin-top: 6px; }
+  .footer-links a { color: var(--muted); text-decoration: none; }
+  .footer-links a:hover { color: var(--pri); }
 </style>
 </head>
 <body>
+<a href="#search" class="skip-link">Skip to search</a>
 
 <div class="page">
 
@@ -140,10 +144,11 @@
       <a href="#shops" class="btn btn--white btn--lg" id="cta-order">Browse restaurants</a>
       <a href="/register" class="btn btn--outline btn--lg" id="cta-register">Register your restaurant</a>
     </div>
-    <div class="lang-row">
-      <button onclick="setLang('nl')" class="active" id="btn-nl">NL</button>
-      <button onclick="setLang('en')" id="btn-en">EN</button>
-      <button onclick="setLang('zh')" id="btn-zh">中文</button>
+    <div class="lang-row" id="lang-row" role="group" aria-label="Select language">
+      <button data-lang="nl" class="active" id="btn-nl">NL</button>
+      <button data-lang="en" id="btn-en">EN</button>
+      <button data-lang="zh" id="btn-zh">中文</button>
+      <button data-lang="es" id="btn-es">ES</button>
     </div>
   </section>
 
@@ -178,7 +183,7 @@
   <!-- ═══ Search + Shop List ═══ -->
   <div class="section-divider"></div>
   <div class="search-bar" id="search-bar">
-    <input type="text" id="search-input" placeholder="Search restaurants..." oninput="loadShops()">
+    <input type="text" id="search-input" placeholder="Search restaurants...">
   </div>
   <div class="shop-list" id="shop-list"></div>
 
@@ -190,7 +195,14 @@
   </section>
 
   <!-- ═══ Footer ═══ -->
-  <div class="footer">SuriOrder — WhatsApp-first ordering for Suriname</div>
+  <div class="footer">
+    <span id="powered-text">SuriOrder — WhatsApp-first ordering for Suriname</span>
+    <div class="footer-links">
+      <a href="/privacy" target="_blank" id="footer-privacy">Privacy</a>
+      <span>·</span>
+      <a href="/tos" target="_blank" id="footer-tos">Terms</a>
+    </div>
+  </div>
 
 </div>
 
@@ -217,7 +229,9 @@ const L = {
     cta_banner_title: "Een eigen restaurant?",
     cta_banner_desc: "Word gratis lid van SuriOrder. Geen opstartkosten, geen maandelijkse kosten.",
     cta_banner_btn: "Restaurant aanmelden",
-    powered: "WhatsApp-first ordering voor Suriname"
+    powered: "WhatsApp-first ordering voor Suriname",
+    footer_privacy: "Privacy",
+    footer_tos: "Voorwaarden"
   },
   en: {
     hero_brand: "WhatsApp ordering",
@@ -239,7 +253,9 @@ const L = {
     cta_banner_title: "Own a restaurant?",
     cta_banner_desc: "Join SuriOrder for free. No setup fees, no monthly costs.",
     cta_banner_btn: "Register your restaurant",
-    powered: "WhatsApp-first ordering for Suriname"
+    powered: "WhatsApp-first ordering for Suriname",
+    footer_privacy: "Privacy",
+    footer_tos: "Terms"
   },
   zh: {
     hero_brand: "WhatsApp 点餐",
@@ -261,7 +277,33 @@ const L = {
     cta_banner_title: "您是餐厅老板？",
     cta_banner_desc: "免费加入 SuriOrder。无开通费，无月费。",
     cta_banner_btn: "立即入驻",
-    powered: "苏里南 WhatsApp 优先点餐平台"
+    powered: "苏里南 WhatsApp 优先点餐平台",
+    footer_privacy: "隐私",
+    footer_tos: "条款"
+  },
+  es: {
+    hero_brand: "Pedidos WhatsApp",
+    hero_sub: "Sistema gratuito de pedidos en línea para restaurantes en Surinam. Sin descargar app. Sin cuotas mensuales. Listo para WhatsApp.",
+    cta_order: "Buscar restaurantes",
+    cta_register: "Registra tu restaurante",
+    how_title: "Cómo funciona",
+    step1_title: "Registra tu restaurante",
+    step1_desc: "Crea una cuenta gratis en menos de 2 minutos. Solo necesitas el nombre de tu restaurante y un PIN.",
+    step2_title: "Configura tu menú",
+    step2_desc: "Agrega tus platos, precios y descripciones. Multilingüe: holandés, inglés y chino.",
+    step3_title: "Comparte tu enlace",
+    step3_desc: "Envía tu enlace de pedidos a los clientes por WhatsApp. Los pedidos aparecen al instante en tu panel.",
+    search: "Buscar restaurante...",
+    empty: "No se encontraron restaurantes",
+    empty_hint: "¡Pídele a tu restaurante favorito que se registre!",
+    view_menu: "Ver Menú",
+    wa_chat: "WhatsApp",
+    cta_banner_title: "¿Tienes un restaurante?",
+    cta_banner_desc: "Únete a SuriOrder gratis. Sin costo de apertura, sin cuotas mensuales.",
+    cta_banner_btn: "Registra tu restaurante",
+    powered: "Plataforma de pedidos por WhatsApp en Surinam",
+    footer_privacy: "Privacidad",
+    footer_tos: "Términos"
   }
 };
 let lang = 'nl';
@@ -286,7 +328,9 @@ function setLang(l) {
   document.getElementById('cta-banner-title').textContent = t('cta_banner_title');
   document.getElementById('cta-banner-desc').textContent = t('cta_banner_desc');
   document.getElementById('cta-banner-btn').textContent = t('cta_banner_btn');
-  document.querySelector('.footer').textContent = t('powered');
+  document.getElementById('powered-text').textContent = t('powered');
+  document.getElementById('footer-privacy').textContent = t('footer_privacy');
+  document.getElementById('footer-tos').textContent = t('footer_tos');
   loadShops();
 }
 
@@ -304,12 +348,12 @@ async function loadShops() {
       return;
     }
     container.innerHTML = shops.map(function(s) {
-      return '<div class="shop-card" onclick="location.href=\'/order/' + esc(s.id) + '\'">' +
+      return '<div class="shop-card" role="listitem" data-shop-id="' + esc(s.id) + '">' +
         '<div class="info">' +
           '<h3>' + esc(s.name) + '<span class="lang-badge">' + (s.language||'NL').toUpperCase() + '</span></h3>' +
           '<p>' + (s.welcome_msg ? esc(s.welcome_msg) : '') + '</p>' +
         '</div>' +
-        '<div class="actions" onclick="event.stopPropagation()">' +
+        '<div class="actions">' +
           '<a href="/order/' + esc(s.id) + '" class="btn-order">📋 ' + t('view_menu') + '</a>' +
           (s.whatsapp_number ? '<a href="https://wa.me/' + s.whatsapp_number.replace(/[^0-9]/g,'') + '" class="btn-wa" target="_blank" rel="noopener">💬 ' + t('wa_chat') + '</a>' : '') +
         '</div>' +
@@ -321,6 +365,23 @@ async function loadShops() {
 }
 
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+// Event bindings (no inline handlers)
+document.getElementById('lang-row').addEventListener('click', function(e) {
+  var btn = e.target.closest('button');
+  if (!btn || !btn.dataset.lang) return;
+  setLang(btn.dataset.lang);
+});
+
+document.getElementById('search-input').addEventListener('input', loadShops);
+
+document.getElementById('shop-list').addEventListener('click', function(e) {
+  var card = e.target.closest('.shop-card');
+  if (!card || !card.dataset.shopId) return;
+  // Don't navigate if clicking action buttons
+  if (e.target.closest('.actions')) return;
+  location.href = '/order/' + card.dataset.shopId;
+});
 
 loadShops();
 </script>

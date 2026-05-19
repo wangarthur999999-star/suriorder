@@ -234,6 +234,7 @@
 </style>
 </head>
 <body>
+<a href="#dashboard" class="skip-link">Skip to dashboard</a>
 
 <!-- ═══ Login Box ═══ -->
 <div class="login-box" id="login-box">
@@ -241,8 +242,8 @@
   <p class="sub" id="login-subtitle">Beheer uw menu en bestellingen</p>
   <input type="text" id="login-shop-id" placeholder="Shop ID">
   <input type="password" id="login-pin" placeholder="PIN Code">
-  <button class="login-btn" onclick="login()" id="login-btn">Inloggen</button>
-  <p class="link-row" id="no-account">Nog geen account? <a href="#" onclick="showRegister()">Registreer</a></p>
+  <button class="login-btn" id="login-btn">Inloggen</button>
+  <p class="link-row" id="no-account">Nog geen account? <a href="#" id="link-register">Registreer</a></p>
 </div>
 
 <!-- ═══ Register Box ═══ -->
@@ -253,14 +254,14 @@
   <input type="tel" id="reg-phone" placeholder="Telefoonnummer">
   <input type="password" id="reg-pin" placeholder="Kies een PIN code (min 4 cijfers)">
   <select id="reg-lang"><option value="nl">Nederlands</option><option value="en">English</option><option value="zh">中文</option></select>
-  <button class="login-btn" onclick="register()" id="reg-btn">Account aanmaken</button>
-  <p class="link-row" id="back-login"><a href="#" onclick="showLogin()">Terug naar login</a></p>
+  <button class="login-btn" id="reg-btn">Account aanmaken</button>
+  <p class="link-row" id="back-login"><a href="#" id="link-login">Terug naar login</a></p>
 </div>
 
 <!-- ═══ Dashboard ═══ -->
 <div class="container dashboard" id="dashboard">
 
-  <div class="notification-banner" id="notif-banner"></div>
+  <div class="notification-banner" id="notif-banner" role="alert" aria-live="assertive"></div>
 
   <div class="wizard-overlay" id="wizard-overlay" style="display:none">
     <div class="wizard-box" id="wizard-box"></div>
@@ -269,10 +270,11 @@
   <div class="menu-link-box" id="menu-link-box"></div>
 
   <header class="top">
-    <div class="admin-lang-switch">
-      <button onclick="setAdminLang('nl')" class="active" id="adm-btn-nl">NL</button>
-      <button onclick="setAdminLang('en')" id="adm-btn-en">EN</button>
-      <button onclick="setAdminLang('zh')" id="adm-btn-zh">中文</button>
+    <div class="admin-lang-switch" id="admin-lang-switch" role="group" aria-label="Select admin language">
+      <button data-admin-lang="nl" class="active" id="adm-btn-nl">NL</button>
+      <button data-admin-lang="en" id="adm-btn-en">EN</button>
+      <button data-admin-lang="zh" id="adm-btn-zh">中文</button>
+      <button data-admin-lang="es" id="adm-btn-es">ES</button>
     </div>
     <h1 id="dash-shop-name">Dashboard</h1>
     <p class="shop-id" id="dash-shop-id"></p>
@@ -285,11 +287,11 @@
     <div class="stat-card skeleton" style="height:72px"></div>
   </div>
 
-  <div class="tabs">
-    <button class="active" onclick="switchTab('orders')" id="tab-orders">Bestellingen</button>
-    <button onclick="switchTab('menu')" id="tab-menu">Menu</button>
-    <button onclick="switchTab('share')" id="tab-share">Delen</button>
-    <button onclick="switchTab('settings')" id="tab-settings">Instellingen</button>
+  <div class="tabs" id="tabs-bar" role="tablist" aria-label="Admin sections">
+    <button class="active" data-tab="orders" id="tab-orders" role="tab" aria-selected="true">Bestellingen</button>
+    <button data-tab="menu" id="tab-menu" role="tab" aria-selected="false">Menu</button>
+    <button data-tab="share" id="tab-share" role="tab" aria-selected="false">Delen</button>
+    <button data-tab="settings" id="tab-settings" role="tab" aria-selected="false">Instellingen</button>
   </div>
 
   <div class="panel active" id="panel-orders">
@@ -304,7 +306,7 @@
       </div>
       <div style="display:flex;gap:6px">
         <input type="text" id="cat-name" placeholder="Nieuwe categorienaam" style="flex:1;padding:8px;border:2px solid var(--border);border-radius:var(--r);font-size:.8rem;min-height:var(--touch-sm);outline:none">
-        <button class="btn btn--pri btn--xs" onclick="addCategory()" id="cat-add-btn" style="min-height:var(--touch-sm)">+ Toevoegen</button>
+        <button class="btn btn--pri btn--xs" id="cat-add-btn" style="min-height:var(--touch-sm)">+ Toevoegen</button>
       </div>
     </div>
     <hr style="margin:12px 0;border:none;border-top:1px solid var(--border)">
@@ -314,7 +316,7 @@
       <input type="text" id="item-name-en" placeholder="Name (EN)">
       <input type="number" id="item-price" placeholder="Prijs (SRD)" step="0.01">
       <select id="item-cat"><option value="">Categorie</option></select>
-      <button class="btn btn--pri" onclick="addItem()" id="add-btn">+ Toevoegen</button>
+      <button class="btn btn--pri" id="add-btn">+ Toevoegen</button>
     </div>
     <div id="items-list"></div>
   </div>
@@ -323,9 +325,9 @@
     <div class="qr-section">
       <h3 id="share-title">Deel uw menu link</h3>
       <p style="color:var(--text-sec);margin-bottom:12px" id="share-desc">Klanten openen deze link op hun telefoon</p>
-      <input type="text" id="menu-url" readonly onclick="this.select()">
+      <input type="text" id="menu-url" readonly>
       <p style="margin-top:8px;font-size:.85rem" id="share-wa"><strong>WhatsApp:</strong> kopieer de link en stuur naar klanten</p>
-      <img id="qr-image" src="" alt="QR Code" onerror="this.style.display='none'">
+      <img id="qr-image" src="" alt="QR Code">
       <p style="font-size:.72rem;color:var(--muted)" id="share-tip">Tip: zet deze link in uw WhatsApp bedrijfsprofiel</p>
     </div>
   </div>
@@ -348,7 +350,7 @@
       <input type="text" id="set-bank-acc">
       <label id="lbl-bank-holder">Op naam van</label>
       <input type="text" id="set-bank-holder">
-      <button class="btn btn--pri save-btn" onclick="saveSettings()" id="save-settings-btn">Opslaan</button>
+      <button class="btn btn--pri save-btn" id="save-settings-btn">Opslaan</button>
     </div>
   </div>
 
@@ -376,7 +378,7 @@ var L_admin = {
     th_name: "Gerecht", th_cat: "Cat", th_price: "Prijs",
     empty_orders: "Geen bestellingen",
     item_name_ph: "Naam gerecht (NL)", item_name_zh_ph: "名称 (中文)",
-    item_name_en_ph: "Name (EN)", item_name_srn_ph: "Nen (SRN)",
+    item_name_en_ph: "Name (EN)", item_name_es_ph: "Nombre (ES)",
     item_price_ph: "Prijs (SRD)",
     add_btn: "+ Toevoegen", cat_opt: "Categorie",
     share_title: "Deel uw menu link", share_desc: "Klanten openen deze link op hun telefoon",
@@ -430,7 +432,7 @@ var L_admin = {
     th_name: "Dish", th_cat: "Cat", th_price: "Price",
     empty_orders: "No orders",
     item_name_ph: "Dish name (NL)", item_name_zh_ph: "Name (中文)",
-    item_name_en_ph: "Name (EN)", item_name_srn_ph: "Name (SRN)",
+    item_name_en_ph: "Name (EN)", item_name_es_ph: "Name (ES)",
     item_price_ph: "Price (SRD)",
     add_btn: "+ Add", cat_opt: "Category",
     share_title: "Share your menu link", share_desc: "Customers open this link on their phone",
@@ -484,7 +486,7 @@ var L_admin = {
     th_name: "菜品", th_cat: "分类", th_price: "价格",
     empty_orders: "暂无订单",
     item_name_ph: "菜名 (NL)", item_name_zh_ph: "名称 (中文)",
-    item_name_en_ph: "名称 (EN)", item_name_srn_ph: "名称 (SRN)",
+    item_name_en_ph: "名称 (EN)", item_name_es_ph: "名称 (ES)",
     item_price_ph: "价格 (SRD)",
     add_btn: "+ 添加", cat_opt: "分类",
     share_title: "分享您的菜单链接", share_desc: "客户在手机上打开此链接",
@@ -520,6 +522,60 @@ var L_admin = {
     wizard_copied: "已复制！",
     cat_label: "分类", cat_new_ph: "新分类名称", cat_add_btn: "+ 添加",
     cat_delete_confirm: "确定删除分类及其菜品？"
+  },
+  es: {
+    login_subtitle: "Gestiona tu menú y pedidos",
+    shop_id_ph: "Shop ID", pin_ph: "PIN Code",
+    login_btn: "Iniciar", no_account: "¿Sin cuenta?", register_link: "Registrarse",
+    reg_title: "Nueva Tienda", reg_subtitle: "Crea tu cuenta gratis",
+    name_ph: "Nombre del negocio", phone_ph: "Número de teléfono",
+    pin_new_ph: "Elige un PIN (mín. 4 dígitos)", reg_btn: "Crear cuenta",
+    back_login: "Volver al inicio",
+    menu_link_label: "Tu enlace de pedidos:",
+    stats_today_orders: "Pedidos Hoy", stats_today_revenue: "Ingresos Hoy",
+    stats_week_revenue: "7 Días", stats_pending: "Pendientes",
+    tab_orders: "Pedidos", tab_menu: "Menú", tab_share: "Compartir",
+    th_customer: "Cliente", th_items: "Items", th_total: "Total",
+    th_time: "Hora", th_status: "Estado", th_action: "Acción",
+    th_name: "Nombre", th_cat: "Categoría", th_price: "Precio",
+    empty_orders: "Sin pedidos",
+    item_name_ph: "Nombre (NL)", item_name_zh_ph: "Nombre (中文)",
+    item_name_en_ph: "Nombre (EN)", item_name_es_ph: "Nombre (ES)",
+    item_price_ph: "Precio (SRD)",
+    add_btn: "+ Agregar", cat_opt: "Categoría",
+    share_title: "Comparte tu enlace", share_desc: "Los clientes abren este enlace en su teléfono",
+    share_wa: "WhatsApp: copia este enlace y envíalo a tus clientes",
+    share_tip: "Tip: pon este enlace en tu perfil de WhatsApp Business",
+    copy_btn: "Copiar",
+    actie: "Acción", bevestig: "Confirmar", klaar: "Listo", annuleer: "Cancelar",
+    alert_name_pin: "Ingresa nombre y PIN",
+    alert_pin_min: "El PIN debe tener al menos 4 caracteres",
+    alert_reg_error: "Error al registrarse",
+    alert_account_created: "¡Cuenta creada! Shop ID: {id} — guárdalo bien. Ahora inicia sesión.",
+    alert_invalid_login: "Credenciales incorrectas",
+    alert_name_price: "Nombre y precio son obligatorios",
+    alert_delete: "¿Seguro que quieres eliminar este plato?",
+    alert_order_error: "Error con el pedido",
+    wizard_step1_title: "¡Bienvenido a SuriOrder!",
+    wizard_step1_desc: "Tu Shop ID es — guárdalo bien:",
+    wizard_step2_title: "Número WhatsApp", wizard_step2_desc: "Los clientes pueden contactarte por WhatsApp", wizard_step2_ph: "Número WhatsApp (+597...)",
+    wizard_step3_title: "Configuración Rápida", wizard_step3_desc: "Agrega algunos platos rápidamente", wizard_step3_name: "Nombre del plato", wizard_step3_price: "Precio (SRD)", wizard_step3_cat: "Categoría (opcional)",
+    wizard_step4_title: "Comparte tu Enlace", wizard_step4_desc: "Los clientes piden con este enlace:",
+    wizard_step5_title: "¡Listo!", wizard_step5_desc: "Tu tienda ya está en línea. Comparte tu enlace con los clientes.",
+    wizard_next: "Siguiente", wizard_skip: "Saltar", wizard_done: "Ir al Dashboard", wizard_copy: "Copiar", wizard_add_item: "+ Otro plato",
+    notif_new_order: "¡Nuevo pedido!", notif_from: "de",
+    tab_settings: "Ajustes", settings_title: "Configuración",
+    settings_welcome: "Mensaje de bienvenida", settings_wa: "Número WhatsApp", settings_lang: "Idioma",
+    settings_bank_name: "Nombre del banco", settings_bank_account: "Número de cuenta", settings_bank_holder: "Titular de la cuenta",
+    settings_save: "Guardar", settings_saved: "¡Guardado!",
+    pm_cod: "Efectivo", pm_bank: "Transferencia",
+    pay_unpaid: "No pagado", pay_paid: "Pagado", pay_refunded: "Reembolsado",
+    mark_paid: "Pagar", mark_refunded: "Reembolsar",
+    cancel: "Cancelar", delete_confirm: "Eliminar",
+    toast_item_added: "Plato agregado", toast_save_error: "Error al guardar",
+    wizard_copied: "¡Copiado!",
+    cat_label: "Categorías", cat_new_ph: "Nueva categoría", cat_add_btn: "+ Agregar",
+    cat_delete_confirm: "¿Eliminar categoría y todos sus platos?"
   }
 };
 
@@ -538,14 +594,14 @@ function updateUITexts() {
   document.getElementById('login-shop-id').placeholder = t('shop_id_ph');
   document.getElementById('login-pin').placeholder = t('pin_ph');
   document.getElementById('login-btn').textContent = t('login_btn');
-  document.getElementById('no-account').innerHTML = t('no_account') + ' <a href="#" onclick="showRegister()">' + t('register_link') + '</a>';
+  document.getElementById('no-account').innerHTML = t('no_account') + ' <a href="#" id="link-register">' + t('register_link') + '</a>';
   document.getElementById('reg-title').textContent = t('reg_title');
   document.getElementById('reg-subtitle').textContent = t('reg_subtitle');
   document.getElementById('reg-name').placeholder = t('name_ph');
   document.getElementById('reg-phone').placeholder = t('phone_ph');
   document.getElementById('reg-pin').placeholder = t('pin_new_ph');
   document.getElementById('reg-btn').textContent = t('reg_btn');
-  document.getElementById('back-login').innerHTML = '<a href="#" onclick="showLogin()">' + t('back_login') + '</a>';
+  document.getElementById('back-login').innerHTML = '<a href="#" id="link-login">' + t('back_login') + '</a>';
   if (shop) {
     document.getElementById('tab-orders').textContent = t('tab_orders');
     document.getElementById('tab-menu').textContent = t('tab_menu');
@@ -588,7 +644,7 @@ function loadShareTab() { var qrImg = document.getElementById('qr-image'); if (q
 function updateMenuLinkBox() {
   if (!shop) return;
   var link = location.origin + '/order/' + shop.id;
-  document.getElementById('menu-link-box').innerHTML = '🔗 ' + t('menu_link_label') + ' <strong><a href="' + esc(link) + '" target="_blank" rel="noopener">' + esc(link) + '</a></strong> <button class="btn btn--pri btn--xs" style="margin-left:8px" onclick="navigator.clipboard.writeText(\'' + esc(link) + '\')">' + t('copy_btn') + '</button>';
+  document.getElementById('menu-link-box').innerHTML = '🔗 ' + t('menu_link_label') + ' <strong><a href="' + esc(link) + '" target="_blank" rel="noopener">' + esc(link) + '</a></strong> <button class="btn btn--pri btn--xs" id="btn-copy-link" style="margin-left:8px" data-copy="'+esc(link)+'" aria-label="'+t('copy_btn')+'">' + t('copy_btn') + '</button>';
   document.getElementById('menu-url').value = link;
 }
 
@@ -667,8 +723,8 @@ async function loadOrders(){
     var ps=psMap[o.payment_status]||'pay_unpaid';
     var psClass='pay-badge pay-'+o.payment_status;
     var payBtn='';
-    if(o.payment_status==='unpaid') payBtn='<button class="btn btn--pri btn--xs" onclick="updatePaymentStatus(\''+esc(o.id)+'\',\'paid\')">'+t('mark_paid')+'</button>';
-    if(o.payment_status==='paid') payBtn='<button class="btn btn--danger btn--xs" onclick="updatePaymentStatus(\''+esc(o.id)+'\',\'refunded\')">'+t('mark_refunded')+'</button>';
+    if(o.payment_status==='unpaid') payBtn='<button class="btn btn--pri btn--xs" data-pay-id="'+esc(o.id)+'" data-pay-to="paid" aria-label="'+t('mark_paid')+'">'+t('mark_paid')+'</button>';
+    if(o.payment_status==='paid') payBtn='<button class="btn btn--danger btn--xs" data-pay-id="'+esc(o.id)+'" data-pay-to="refunded" aria-label="'+t('mark_refunded')+'">'+t('mark_refunded')+'</button>';
     return '<tr>'+
       '<td>#'+esc(String(o.id)).slice(0,8)+'</td>'+
       '<td>'+esc(o.customer_name)+(o.customer_phone ? '<br><a class="order-link" href="https://wa.me/'+o.customer_phone.replace(/[^0-9]/g,'')+'" target="_blank" rel="noopener">💬 '+esc(o.customer_phone)+'</a>' : '')+'</td>'+
@@ -676,7 +732,7 @@ async function loadOrders(){
       '<td>SRD '+o.total.toFixed(2)+' <span class="'+psClass+'">'+t(ps)+'</span> '+payBtn+'</td>'+
       '<td class="col-time">'+esc(o.created_at?.slice(11,16)||'')+'</td>'+
       '<td><span class="order-status '+sc+'">'+esc(o.status)+'</span></td>'+
-      '<td><select onchange="updateOrderStatus(\''+esc(o.id)+'\',this.value)" style="font-size:.75rem;padding:4px;border-radius:var(--r-sm);border:1px solid var(--border)"><option value="">'+t('actie')+'</option><option value="confirmed">'+t('bevestig')+'</option><option value="done">'+t('klaar')+'</option><option value="cancelled">'+t('annuleer')+'</option></select></td>'+
+      '<td><select data-order-id="'+esc(o.id)+'" aria-label="'+t('actie')+'" class="order-status-select" style="font-size:.75rem;padding:4px;border-radius:var(--r-sm);border:1px solid var(--border)"><option value="">'+t('actie')+'</option><option value="confirmed">'+t('bevestig')+'</option><option value="done">'+t('klaar')+'</option><option value="cancelled">'+t('annuleer')+'</option></select></td>'+
       '</tr>';
   }).join('') || '<tr><td colspan="7" class="empty-row">'+t('empty_orders')+'</td></tr>';
 }
@@ -690,7 +746,7 @@ async function updateOrderStatus(id,s){
 async function loadItems(){
   var r=await fetch('/api/admin/items',{headers:authHeaders()});
   var items=await r.json();
-  document.getElementById('items-list').innerHTML='<table><thead><tr><th>'+t('th_name')+'</th><th>'+t('th_cat')+'</th><th>'+t('th_price')+'</th><th></th></tr></thead><tbody>'+items.map(function(i){ return '<tr><td>'+esc(i.name)+(i.name_zh?' / '+esc(i.name_zh):'')+(i.name_srn?' / '+esc(i.name_srn):'')+'</td><td>'+esc(i.category_name||'-')+'</td><td>SRD '+i.price.toFixed(2)+'</td><td><button class="btn btn--danger btn--xs" onclick="deleteItem('+i.id+')">✕</button></td></tr>'; }).join('')+'</tbody></table>';
+  document.getElementById('items-list').innerHTML='<table><thead><tr><th>'+t('th_name')+'</th><th>'+t('th_cat')+'</th><th>'+t('th_price')+'</th><th></th></tr></thead><tbody>'+items.map(function(i){ return '<tr><td>'+esc(i.name)+(i.name_zh?' / '+esc(i.name_zh):'')+(i.name_es?' / '+esc(i.name_es):'')+'</td><td>'+esc(i.category_name||'-')+'</td><td>SRD '+i.price.toFixed(2)+'</td><td><button class="btn btn--danger btn--xs" data-item-id="'+i.id+'" aria-label="'+t('delete_confirm')+'">✕</button></td></tr>'; }).join('')+'</tbody></table>';
 }
 
 async function addItem(){
@@ -716,7 +772,7 @@ async function loadCategories() {
   var r = await fetch('/api/admin/categories', { headers: authHeaders() });
   var cats = await r.json();
   document.getElementById('cat-chips').innerHTML = cats.map(function(c) {
-    return '<span class="cat-chip">'+esc(c.name)+'<button class="cat-del" onclick="deleteCategory('+c.id+')" title="'+t('delete_confirm')+'">×</button></span>';
+    return '<span class="cat-chip">'+esc(c.name)+'<button class="cat-del" data-cat-id="'+c.id+'" aria-label="'+t('delete_confirm')+'" title="'+t('delete_confirm')+'">×</button></span>';
   }).join('');
   document.getElementById('item-cat').innerHTML = '<option value="">'+t('cat_opt')+'</option>'+cats.map(function(c){ return '<option value="'+c.id+'">'+esc(c.name)+'</option>'; }).join('');
 }
@@ -742,7 +798,11 @@ function deleteCategory(id) {
 function switchTab(t){
   tab=t;
   var tabs = ['orders','menu','share','settings'];
-  document.querySelectorAll('.tabs button').forEach(function(b,i){ b.classList.toggle('active', i===tabs.indexOf(t)); });
+  document.querySelectorAll('.tabs button').forEach(function(b,i){
+    var isActive = i===tabs.indexOf(t);
+    b.classList.toggle('active', isActive);
+    b.setAttribute('aria-selected', String(isActive));
+  });
   document.querySelectorAll('.panel').forEach(function(p){ p.classList.toggle('active', p.id==='panel-'+t); });
   if(t==='orders') loadOrders();
   if(t==='menu') { loadCategories(); loadItems(); }
@@ -813,31 +873,31 @@ function renderWizard() {
   if (wizStep === 1) {
     html += '<h2>'+t('wizard_step1_title')+'</h2><p class="step-hint">'+t('wizard_step1_desc')+'</p>';
     html += '<div class="shop-id-display">'+shop.id+'</div>';
-    html += '<button class="shop-id-display-btn" onclick="copyShopId(event)">📋 '+t('wizard_copy')+'</button>';
-    html += '<button class="wiz-next" onclick="wizNext()">'+t('wizard_next')+'</button>';
+    html += '<button class="shop-id-display-btn" data-wiz-action="copyShopId">📋 '+t('wizard_copy')+'</button>';
+    html += '<button class="wiz-next" data-wiz-action="wizNext">'+t('wizard_next')+'</button>';
   } else if (wizStep === 2) {
     html += '<h2>'+t('wizard_step2_title')+'</h2><p class="step-hint">'+t('wizard_step2_desc')+'</p>';
     html += '<input type="tel" id="wiz-wa" placeholder="'+t('wizard_step2_ph')+'" value="'+esc(shop.whatsapp_number || '')+'">';
-    html += '<button class="wiz-next" onclick="wizSave(\'whatsapp_number\',document.getElementById(\'wiz-wa\').value)">'+t('wizard_next')+'</button>';
-    html += '<button class="wiz-skip" onclick="wizNext()">'+t('wizard_skip')+'</button>';
+    html += '<button class="wiz-next" data-wiz-action="wizSaveWa">'+t('wizard_next')+'</button>';
+    html += '<button class="wiz-skip" data-wiz-action="wizNext">'+t('wizard_skip')+'</button>';
   } else if (wizStep === 3) {
     html += '<h2>'+t('wizard_step3_title')+'</h2><p class="step-hint">'+t('wizard_step3_desc')+'</p>';
     html += '<input type="text" id="wiz-cat-name" placeholder="'+t('wizard_step3_cat')+'" style="margin-bottom:10px">';
     html += '<div id="wiz-items"><div class="wizard-item-row"><input type="text" id="wiz-item-name-0" placeholder="'+t('wizard_step3_name')+'"><input type="number" id="wiz-item-price-0" placeholder="'+t('wizard_step3_price')+'" step="0.01" style="max-width:100px"></div></div>';
-    html += '<button class="wiz-skip" onclick="addWizItemRow()" style="margin-bottom:8px">'+t('wizard_add_item')+'</button>';
-    html += '<button class="wiz-next" onclick="wizSaveMenu()">'+t('wizard_next')+'</button>';
-    html += '<button class="wiz-skip" onclick="wizNext()">'+t('wizard_skip')+'</button>';
+    html += '<button class="wiz-skip" data-wiz-action="addWizItemRow" style="margin-bottom:8px">'+t('wizard_add_item')+'</button>';
+    html += '<button class="wiz-next" data-wiz-action="wizSaveMenu">'+t('wizard_next')+'</button>';
+    html += '<button class="wiz-skip" data-wiz-action="wizNext">'+t('wizard_skip')+'</button>';
     wizItemCount = 1;
   } else if (wizStep === 4) {
     var link = location.origin + '/order/' + shop.id;
     html += '<h2>'+t('wizard_step4_title')+'</h2><p class="step-hint">'+t('wizard_step4_desc')+'</p>';
     html += '<div class="shop-id-display" style="font-size:1rem;font-weight:600;letter-spacing:0">'+esc(link)+'</div>';
-    html += '<button class="btn btn--pri" style="margin-bottom:6px;width:100%" onclick="navigator.clipboard.writeText(\''+esc(link)+'\')">📋 '+t('wizard_copy')+'</button>';
+    html += '<button class="btn btn--pri" style="margin-bottom:6px;width:100%" data-copy="'+esc(link)+'">📋 '+t('wizard_copy')+'</button>';
     html += '<a class="btn btn--pri btn--wa" style="display:block;margin-bottom:6px;text-decoration:none;text-align:center" href="https://wa.me/?text='+encodeURIComponent(shop.name+' - '+t('share_desc')+': '+link)+'" target="_blank" rel="noopener">📱 WhatsApp</a>';
-    html += '<button class="wiz-next" onclick="wizNext()">'+t('wizard_next')+'</button>';
+    html += '<button class="wiz-next" data-wiz-action="wizNext">'+t('wizard_next')+'</button>';
   } else if (wizStep === 5) {
     html += '<h2>'+t('wizard_step5_title')+'</h2><p class="step-hint">'+t('wizard_step5_desc')+'</p>';
-    html += '<button class="wiz-next" onclick="endWizard()">'+t('wizard_done')+'</button>';
+    html += '<button class="wiz-next" data-wiz-action="endWizard">'+t('wizard_done')+'</button>';
   }
   box.innerHTML = html;
 }
@@ -940,7 +1000,121 @@ function showNotification(order) {
   setTimeout(function(){ banner.style.display = 'none'; }, 5000);
 }
 
+function bindAdminEvents() {
+  // Admin language switch
+  document.getElementById('admin-lang-switch').addEventListener('click', function(e) {
+    var btn = e.target.closest('button');
+    if (!btn || !btn.dataset.adminLang) return;
+    setAdminLang(btn.dataset.adminLang);
+  });
+
+  // Tabs bar
+  document.getElementById('tabs-bar').addEventListener('click', function(e) {
+    var btn = e.target.closest('button');
+    if (!btn || !btn.dataset.tab) return;
+    switchTab(btn.dataset.tab);
+  });
+
+  // Login / Register buttons
+  document.getElementById('login-btn').addEventListener('click', login);
+  document.getElementById('reg-btn').addEventListener('click', register);
+
+  // Register/Login links (delegated — innerHTML recreates them in updateUITexts)
+  document.getElementById('no-account').addEventListener('click', function(e) {
+    e.preventDefault();
+    if (e.target.id === 'link-register') showRegister();
+  });
+  document.getElementById('back-login').addEventListener('click', function(e) {
+    e.preventDefault();
+    if (e.target.id === 'link-login') showLogin();
+  });
+
+  // Category add / Item add / Save settings
+  document.getElementById('cat-add-btn').addEventListener('click', addCategory);
+  document.getElementById('add-btn').addEventListener('click', addItem);
+  document.getElementById('save-settings-btn').addEventListener('click', saveSettings);
+
+  // Menu URL click to select
+  document.getElementById('menu-url').addEventListener('click', function() {
+    this.select();
+  });
+
+  // Orders table: payment status buttons (delegated)
+  document.getElementById('orders-tbody').addEventListener('click', function(e) {
+    var btn = e.target.closest('button[data-pay-id]');
+    if (!btn) return;
+    updatePaymentStatus(btn.dataset.payId, btn.dataset.payTo);
+  });
+
+  // Orders table: order status selects (delegated)
+  document.getElementById('orders-tbody').addEventListener('change', function(e) {
+    if (!e.target.classList.contains('order-status-select')) return;
+    updateOrderStatus(e.target.dataset.orderId, e.target.value);
+  });
+
+  // Category chips: delete buttons (delegated)
+  document.getElementById('cat-chips').addEventListener('click', function(e) {
+    var btn = e.target.closest('.cat-del');
+    if (!btn || !btn.dataset.catId) return;
+    deleteCategory(parseInt(btn.dataset.catId));
+  });
+
+  // Items list: delete buttons (delegated)
+  document.getElementById('items-list').addEventListener('click', function(e) {
+    var btn = e.target.closest('button[data-item-id]');
+    if (!btn) return;
+    deleteItem(parseInt(btn.dataset.itemId));
+  });
+
+  // Menu link box: copy button (delegated — innerHTML recreates it)
+  document.getElementById('menu-link-box').addEventListener('click', function(e) {
+    var btn = e.target.closest('button[data-copy]');
+    if (!btn) return;
+    navigator.clipboard.writeText(btn.dataset.copy);
+    var orig = btn.textContent;
+    btn.textContent = '✓ ' + t('wizard_copied');
+    setTimeout(function(){ btn.textContent = orig; }, 1500);
+  });
+
+  // Wizard box: all actions (delegated — innerHTML recreates content)
+  document.getElementById('wizard-box').addEventListener('click', function(e) {
+    var btn = e.target.closest('button');
+    if (!btn) return;
+    if (btn.dataset.wizAction) {
+      switch (btn.dataset.wizAction) {
+        case 'wizNext': wizNext(); break;
+        case 'wizSaveWa': wizSave('whatsapp_number', document.getElementById('wiz-wa').value.trim()); break;
+        case 'wizSaveMenu': wizSaveMenu(); break;
+        case 'addWizItemRow': addWizItemRow(); break;
+        case 'copyShopId': copyShopId(e); break;
+        case 'endWizard': endWizard(); break;
+      }
+      return;
+    }
+    if (btn.dataset.copy) {
+      navigator.clipboard.writeText(btn.dataset.copy);
+      var orig = btn.textContent;
+      btn.textContent = '✓ ' + t('wizard_copied');
+      setTimeout(function(){ btn.textContent = orig; }, 1500);
+    }
+  });
+
+  // Escape key for wizard overlay
+  document.getElementById('wizard-overlay').addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') endWizard();
+  });
+
+  // Enter key for login/register
+  document.getElementById('login-pin').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') login();
+  });
+  document.getElementById('reg-pin').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') register();
+  });
+}
+
 if (window.location.pathname === '/register') { showRegister(); } else { showLogin(); }
+bindAdminEvents();
 </script>
 </body>
 </html>

@@ -442,6 +442,48 @@ describe("SuriOrder API", () => {
       const ordersAfter = await (await fetch(`${baseUrl}/api/admin/orders`, { headers: authHeaders(token) })).json();
       assert.equal(ordersAfter[0].payment_status, "paid");
     });
+
+    it("DELETE /api/shops/:id deletes account and all data", async () => {
+      // Register a separate shop for deletion testing
+      const r1 = await fetch(`${baseUrl}/api/shops`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: "To Delete", phone: "+5973333333", language: "nl", admin_pin: "9999" }),
+      });
+      const { id: delShopId, token: delToken } = await r1.json();
+
+      const r2 = await fetch(`${baseUrl}/api/shops/${delShopId}`, {
+        method: "DELETE",
+        headers: authHeaders(delToken),
+      });
+      assert.equal(r2.status, 200);
+
+      const shopR = await fetch(`${baseUrl}/api/shop/${delShopId}`);
+      assert.equal(shopR.status, 404);
+    });
+
+    it("DELETE /api/shops/:id rejects cross-shop deletion", async () => {
+      // Register a second shop
+      const r1 = await fetch(`${baseUrl}/api/shops`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: "Shop 2", phone: "+5972222222", language: "nl", admin_pin: "9999" }),
+      });
+      const { id: shop2Id } = await r1.json();
+      const r2 = await fetch(`${baseUrl}/api/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ shop_id: shop2Id, admin_pin: "9999" }),
+      });
+      const { token: token2 } = await r2.json();
+
+      // Try to delete first shop with second shop's token
+      const r3 = await fetch(`${baseUrl}/api/shops/${shopId}`, {
+        method: "DELETE",
+        headers: authHeaders(token2),
+      });
+      assert.equal(r3.status, 403);
+    });
   });
 
   describe("Unauthenticated admin access", () => {

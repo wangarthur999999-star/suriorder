@@ -9,6 +9,7 @@ const morgan = require("morgan");
 // Modules
 const { initDb } = require("./db/schema");
 const { scheduleBackup } = require("./lib/backup");
+const logger = require("./lib/logger");
 const { authMiddleware } = require("./middleware/auth");
 const { apiLimiter, orderLimiter } = require("./middleware/rateLimit");
 const rateLimit = require("express-rate-limit");
@@ -18,6 +19,7 @@ const { registerAuthRoutes } = require("./routes/auth");
 const { registerShopRoutes } = require("./routes/shops");
 const { registerOrderRoutes } = require("./routes/orders");
 const { registerAdminRoutes } = require("./routes/admin");
+const { registerWebhookRoute } = require("./routes/webhook");
 
 fs.mkdirSync(path.join(__dirname, "data"), { recursive: true });
 
@@ -27,12 +29,11 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       "default-src": ["'self'"],
-      "script-src": ["'self'", "'unsafe-inline'"],
+      "script-src": ["'self'"],
       "style-src": ["'self'", "'unsafe-inline'"],
       "img-src": ["'self'", "data:", "https:"],
       "font-src": ["'self'", "https:", "data:"],
       "connect-src": ["'self'"],
-      "script-src-attr": ["'unsafe-inline'"],
     },
   },
 }));
@@ -82,6 +83,7 @@ registerAuthRoutes(app, db, { JWT_SECRET, auth, loginLimiter });
 registerShopRoutes(app, db);
 registerOrderRoutes(app, db, { auth, orderLimiter });
 registerAdminRoutes(app, db, { auth });
+registerWebhookRoute(app, db);
 
 // Health check
 app.get("/health", (_req, res) => {
@@ -108,23 +110,23 @@ app.get("/order/:shopId", (req, res) => {
 });
 app.get("/admin/:shopId", (_req, res) => res.sendFile(path.join(__dirname, "public", "admin.html")));
 app.get("/register", (_req, res) => res.sendFile(path.join(__dirname, "public", "admin.html")));
+app.get("/privacy", (_req, res) => res.sendFile(path.join(__dirname, "public", "privacy.html")));
+app.get("/tos", (_req, res) => res.sendFile(path.join(__dirname, "public", "tos.html")));
 
 const server = app.listen(PORT, () => {
-  console.log(`SuriOrder running on http://localhost:${PORT}`);
-  console.log(`Demo order page: http://localhost:${PORT}/order/demo`);
-  console.log(`Admin panel: http://localhost:${PORT}/admin/demo`);
+  logger.info("server started", { port: PORT, env: process.env.NODE_ENV || "development" });
 });
 
 process.on("SIGTERM", () => {
-  console.log("SIGTERM received, shutting down gracefully...");
-  server.close(() => { console.log("Server closed"); process.exit(0); });
+  logger.info("SIGTERM received, shutting down");
+  server.close(() => { logger.info("server closed"); process.exit(0); });
   setTimeout(() => { process.exit(0); }, 9000);
 });
 
 process.on("uncaughtException", (err) => {
-  console.error("UNCAUGHT EXCEPTION:", err.stack || err.message);
+  logger.error("uncaught exception", { error: err.stack || err.message });
   process.exit(1);
 });
 process.on("unhandledRejection", (reason) => {
-  console.error("UNHANDLED REJECTION:", reason.stack || reason);
+  logger.error("unhandled rejection", { error: reason.stack || reason });
 });

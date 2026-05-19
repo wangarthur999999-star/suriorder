@@ -54,9 +54,9 @@ function initDb(db) {
       db.exec(`ALTER TABLE ${table} ADD COLUMN ${col} ${type}`);
     }
   };
-  add("categories", "name_srn", "TEXT");
-  add("items", "name_srn", "TEXT");
-  add("items", "desc_srn", "TEXT");
+  add("categories", "name_es", "TEXT");
+  add("items", "name_es", "TEXT");
+  add("items", "desc_es", "TEXT");
   add("shops", "admin_lang", "TEXT DEFAULT 'nl'");
   add("shops", "wizard_complete", "INTEGER DEFAULT 0");
   add("shops", "welcome_msg", "TEXT");
@@ -72,21 +72,27 @@ function initDb(db) {
   if (!demoExists) {
     const demoHash = bcrypt.hashSync("1234", 10);
     db.prepare("INSERT INTO shops (id, name, phone, language, admin_pin, whatsapp_number) VALUES (?,?,?,?,?,?)").run("demo", "Wangs Eatery", "+5971234567", "nl", demoHash, "+5971234567");
-    const cat1 = db.prepare("INSERT INTO categories (shop_id, name, name_zh, name_en, sort_order) VALUES (?,?,?,?,?)").run("demo", "Rijst gerechten", "饭类", "Rice dishes", 1).lastInsertRowid;
-    const cat2 = db.prepare("INSERT INTO categories (shop_id, name, name_zh, name_en, sort_order) VALUES (?,?,?,?,?)").run("demo", "Noedels", "面类", "Noodles", 2).lastInsertRowid;
-    const cat3 = db.prepare("INSERT INTO categories (shop_id, name, name_zh, name_en, sort_order) VALUES (?,?,?,?,?)").run("demo", "Drankjes", "饮品", "Drinks", 3).lastInsertRowid;
-    const insertItem = db.prepare("INSERT INTO items (shop_id, category_id, name, name_zh, name_en, desc, desc_zh, desc_en, price, sort_order) VALUES (?,?,?,?,?,?,?,?,?,?)");
+
+    const cat1 = db.prepare("INSERT INTO categories (shop_id, name, name_zh, name_en, name_es, sort_order) VALUES (?,?,?,?,?,?)").run("demo", "Rijst gerechten", "饭类", "Rice dishes", "Arroces", 1).lastInsertRowid;
+    const cat2 = db.prepare("INSERT INTO categories (shop_id, name, name_zh, name_en, name_es, sort_order) VALUES (?,?,?,?,?,?)").run("demo", "Noedels", "面类", "Noodles", "Fideos", 2).lastInsertRowid;
+    const cat3 = db.prepare("INSERT INTO categories (shop_id, name, name_zh, name_en, name_es, sort_order) VALUES (?,?,?,?,?,?)").run("demo", "Soepen", "汤类", "Soups", "Sopas", 3).lastInsertRowid;
+    const cat4 = db.prepare("INSERT INTO categories (shop_id, name, name_zh, name_en, name_es, sort_order) VALUES (?,?,?,?,?,?)").run("demo", "Drankjes", "饮品", "Drinks", "Bebidas", 4).lastInsertRowid;
+
+    const insertItem = db.prepare("INSERT INTO items (shop_id, category_id, name, name_zh, name_en, name_es, desc, desc_zh, desc_en, desc_es, price, sort_order) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)");
     const demoItems = [
-      [cat1, "Nasi Goreng", "印尼炒饭", "Fried Rice", "Met kip en groenten", "鸡肉蔬菜炒饭", "With chicken and veggies", 45],
-      [cat1, "Moksi Meti", "混合米饭", "Mixed Rice", "Surinaamse mix met vlees", "苏里南混合肉类米饭", "Surinamese mixed meat rice", 55],
-      [cat1, "Roti Kip", "鸡肉飞饼", "Chicken Roti", "Met aardappel en kousenband", "配土豆和豆角", "With potato and long beans", 50],
-      [cat2, "Bami Goreng", "炒面", "Fried Noodles", "Met kip of garnalen", "鸡肉或虾仁", "With chicken or shrimp", 40],
-      [cat2, "Tjauw Min", "炒面（潮州）", "Chow Mein", "Chinese stijl met groenten", "中式蔬菜炒面", "Chinese style with veggies", 42],
-      [cat3, "Parbo Bier", "Parbo啤酒", "Parbo Beer", "Lokaal gebrouwen", "本地酿造", "Locally brewed", 15],
-      [cat3, "Verse Kokoswater", "新鲜椰子水", "Fresh Coconut Water", "Uit eigen tuin", "自家种植", "From our garden", 12],
+      [cat1, "Nasi Goreng", "印尼炒饭", "Fried Rice", "Arroz Frito", "Met kip en groenten", "鸡肉蔬菜炒饭", "With chicken and veggies", "Con pollo y vegetales", 45],
+      [cat1, "Moksi Meti", "混合米饭", "Mixed Rice", "Arroz Mixto", "Surinaamse mix met vlees", "苏里南混合肉米饭", "Surinamese mixed meat rice", "Arroz mixto surinames con carne", 55],
+      [cat1, "Roti Kip", "鸡肉飞饼", "Chicken Roti", "Roti de Pollo", "Met aardappel en kousenband", "配土豆和长豆角", "With potato and long beans", "Con papa y frijoles largos", 50],
+      [cat1, "Tjap Tjoi", "杂菜", "Mixed Vegetables", "Verduras Mixtas", "Chinese gemengde groenten met vlees", "什锦杂菜炒肉", "Chinese mixed vegetables with meat", "Verduras chinas salteadas con carne", 42],
+      [cat2, "Tjauw Min", "潮州炒面", "Chow Mein", "Chow Mein", "Chinese stijl met groenten en kip", "中式鸡肉蔬菜炒面", "Chinese style with veggies and chicken", "Fideos chinos salteados con pollo", 42],
+      [cat2, "Bami Goreng", "炒面", "Fried Noodles", "Fideos Fritos", "Met kip of garnalen", "鸡肉或虾仁炒面", "With chicken or shrimp", "Con pollo o camarones", 40],
+      [cat3, "Saotosoep", "苏里南鸡汤", "Chicken Soup", "Sopa de Pollo", "Surinaamse kippensoep met taugé", "苏里南风味鸡肉豆芽汤", "Surinamese chicken soup with bean sprouts", "Sopa surinamesa de pollo con brotes", 30],
+      [cat3, "Wontonsoep", "云吞汤", "Wonton Soup", "Sopa Wantán", "Huisgemaakte wontons in bouillon", "自制云吞配鲜汤", "Homemade wontons in broth", "Wantanes caseros en caldo", 35],
+      [cat4, "Parbo Bier", "Parbo啤酒", "Parbo Beer", "Cerveza Parbo", "Lokaal gebrouwen", "本地酿造", "Locally brewed", "Cerveza artesanal local", 15],
+      [cat4, "Verse Kokoswater", "新鲜椰子水", "Fresh Coconut Water", "Agua de Coco", "Uit eigen tuin", "自家种植椰子", "From our garden", "De nuestro jardín", 12],
     ];
     demoItems.forEach((item, idx) => {
-      insertItem.run("demo", item[0], item[1], item[2], item[3], item[4], item[5], item[6], item[7], idx);
+      insertItem.run("demo", item[0], item[1], item[2], item[3], item[4], item[5], item[6], item[7], item[8], item[9], idx);
     });
     console.log("Auto-seeded demo shop");
   }

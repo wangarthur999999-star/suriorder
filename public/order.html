@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
@@ -187,6 +187,16 @@
   }
   .cancel-btn:hover { background: var(--border); }
 
+  /* ── Consent Checkbox ── */
+  .consent-label { display: flex; align-items: flex-start; gap: 8px; font-size: .8rem; color: var(--text-sec); margin-bottom: 12px; line-height: 1.4; cursor: pointer; }
+  .consent-label input { width: auto; margin-top: 2px; min-height: auto; accent-color: var(--pri); }
+  .consent-label a { color: var(--pri); text-decoration: underline; }
+
+  /* ── Footer ── */
+  .order-footer { text-align: center; padding: 16px 16px 24px; color: var(--muted); font-size: .75rem; }
+  .order-footer a { color: var(--muted); text-decoration: none; }
+  .order-footer a:hover { color: var(--pri); }
+
   /* ── Success View ── */
   .success { text-align: center; padding: 48px 16px; }
   .success .icon { font-size: 4rem; margin-bottom: 16px; }
@@ -203,12 +213,14 @@
 </style>
 </head>
 <body>
+<a href="#menu" class="skip-link">Skip to menu</a>
 
 <header>
-  <div class="lang-switch">
-    <button onclick="setLang('nl')" class="active" id="btn-nl">NL</button>
-    <button onclick="setLang('zh')" id="btn-zh">中文</button>
-    <button onclick="setLang('en')" id="btn-en">EN</button>
+  <div class="lang-switch" id="lang-switch" role="group" aria-label="Select language">
+    <button class="active" data-lang="nl" id="btn-nl">NL</button>
+    <button data-lang="zh" id="btn-zh">中文</button>
+    <button data-lang="en" id="btn-en">EN</button>
+    <button data-lang="es" id="btn-es">ES</button>
   </div>
   <h1 id="shop-name">...</h1>
   <p id="shop-desc">Gerechten bestellen</p>
@@ -223,16 +235,16 @@
     <span class="label" id="cart-count">0 items</span><br>
     <span class="cart-total" id="cart-total">SRD 0</span>
   </div>
-  <button class="order-btn" onclick="showCheckout()" id="cart-btn" disabled>Bestellen</button>
+  <button class="order-btn" id="cart-btn" disabled>Bestellen</button>
 </div>
 
 <div class="modal-overlay hidden" id="checkout-modal">
   <div class="modal">
     <h2 id="checkout-title">Uw bestelling</h2>
     <div class="order-summary" id="order-summary"></div>
-    <div class="pay-methods">
-      <button class="active" id="pay-cod" onclick="setPayment('cod')">💵 Contant</button>
-      <button id="pay-bank_transfer" onclick="setPayment('bank_transfer')">🏦 Overschrijving</button>
+    <div class="pay-methods" id="pay-methods" role="group" aria-label="Select payment method">
+      <button class="active" data-pay="cod" id="pay-cod">💵 Contant</button>
+      <button data-pay="bank_transfer" id="pay-bank_transfer">🏦 Overschrijving</button>
     </div>
     <div class="bank-instructions hidden" id="bank-info">
       <strong id="bank-title">Bank Transfer</strong>
@@ -241,32 +253,98 @@
     <input type="text" id="cust-name" placeholder="Naam / Name / 姓名" required>
     <input type="tel" id="cust-phone" placeholder="Telefoon" required>
     <div class="pickup-time" id="pickup-times">
-      <button onclick="setPickup('Nu',event)" class="active">Nu</button>
-      <button onclick="setPickup('12:00',event)">12:00</button>
-      <button onclick="setPickup('12:30',event)">12:30</button>
-      <button onclick="setPickup('13:00',event)">13:00</button>
+      <button data-time="Nu" class="active">Nu</button>
+      <button data-time="12:00">12:00</button>
+      <button data-time="12:30">12:30</button>
+      <button data-time="13:00">13:00</button>
     </div>
     <textarea id="cust-note" placeholder="Opmerkingen / Notities / 备注"></textarea>
-    <button class="submit-btn" onclick="submitOrder()">Plaats bestelling</button>
-    <button class="cancel-btn" onclick="hideCheckout()">Annuleren</button>
+    <label class="consent-label" id="consent-label">
+      <input type="checkbox" id="consent-check">
+      <span id="consent-text">Ik ga akkoord met de servicevoorwaarden en het privacybeleid</span>
+    </label>
+    <button class="submit-btn" id="submit-btn" disabled>Plaats bestelling</button>
+    <button class="cancel-btn" id="cancel-btn">Annuleren</button>
   </div>
 </div>
 
 <div class="hidden" id="success-view"></div>
+
+<div class="order-footer">
+  <a href="/privacy" target="_blank" id="footer-privacy">Privacy</a>
+  <span>·</span>
+  <a href="/tos" target="_blank" id="footer-tos">Terms</a>
+  <span>·</span>
+  <span id="footer-brand">SuriOrder</span>
+</div>
 
 <script src="/shared.js"></script>
 <script>
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 
 const L = {
-  nl:{shop_desc:"Gerechten bestellen",all:"Alles",cart_empty:"0 items",order_btn:"Bestellen",checkout_title:"Uw bestelling",name_ph:"Naam",phone_ph:"Telefoon (+597...)",note_ph:"Opmerkingen",submit:"Plaats bestelling",cancel:"Annuleren",success_title:"Gelukt!",success_msg:"Uw bestelling is geplaatst.",order_id:"Bestelling",total:"Totaal",share:"Delen via WhatsApp",annuleren:"Annuleren",pay_cod:"💵 Contant",pay_bank:"🏦 Overschrijving",bank_title:"Bank overschrijving",bank_details:"Maak over naar: ",confirm_wa:"Bevestig uw bestelling via WhatsApp",alert_name:"Vul uw naam in",alert_phone:"Vul uw telefoonnummer in",alert_phone_format:"Ongeldig telefoonnummer. Gebruik formaat +597XXXXXXX",alert_order_error:"Fout bij plaatsen bestelling",empty_menu:"Geen items beschikbaar"},
-  zh:{shop_desc:"在线点餐",all:"全部",cart_empty:"0 件",order_btn:"下单",checkout_title:"确认订单",name_ph:"姓名",phone_ph:"电话 (+597...)",note_ph:"备注",submit:"提交订单",cancel:"取消",success_title:"下单成功！",success_msg:"您的订单已提交。",order_id:"订单号",total:"合计",share:"通过 WhatsApp 分享",annuleren:"取消",pay_cod:"💵 现金支付",pay_bank:"🏦 银行转账",bank_title:"银行转账信息",bank_details:"请转账至：",confirm_wa:"通过 WhatsApp 确认订单",alert_name:"请输入姓名",alert_phone:"请输入电话号码",alert_phone_format:"电话号码格式无效，请使用 +597XXXXXXX",alert_order_error:"订单提交失败",empty_menu:"暂无菜品"},
-  en:{shop_desc:"Order food",all:"All",cart_empty:"0 items",order_btn:"Order",checkout_title:"Your order",name_ph:"Name",phone_ph:"Phone (+597...)",note_ph:"Note",submit:"Place order",cancel:"Cancel",success_title:"Success!",success_msg:"Your order has been placed.",order_id:"Order",total:"Total",share:"Share via WhatsApp",annuleren:"Cancel",pay_cod:"💵 Cash",pay_bank:"🏦 Bank Transfer",bank_title:"Bank Transfer",bank_details:"Transfer to: ",confirm_wa:"Confirm your order via WhatsApp",alert_name:"Please enter your name",alert_phone:"Please enter your phone number",alert_phone_format:"Invalid phone number. Use format +597XXXXXXX",alert_order_error:"Failed to place order",empty_menu:"No items available"},
+  nl:{shop_desc:"Gerechten bestellen",all:"Alles",cart_empty:"0 items",order_btn:"Bestellen",checkout_title:"Uw bestelling",name_ph:"Naam",phone_ph:"Telefoon (+597...)",note_ph:"Opmerkingen",submit:"Plaats bestelling",cancel:"Annuleren",success_title:"Gelukt!",success_msg:"Uw bestelling is geplaatst.",order_id:"Bestelling",total:"Totaal",share:"Delen via WhatsApp",annuleren:"Annuleren",pay_cod:"💵 Contant",pay_bank:"🏦 Overschrijving",bank_title:"Bank overschrijving",bank_details:"Maak over naar: ",confirm_wa:"Bevestig uw bestelling via WhatsApp",alert_name:"Vul uw naam in",alert_phone:"Vul uw telefoonnummer in",alert_phone_format:"Ongeldig telefoonnummer. Gebruik formaat +597XXXXXXX",alert_order_error:"Fout bij plaatsen bestelling",empty_menu:"Geen items beschikbaar",consent_text:"Ik ga akkoord met de <a href='/privacy' target='_blank'>privacyverklaring</a> en <a href='/tos' target='_blank'>servicevoorwaarden</a>",alert_consent:"Accepteer eerst de servicevoorwaarden en privacyverklaring",footer:"SuriOrder — WhatsApp-first bestellen voor Suriname",footer_privacy:"Privacy",footer_tos:"Voorwaarden"},
+  zh:{shop_desc:"在线点餐",all:"全部",cart_empty:"0 件",order_btn:"下单",checkout_title:"确认订单",name_ph:"姓名",phone_ph:"电话 (+597...)",note_ph:"备注",submit:"提交订单",cancel:"取消",success_title:"下单成功！",success_msg:"您的订单已提交。",order_id:"订单号",total:"合计",share:"通过 WhatsApp 分享",annuleren:"取消",pay_cod:"💵 现金支付",pay_bank:"🏦 银行转账",bank_title:"银行转账信息",bank_details:"请转账至：",confirm_wa:"通过 WhatsApp 确认订单",alert_name:"请输入姓名",alert_phone:"请输入电话号码",alert_phone_format:"电话号码格式无效，请使用 +597XXXXXXX",alert_order_error:"订单提交失败",empty_menu:"暂无菜品",consent_text:"我同意<a href='/privacy' target='_blank'>隐私政策</a>和<a href='/tos' target='_blank'>服务条款</a>",alert_consent:"请先同意服务条款和隐私政策",footer:"SuriOrder — 苏里南 WhatsApp 优先点餐平台",footer_privacy:"隐私",footer_tos:"条款"},
+  en:{shop_desc:"Order food",all:"All",cart_empty:"0 items",order_btn:"Order",checkout_title:"Your order",name_ph:"Name",phone_ph:"Phone (+597...)",note_ph:"Note",submit:"Place order",cancel:"Cancel",success_title:"Success!",success_msg:"Your order has been placed.",order_id:"Order",total:"Total",share:"Share via WhatsApp",annuleren:"Cancel",pay_cod:"💵 Cash",pay_bank:"🏦 Bank Transfer",bank_title:"Bank Transfer",bank_details:"Transfer to: ",confirm_wa:"Confirm your order via WhatsApp",alert_name:"Please enter your name",alert_phone:"Please enter your phone number",alert_phone_format:"Invalid phone number. Use format +597XXXXXXX",alert_order_error:"Failed to place order",empty_menu:"No items available",consent_text:"I agree to the <a href='/privacy' target='_blank'>Privacy Policy</a> and <a href='/tos' target='_blank'>Terms of Service</a>",alert_consent:"Please accept the Terms of Service and Privacy Policy first",footer:"SuriOrder — WhatsApp-first ordering for Suriname",footer_privacy:"Privacy",footer_tos:"Terms"},
+  es:{shop_desc:"Pedir comida",all:"Todo",cart_empty:"0 items",order_btn:"Pedir",checkout_title:"Tu pedido",name_ph:"Nombre",phone_ph:"Teléfono (+597...)",note_ph:"Nota",submit:"Enviar pedido",cancel:"Cancelar",success_title:"¡Listo!",success_msg:"Tu pedido ha sido enviado.",order_id:"Pedido",total:"Total",share:"Compartir por WhatsApp",annuleren:"Cancelar",pay_cod:"💵 Efectivo",pay_bank:"🏦 Transferencia",bank_title:"Transferencia bancaria",bank_details:"Transferir a: ",confirm_wa:"Confirma tu pedido por WhatsApp",alert_name:"Ingresa tu nombre",alert_phone:"Ingresa tu número",alert_phone_format:"Número inválido. Usa formato +597XXXXXXX",alert_order_error:"Error al enviar pedido",empty_menu:"Sin platos disponibles",consent_text:"Acepto la <a href='/privacy' target='_blank'>Política de Privacidad</a> y los <a href='/tos' target='_blank'>Términos de Servicio</a>",alert_consent:"Acepta primero los Términos y la Política de Privacidad",footer:"SuriOrder — Pedidos por WhatsApp en Surinam",footer_privacy:"Privacidad",footer_tos:"Términos"},
 };
 
 let shopId, shop, categories=[], items=[], cart={}, lang='nl', pickupTime='Nu', paymentMethod='cod', activeCat=0;
 
+function bindEvents() {
+  // Language switch
+  document.getElementById('lang-switch').addEventListener('click', function(e) {
+    var btn = e.target.closest('button');
+    if (!btn || !btn.dataset.lang) return;
+    setLang(btn.dataset.lang);
+  });
+
+  // Cart button
+  document.getElementById('cart-btn').addEventListener('click', showCheckout);
+
+  // Payment methods
+  document.getElementById('pay-methods').addEventListener('click', function(e) {
+    var btn = e.target.closest('button');
+    if (!btn || !btn.dataset.pay) return;
+    setPayment(btn.dataset.pay);
+  });
+
+  // Pickup times
+  document.getElementById('pickup-times').addEventListener('click', function(e) {
+    var btn = e.target.closest('button');
+    if (!btn || !btn.dataset.time) return;
+    setPickup(btn.dataset.time, btn);
+  });
+
+  // Submit and cancel
+  document.getElementById('submit-btn').addEventListener('click', submitOrder);
+  document.getElementById('cancel-btn').addEventListener('click', hideCheckout);
+
+  // Consent checkbox
+  document.getElementById('consent-check').addEventListener('change', updateConsent);
+
+  // Category nav delegation
+  document.getElementById('cat-nav').addEventListener('click', function(e) {
+    var btn = e.target.closest('button');
+    if (!btn || btn.dataset.catId === undefined) return;
+    filterCat(parseInt(btn.dataset.catId));
+  });
+
+  // Menu item actions delegation (qty buttons)
+  document.getElementById('menu').addEventListener('click', function(e) {
+    var btn = e.target.closest('button');
+    if (!btn || !btn.dataset.itemId) return;
+    changeQty(parseInt(btn.dataset.itemId), parseInt(btn.dataset.delta));
+  });
+
+  // Success view "new order" button delegation
+  document.getElementById('success-view').addEventListener('click', function(e) {
+    if (e.target.closest('#btn-reload')) location.reload();
+  });
+}
+
 async function init(){
+  bindEvents();
   var p = window.location.pathname.split('/');
   shopId = p[p.length-1] || 'demo';
   document.getElementById('menu').innerHTML = '<div style="display:flex;justify-content:center;align-items:center;padding:80px 0"><div class="spinner spinner--lg"></div></div>';
@@ -301,6 +379,10 @@ function fmtPrice(n){ return 'SRD '+Number(n).toFixed(2); }
 function setLang(l){
   lang=l;
   document.querySelectorAll('.lang-switch button').forEach(function(b){ b.classList.toggle('active',b.id==='btn-'+l); });
+  document.getElementById('consent-text').innerHTML = t('consent_text');
+  document.getElementById('footer-privacy').textContent = t('footer_privacy');
+  document.getElementById('footer-tos').textContent = t('footer_tos');
+  document.getElementById('footer-brand').textContent = t('footer');
   renderAll();
 }
 
@@ -308,7 +390,7 @@ function renderAll(){
   document.getElementById('shop-name').textContent = tn(shop) || shop.name;
   document.getElementById('shop-desc').textContent = t('shop_desc');
   var cn = document.getElementById('cat-nav');
-  cn.innerHTML = '<button class="active" onclick="filterCat(0)" data-cat-id="0">' + t('all') + '</button>' + categories.map(function(c){ return '<button onclick="filterCat('+c.id+')" data-cat-id="'+c.id+'">'+esc(tn(c)||c.name)+'</button>'; }).join('');
+  cn.innerHTML = '<button class="active" data-cat-id="0">' + t('all') + '</button>' + categories.map(function(c){ return '<button data-cat-id="'+c.id+'" aria-label="'+t('filter').replace('{cat}', esc(tn(c)||c.name))+'">'+esc(tn(c)||c.name)+'</button>'; }).join('');
   filterCat(0);
   updateCart();
 }
@@ -331,7 +413,7 @@ function filterCat(cid){
       '<div class="item-img">'+(i.image_url?'<img src="'+esc(i.image_url)+'" alt="">':'🍽️')+'</div>'+
       '<div class="item-info"><h3>'+esc(tn(i)||i.name)+'</h3><p>'+esc(td(i))+'</p></div>'+
       '<div class="item-action"><div class="item-price">'+fmtPrice(i.price)+'</div>'+
-      '<div class="qty-ctrl"><button onclick="changeQty('+i.id+',-1)">−</button><span>'+q+'</span><button onclick="changeQty('+i.id+',1)">+</button></div></div></div>';
+      '<div class="qty-ctrl"><button data-item-id="'+i.id+'" data-delta="-1" aria-label="'+t('remove_one').replace('{item}', esc(tn(i)||i.name))+'">−</button><span>'+q+'</span><button data-item-id="'+i.id+'" data-delta="1" aria-label="'+t('add_one').replace('{item}', esc(tn(i)||i.name))+'">+</button></div></div></div>';
   });
   if(!filtered.length) html='<p style="text-align:center;color:var(--muted);padding:40px">'+t('empty_menu')+'</p>';
   menu.innerHTML = html;
@@ -379,14 +461,21 @@ function showCheckout(){
   summary+='<div class="line line--total"><span>'+t('total')+'</span><span>'+fmtPrice(total)+'</span></div>';
   document.getElementById('order-summary').innerHTML = summary;
   setPayment(paymentMethod); // ensure active state
+  document.getElementById('consent-text').innerHTML = t('consent_text');
+  document.getElementById('consent-check').checked = false;
+  updateConsent();
 }
 
 function hideCheckout(){ document.getElementById('checkout-modal').classList.add('hidden'); }
 
-function setPickup(val,ev){
+function updateConsent(){
+  document.getElementById('submit-btn').disabled = !document.getElementById('consent-check').checked;
+}
+
+function setPickup(val,btn){
   pickupTime=val;
   document.querySelectorAll('.pickup-time button').forEach(function(b){ b.classList.remove('active'); });
-  ev.target.classList.add('active');
+  btn.classList.add('active');
 }
 
 function setPayment(m){
@@ -408,6 +497,7 @@ async function submitOrder(){
   if(!name) return Toast.warn(t('alert_name'));
   if(!phone) return Toast.warn(t('alert_phone'));
   if(!/^\+?597\d{7}$/.test(phone)) return Toast.error(t('alert_phone_format'));
+  if(!document.getElementById('consent-check').checked) return Toast.warn(t('alert_consent'));
   var items_arr = Object.entries(cart).map(function(e){ return {id:parseInt(e[0]), qty:e[1]}; });
   var r = await fetch('/api/order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({shop_id:shopId,customer_name:name,customer_phone:phone,items:items_arr,note:document.getElementById('cust-note').value.trim(),pickup_time:pickupTime,payment_method:paymentMethod})});
   if(!r.ok){ Toast.error(t('alert_order_error')); return; }
@@ -425,7 +515,7 @@ async function submitOrder(){
     var waMsg = encodeURIComponent('Hallo, ik heb bestelling #' + order.order_id + ' geplaatst. Bedankt!');
     waConfirmBtn = '<a class="share-btn" href="https://wa.me/'+waNum+'?text='+waMsg+'" target="_blank" rel="noopener">💬 '+t('confirm_wa')+'</a><br>';
   }
-  sv.innerHTML = '<div class="success"><div class="icon">✅</div><h2>'+t('success_title')+'</h2><p>'+t('success_msg')+'</p><p style="font-weight:700;margin-top:8px">'+t('order_id')+': #'+esc(order.order_id)+'</p><p>'+t('total')+': '+fmtPrice(order.total)+'</p>'+waConfirmBtn+'<a class="share-btn" href="https://wa.me/?text='+encodeURIComponent('🍽️ '+shop.name+' - Bestel online: '+link)+'" target="_blank" rel="noopener">📱 '+t('share')+'</a><br><button class="btn btn--pri" style="margin-top:16px" onclick="location.reload()">Nieuwe bestelling</button></div>';
+  sv.innerHTML = '<div class="success"><div class="icon">✅</div><h2>'+t('success_title')+'</h2><p>'+t('success_msg')+'</p><p style="font-weight:700;margin-top:8px">'+t('order_id')+': #'+esc(order.order_id)+'</p><p>'+t('total')+': '+fmtPrice(order.total)+'</p>'+waConfirmBtn+'<a class="share-btn" href="https://wa.me/?text='+encodeURIComponent('🍽️ '+shop.name+' - Bestel online: '+link)+'" target="_blank" rel="noopener">📱 '+t('share')+'</a><br><button class="btn btn--pri" id="btn-reload" style="margin-top:16px">Nieuwe bestelling</button></div>';
   cart={};updateCart();
 }
 

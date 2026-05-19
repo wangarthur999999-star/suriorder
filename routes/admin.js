@@ -1,4 +1,4 @@
-const validLangs = ["nl", "en", "zh"];
+const validLangs = ["nl", "en", "zh", "es"];
 const { sanitizeName, sanitizeText } = require("../lib/sanitize");
 
 function registerAdminRoutes(app, db, { auth }) {
@@ -30,24 +30,24 @@ function registerAdminRoutes(app, db, { auth }) {
 
   // Add item
   app.post("/api/admin/items", auth, (req, res) => {
-    const { name, name_zh, name_en, name_srn, desc, desc_zh, desc_en, desc_srn, price, category_id, image_url } = req.body;
+    const { name, name_zh, name_en, name_es, desc, desc_zh, desc_en, desc_es, price, category_id, image_url } = req.body;
     if (!name || price == null) return res.status(400).json({ error: "name and price required" });
     if (typeof price !== "number" || price < 0) return res.status(400).json({ error: "invalid price" });
-    db.prepare("INSERT INTO items (shop_id, category_id, name, name_zh, name_en, name_srn, desc, desc_zh, desc_en, desc_srn, price, image_url) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)").run(req.shopId, category_id || null, sanitizeName(name), sanitizeName(name_zh), sanitizeName(name_en), sanitizeName(name_srn), sanitizeText(desc), sanitizeText(desc_zh), sanitizeText(desc_en), sanitizeText(desc_srn), price, image_url || null);
+    db.prepare("INSERT INTO items (shop_id, category_id, name, name_zh, name_en, name_es, desc, desc_zh, desc_en, desc_es, price, image_url) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)").run(req.shopId, category_id || null, sanitizeName(name), sanitizeName(name_zh), sanitizeName(name_en), sanitizeName(name_es), sanitizeText(desc), sanitizeText(desc_zh), sanitizeText(desc_en), sanitizeText(desc_es), price, image_url || null);
     res.json({ ok: true });
   });
 
   // Update item
   app.put("/api/admin/items/:id", auth, (req, res) => {
-    const { name, name_zh, name_en, name_srn, desc, desc_zh, desc_en, desc_srn, price, available, category_id, image_url } = req.body;
+    const { name, name_zh, name_en, name_es, desc, desc_zh, desc_en, desc_es, price, available, category_id, image_url } = req.body;
     if (price != null && (typeof price !== "number" || price < 0)) return res.status(400).json({ error: "invalid price" });
     db.prepare(`UPDATE items SET
-      name=COALESCE(?,name), name_zh=COALESCE(?,name_zh), name_en=COALESCE(?,name_en), name_srn=COALESCE(?,name_srn),
-      desc=COALESCE(?,desc), desc_zh=COALESCE(?,desc_zh), desc_en=COALESCE(?,desc_en), desc_srn=COALESCE(?,desc_srn),
+      name=COALESCE(?,name), name_zh=COALESCE(?,name_zh), name_en=COALESCE(?,name_en), name_es=COALESCE(?,name_es),
+      desc=COALESCE(?,desc), desc_zh=COALESCE(?,desc_zh), desc_en=COALESCE(?,desc_en), desc_es=COALESCE(?,desc_es),
       price=COALESCE(?,price), available=COALESCE(?,available), category_id=COALESCE(?,category_id), image_url=COALESCE(?,image_url)
       WHERE id=? AND shop_id=?`)
-    .run(name != null ? sanitizeName(name) : null, name_zh != null ? sanitizeName(name_zh) : null, name_en != null ? sanitizeName(name_en) : null, name_srn != null ? sanitizeName(name_srn) : null,
-      desc != null ? sanitizeText(desc) : null, desc_zh != null ? sanitizeText(desc_zh) : null, desc_en != null ? sanitizeText(desc_en) : null, desc_srn != null ? sanitizeText(desc_srn) : null,
+    .run(name != null ? sanitizeName(name) : null, name_zh != null ? sanitizeName(name_zh) : null, name_en != null ? sanitizeName(name_en) : null, name_es != null ? sanitizeName(name_es) : null,
+      desc != null ? sanitizeText(desc) : null, desc_zh != null ? sanitizeText(desc_zh) : null, desc_en != null ? sanitizeText(desc_en) : null, desc_es != null ? sanitizeText(desc_es) : null,
       price ?? null, available ?? null, category_id ?? null, image_url ?? null,
       req.params.id, req.shopId);
     res.json({ ok: true });
@@ -66,9 +66,9 @@ function registerAdminRoutes(app, db, { auth }) {
 
   // Add category
   app.post("/api/admin/categories", auth, (req, res) => {
-    const { name, name_zh, name_en, name_srn } = req.body;
+    const { name, name_zh, name_en, name_es } = req.body;
     if (!name) return res.status(400).json({ error: "name required" });
-    db.prepare("INSERT INTO categories (shop_id, name, name_zh, name_en, name_srn) VALUES (?,?,?,?,?)").run(req.shopId, sanitizeName(name), sanitizeName(name_zh), sanitizeName(name_en), sanitizeName(name_srn));
+    db.prepare("INSERT INTO categories (shop_id, name, name_zh, name_en, name_es) VALUES (?,?,?,?,?)").run(req.shopId, sanitizeName(name), sanitizeName(name_zh), sanitizeName(name_en), sanitizeName(name_es));
     res.json({ ok: true });
   });
 

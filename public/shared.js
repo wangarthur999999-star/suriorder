@@ -44,6 +44,9 @@ const Toast = (() => {
 function showConfirm(message, onConfirm, cancelLabel, okLabel) {
   var overlay = document.createElement('div');
   overlay.className = 'confirm-overlay';
+  overlay.setAttribute('role', 'dialog');
+  overlay.setAttribute('aria-modal', 'true');
+  overlay.setAttribute('aria-label', 'Confirm action');
   var cancelText = cancelLabel || (typeof t === 'function' ? t('cancel') : 'Cancel');
   var okText = okLabel || (typeof t === 'function' ? t('delete_confirm') : 'Delete');
   overlay.innerHTML =
@@ -53,10 +56,17 @@ function showConfirm(message, onConfirm, cancelLabel, okLabel) {
     '<button class="confirm-cancel">' + cancelText + '</button>' +
     '<button class="confirm-ok">' + okText + '</button>' +
     '</div></div>';
-  overlay.querySelector('.confirm-cancel').onclick = function () { overlay.remove(); };
-  overlay.querySelector('.confirm-ok').onclick = function () { overlay.remove(); onConfirm(); };
+  var cancelBtn = overlay.querySelector('.confirm-cancel');
+  var okBtn = overlay.querySelector('.confirm-ok');
+  cancelBtn.onclick = function () { overlay.remove(); };
+  okBtn.onclick = function () { overlay.remove(); onConfirm(); };
   overlay.addEventListener('click', function (e) { if (e.target === overlay) overlay.remove(); });
+  function onKey(e) {
+    if (e.key === 'Escape') { overlay.remove(); document.removeEventListener('keydown', onKey); }
+  }
+  document.addEventListener('keydown', onKey);
   document.body.appendChild(overlay);
+  cancelBtn.focus();
 }
 
 // ─── Loading Helpers ───────────────────────

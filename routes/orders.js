@@ -1,4 +1,5 @@
 const crypto = require("crypto");
+const logger = require("../lib/logger");
 
 function registerOrderRoutes(app, db, { auth, orderLimiter }) {
 
@@ -41,6 +42,16 @@ function registerOrderRoutes(app, db, { auth, orderLimiter }) {
     });
 
     res.json({ order_id: orderId, total, items: orderItems, payment_method: paymentMethod });
+
+    // WhatsApp notifications (fire-and-forget)
+    const wa = require("../lib/whatsapp");
+    wa.notifyMerchantNewOrder(shop.whatsapp_number, {
+      order_id: orderId, customer_name, customer_phone,
+      total, payment_method: paymentMethod,
+    });
+    wa.sendCustomerConfirmation(customer_phone, {
+      order_id: orderId, total, payment_method: paymentMethod, pickup_time: pickup_time || null,
+    }, shop.name);
   });
 
   // Admin: orders list

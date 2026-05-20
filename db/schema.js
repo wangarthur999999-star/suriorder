@@ -67,10 +67,9 @@ function initDb(db) {
   add("shops", "bank_account", "TEXT");
   add("shops", "bank_account_name", "TEXT");
 
-  // Auto-seed demo shop if not present (only when SEED_DEMO=true or not in production)
-  const shouldSeed = process.env.SEED_DEMO === "true" || process.env.NODE_ENV !== "production";
+  // Auto-seed demo shop if not present
   const demoExists = db.prepare("SELECT 1 FROM shops WHERE id='demo'").get();
-  if (shouldSeed && !demoExists) {
+  if (!demoExists) {
     const demoHash = bcrypt.hashSync("1234", 10);
     db.prepare("INSERT INTO shops (id, name, phone, language, admin_pin, whatsapp_number) VALUES (?,?,?,?,?,?)").run("demo", "Wangs Eatery", "+5971234567", "nl", demoHash, "+5971234567");
 

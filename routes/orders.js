@@ -59,7 +59,17 @@ function registerOrderRoutes(app, db, { auth, orderLimiter }) {
   // Admin: orders list
   app.get("/api/admin/orders", auth, (req, res) => {
     const limit = Math.min(parseInt(req.query.limit) || 50, 200);
-    const orders = db.prepare("SELECT * FROM orders WHERE shop_id=? ORDER BY created_at DESC LIMIT ?").all(req.shopId, limit);
+    const orders = db.prepare(`
+      SELECT o.*,
+        (SELECT COUNT(*) FROM orders o2
+         WHERE o2.shop_id=o.shop_id
+           AND o2.customer_phone=o.customer_phone
+           AND o2.created_at < o.created_at
+        ) as prev_orders
+      FROM orders o
+      WHERE o.shop_id=?
+      ORDER BY o.created_at DESC LIMIT ?
+    `).all(req.shopId, limit);
     res.json(orders);
   });
 

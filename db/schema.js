@@ -98,6 +98,7 @@ function initDb(db) {
 
   // Performance: composite index for order listing queries
   db.exec("CREATE INDEX IF NOT EXISTS idx_orders_shop_created ON orders(shop_id, created_at DESC)");
+  db.exec("CREATE INDEX IF NOT EXISTS idx_orders_shop_phone ON orders(shop_id, customer_phone)");
 }
 
 module.exports = { initDb };

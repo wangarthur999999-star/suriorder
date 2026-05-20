@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
@@ -101,6 +101,8 @@
   tr:last-child td { border-bottom: none; }
   .order-link { font-size: .72rem; color: #25D366; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 3px; }
   .order-link:hover { text-decoration: underline; }
+	.item-sold-out { opacity: .5; }
+	.item-sold-out:hover { opacity: .75; }
 
   /* ── Order Status Badges ── */
   .order-status { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: .72rem; font-weight: 600; }
@@ -423,7 +425,8 @@ var L_admin = {
     toast_item_added: "Gerecht toegevoegd", toast_save_error: "Fout bij opslaan",
     wizard_copied: "Gekopieerd!",
     cat_label: "Categorieën", cat_new_ph: "Nieuwe categorienaam", cat_add_btn: "+ Toevoegen",
-    cat_delete_confirm: "Categorie en items verwijderen?"
+    cat_delete_confirm: "Categorie en items verwijderen?",
+    th_avail: "Beschikbaar", sold_out: "Uitverkocht", return_badge: "Vaste klant"
   },
   en: {
     login_subtitle: "Manage your menu and orders",
@@ -477,7 +480,8 @@ var L_admin = {
     toast_item_added: "Item added", toast_save_error: "Save failed",
     wizard_copied: "Copied!",
     cat_label: "Categories", cat_new_ph: "New category name", cat_add_btn: "+ Add",
-    cat_delete_confirm: "Delete category and its items?"
+    cat_delete_confirm: "Delete category and its items?",
+    th_avail: "Available", sold_out: "Sold out", return_badge: "Regular"
   },
   zh: {
     login_subtitle: "管理菜单和订单",
@@ -531,7 +535,8 @@ var L_admin = {
     toast_item_added: "菜品已添加", toast_save_error: "保存失败",
     wizard_copied: "已复制！",
     cat_label: "分类", cat_new_ph: "新分类名称", cat_add_btn: "+ 添加",
-    cat_delete_confirm: "确定删除分类及其菜品？"
+    cat_delete_confirm: "确定删除分类及其菜品？",
+    th_avail: "状态", sold_out: "售罄", return_badge: "熟客"
   },
   es: {
     login_subtitle: "Gestiona tu menú y pedidos",
@@ -585,7 +590,8 @@ var L_admin = {
     toast_item_added: "Plato agregado", toast_save_error: "Error al guardar",
     wizard_copied: "¡Copiado!",
     cat_label: "Categorías", cat_new_ph: "Nueva categoría", cat_add_btn: "+ Agregar",
-    cat_delete_confirm: "¿Eliminar categoría y todos sus platos?"
+    cat_delete_confirm: "¿Eliminar categoría y todos sus platos?",
+    th_avail: "Disponible", sold_out: "Agotado", return_badge: "Cliente frecuente"
   }
 };
 
@@ -738,7 +744,7 @@ async function loadOrders(){
     if(o.payment_status==='paid') payBtn='<button class="btn btn--danger btn--xs" data-pay-id="'+esc(o.id)+'" data-pay-to="refunded" aria-label="'+t('mark_refunded')+'">'+t('mark_refunded')+'</button>';
     return '<tr>'+
       '<td>#'+esc(String(o.id)).slice(0,8)+'</td>'+
-      '<td>'+esc(o.customer_name)+(o.customer_phone ? '<br><a class="order-link" href="https://wa.me/'+o.customer_phone.replace(/[^0-9]/g,'')+'" target="_blank" rel="noopener">💬 '+esc(o.customer_phone)+'</a>' : '')+'</td>'+
+      '<td>'+esc(o.customer_name)+(o.prev_orders > 0 ? '<br><span class="return-badge" style="color:var(--pri);font-size:.72rem;font-weight:600">🔄 '+t('return_badge')+' (x'+o.prev_orders+')</span>' : '')+(o.customer_phone ? '<br><a class="order-link" href="https://wa.me/'+o.customer_phone.replace(/[^0-9]/g,'')+'" target="_blank" rel="noopener">💬 '+esc(o.customer_phone)+'</a>' : '')+'</td>'+
       '<td>'+items.map(function(i){ return i.qty+'x '+esc(i.name); }).join(', ')+'</td>'+
       '<td>SRD '+o.total.toFixed(2)+' <span class="'+psClass+'">'+t(ps)+'</span> '+payBtn+'</td>'+
       '<td class="col-time">'+esc(o.created_at?.slice(11,16)||'')+'</td>'+
@@ -757,7 +763,7 @@ async function updateOrderStatus(id,s){
 async function loadItems(){
   var r=await fetch('/api/admin/items',{headers:authHeaders()});
   var items=await r.json();
-  document.getElementById('items-list').innerHTML='<table><thead><tr><th>'+t('th_name')+'</th><th>'+t('th_cat')+'</th><th>'+t('th_price')+'</th><th></th></tr></thead><tbody>'+items.map(function(i){ return '<tr><td>'+esc(i.name)+(i.name_zh?' / '+esc(i.name_zh):'')+(i.name_es?' / '+esc(i.name_es):'')+'</td><td>'+esc(i.category_name||'-')+'</td><td>SRD '+i.price.toFixed(2)+'</td><td><button class="btn btn--danger btn--xs" data-item-id="'+i.id+'" aria-label="'+t('delete_confirm')+'">✕</button></td></tr>'; }).join('')+'</tbody></table>';
+  document.getElementById('items-list').innerHTML='<table><thead><tr><th>'+t('th_name')+'</th><th>'+t('th_cat')+'</th><th>'+t('th_price')+'</th><th>'+t('th_avail')+'</th><th></th></tr></thead><tbody>'+items.map(function(i){ var soldOutBtn=i.available?'<button class="btn btn--warn btn--xs" data-available-id="'+i.id+'" data-available-cur="1">'+t('sold_out')+'</button>':'<button class="btn btn--pri btn--xs" data-available-id="'+i.id+'" data-available-cur="0">'+t('th_avail')+'</button>'; return '<tr class="'+ (i.available?'':'item-sold-out') +'"><td>'+esc(i.name)+(i.name_zh?' / '+esc(i.name_zh):'')+(i.name_es?' / '+esc(i.name_es):'')+'</td><td>'+esc(i.category_name||'-')+'</td><td>SRD '+i.price.toFixed(2)+'</td><td>'+soldOutBtn+'</td><td><button class="btn btn--danger btn--xs" data-item-id="'+i.id+'" aria-label="'+t('delete_confirm')+'">✕</button></td></tr>'; }).join('')+'</tbody></table>';
 }
 
 async function addItem(){
@@ -773,6 +779,7 @@ async function addItem(){
   loadItems();
 }
 
+async function toggleAvailable(id,cur){await fetch("/api/admin/items/"+id,{method:"PUT",headers:authHeaders(),body:JSON.stringify({available:cur?0:1})});loadItems();}
 function deleteItem(id){
   showConfirm(t('alert_delete'), function(){
     fetch('/api/admin/items/'+id,{method:'DELETE',headers:authHeaders()}).then(function(){ loadItems(); });
@@ -1080,7 +1087,7 @@ function bindAdminEvents() {
 
   // Items list: delete buttons (delegated)
   document.getElementById('items-list').addEventListener('click', function(e) {
-    var btn = e.target.closest('button[data-item-id]');
+    var btn = e.target.closest('button[data-item-id]'); if(!btn){ btn = e.target.closest('button[data-available-id]'); if(btn){ toggleAvailable(parseInt(btn.dataset.availableId), parseInt(btn.dataset.availableCur)); return; } }
     if (!btn) return;
     deleteItem(parseInt(btn.dataset.itemId));
   });

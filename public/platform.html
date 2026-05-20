@@ -1,441 +1,2241 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SuriOrder Platform</title>
-<style>
-:root {
-  --bg: #faf8f5;
-  --surface: #ffffff;
-  --text: #1a1a1a;
-  --text-muted: #8b7355;
-  --green: #16a34a;
-  --green-light: #dcfce7;
-  --accent: #f97316;
-  --accent-light: #fff7ed;
-  --border: #e8e3d9;
-  --danger: #dc2626;
-  --danger-bg: #fef2f2;
-  --warn: #d97706;
-  --warn-bg: #fffbeb;
-  --r: 8px;
-  --num-stack: "SF Mono", "JetBrains Mono", "Consolas", monospace;
-}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SuriOrder Platform Ledger</title>
+  <style>
+    :root {
+      --bg-page: #faf8f5;
+      --text-dark: #1a1a1a;
+      --text-muted: #6b6860;
+      --border-color: #e8e3d9;
+      --color-green: #2e573a;
+      --color-red: #b83a30;
+      --color-active-bg: #eef5ef;
+      --color-highlight: #4a6b53;
+      --mono-stack: "JetBrains Mono", "SF Mono", Consolas, Menlo, Monaco, "Courier New", monospace;
+      --sans-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: #faf8f5;
+      color: var(--text-dark);
+      font-family: var(--sans-stack);
+      margin: 0;
+      padding: 0;
+      line-height: 1.4;
+      -webkit-font-smoothing: antialiased;
+      display: flex;
+      justify-content: center;
+    }
 
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  line-height: 1.5;
-  min-height: 100dvh;
-}
+    /* Outer Wrapper - Desk-Centered Paper Layout */
+    .app-wrapper {
+      width: 100%;
+      max-width: 680px;
+      min-height: 100vh;
+      border-left: 1px solid var(--border-color);
+      border-right: 1px solid var(--border-color);
+      background-color: var(--bg-page);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
 
-/* ── Login ── */
-.login-wrap {
-  display: flex; align-items: center; justify-content: center;
-  min-height: 100dvh; padding: 24px;
-}
-.login-card {
-  background: var(--surface); border-radius: 6px;
-  box-shadow: 0 2px 8px rgba(0,0,0,.06); padding: 40px 32px; width: 100%; max-width: 360px;
-  text-align: center; border: 1px solid var(--border);
-}
-.login-card h1 { font-size: 1.125rem; font-weight: 600; letter-spacing: .02em; margin-bottom: 4px; }
-.login-card p { color: var(--text-muted); font-size: .8125rem; margin-bottom: 24px; }
-.login-card input {
-  width: 100%; padding: 14px 16px; border: 1px solid var(--border);
-  border-radius: var(--r); font-size: 1.5rem; text-align: center;
-  letter-spacing: .5em; font-family: var(--num-stack); outline: none; background: var(--bg);
-}
-.login-card input:focus { border-color: var(--text-muted); background: var(--surface); }
-.login-card button {
-  width: 100%; margin-top: 16px; padding: 12px;
-  background: var(--text); color: #fff; border: none;
-  border-radius: var(--r); font-size: .875rem; font-weight: 600; cursor: pointer; letter-spacing: .02em;
-}
-.login-card button:active { opacity: .8; }
-.login-err { color: var(--danger); font-size: .75rem; margin-top: 10px; display: none; }
+    /* Red Banner Notification */
+    #error-banner {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 680px;
+      background-color: var(--color-red);
+      color: #ffffff;
+      padding: 12px 16px;
+      box-sizing: border-box;
+      font-size: 13px;
+      font-weight: 500;
+      text-align: center;
+      z-index: 1000;
+      border-bottom: 1px solid rgba(0,0,0,0.1);
+      letter-spacing: 0.05em;
+    }
 
-/* ── Dashboard ── */
-.dash { display: none; padding: 20px 16px; max-width: 680px; margin: 0 auto; }
+    /* Login State Box */
+    #login-view {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex-grow: 1;
+      padding: 32px 24px;
+      box-sizing: border-box;
+    }
 
-.dash-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
-.dash-top h1 { font-size: .9375rem; font-weight: 600; letter-spacing: .02em; }
-.dash-top button {
-  background: none; border: 1px solid var(--border); border-radius: var(--r);
-  padding: 5px 12px; font-size: .75rem; color: var(--text-muted); cursor: pointer;
-}
+    .login-container {
+      width: 100%;
+      max-width: 380px;
+      text-align: center;
+    }
 
-/* Error banner */
-.err-banner { display: none; background: var(--danger-bg); color: var(--danger); padding: 8px 14px; border-radius: var(--r); font-size: .75rem; margin-bottom: 16px; }
+    .logo-badge {
+      display: inline-block;
+      border: 1.5px solid var(--text-dark);
+      padding: 6px 14px;
+      font-family: var(--mono-stack);
+      font-weight: bold;
+      font-size: 18px;
+      letter-spacing: 0.15em;
+      margin-bottom: 24px;
+      text-transform: uppercase;
+      background-color: var(--bg-page);
+    }
 
-/* ── Hero: Total Volume ── */
-.hero-vol { margin-bottom: 32px; }
-.hero-vol .lbl { font-size: .625rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 4px; }
-.hero-vol .num { font-size: 2.75rem; font-weight: 700; font-family: var(--num-stack); line-height: 1; }
+    .login-header-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin: 0 0 8px 0;
+      letter-spacing: -0.02em;
+    }
 
-/* ── Stats row ── */
-.stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 0; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
-.stats-row .num { font-size: 1.5rem; font-weight: 700; font-family: var(--num-stack); line-height: 1.2; }
-.stats-row .lbl { font-size: .625rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 2px; }
+    .login-header-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin: 0 0 32px 0;
+    }
 
-/* ── Section header ── */
-.sec-hd { font-size: .6875rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+    /* Obscured PIN Dots Display */
+    .pin-display-dots {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
 
-/* ── Trend ── */
-.trend { display: flex; align-items: flex-end; gap: 8px; height: 90px; margin-bottom: 32px; }
-.trend-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; }
-.trend-bar {
-  width: 100%; max-width: 36px; background: var(--text-muted);
-  border-radius: 3px 3px 0 0; min-height: 3px; opacity: .45; position: relative;
-}
-.trend-bar.has-data { background: var(--accent); opacity: .85; }
-.trend-cnt { font-size: .625rem; font-family: var(--num-stack); color: var(--text-muted); margin-bottom: 2px; }
-.trend-day { font-size: .5625rem; color: var(--text-muted); margin-top: 4px; }
-.trend-empty { color: var(--text-muted); font-size: .75rem; align-self: center; font-style: italic; }
+    .pin-dot {
+      width: 12px;
+      height: 12px;
+      border: 1.5px solid var(--text-dark);
+      border-radius: 50%;
+      background-color: transparent;
+      transition: background-color 0.15s ease-transform;
+    }
 
-/* ── Shop table ── */
-.shop-list { margin-bottom: 28px; }
-.shop-row { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); gap: 10px; }
-.shop-row:last-child { border-bottom: none; }
-.shop-name { flex: 1; min-width: 0; }
-.shop-name .n { font-size: .875rem; font-weight: 600; }
-.shop-name .m { font-size: .6875rem; color: var(--text-muted); margin-top: 1px; cursor: pointer; border-bottom: 1px dashed var(--border); display: inline-block; }
-.shop-name .m:hover { color: var(--text); border-bottom-color: var(--text-muted); }
-.shop-edit-row { display: flex; gap: 4px; margin-top: 2px; }
-.shop-edit-row input {
-  width: 80px; padding: 3px 5px; border: 1px solid var(--text-muted); border-radius: 3px;
-  font-size: .6875rem; background: var(--surface); outline: none; font-family: inherit;
-}
-.shop-edit-row input:focus { border-color: var(--text); }
-.shop-meta { text-align: right; }
-.shop-meta .v { font-family: var(--num-stack); font-size: .8125rem; font-weight: 600; }
-.shop-meta .l { font-size: .625rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; display: block; }
-.shop-warn { background: var(--warn-bg); margin-left: 6px; padding: 1px 6px; border-radius: 3px; font-size: .625rem; color: var(--warn); font-weight: 600; white-space: nowrap; }
-.shop-active-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 4px; }
-.dot-on { background: var(--green); }
-.dot-off { background: var(--border); }
+    .pin-dot.filled {
+      background-color: var(--text-dark);
+    }
 
-/* ── Orders ── */
-.order-list { margin-bottom: 28px; }
-.order-row { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); gap: 8px; font-size: .8125rem; }
-.order-row:last-child { border-bottom: none; }
-.order-time { font-family: var(--num-stack); font-size: .6875rem; color: var(--text-muted); width: 42px; flex-shrink: 0; }
-.order-shop { width: 80px; flex-shrink: 0; font-weight: 600; font-size: .75rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.order-cust { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.order-amt { font-family: var(--num-stack); font-weight: 600; text-align: right; font-size: .8125rem; }
-.order-status { width: 60px; flex-shrink: 0; text-align: right; font-size: .6875rem; font-weight: 600; }
-.st-pending { color: var(--accent); }
-.st-confirmed { color: #2563eb; }
-.st-done { color: var(--green); }
+    /* Keypad Grid Grid Layout */
+    .keypad-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 32px;
+    }
 
-/* Filters */
-.filters { display: flex; gap: 8px; margin-bottom: 10px; }
-.filters select {
-  padding: 5px 8px; border: 1px solid var(--border); border-radius: var(--r);
-  font-size: .75rem; background: var(--surface); outline: none; color: var(--text);
-}
+    .keypad-btn {
+      background: var(--bg-page);
+      border: 1px solid var(--border-color);
+      color: var(--text-dark);
+      font-family: var(--mono-stack);
+      font-size: 20px;
+      font-weight: 500;
+      padding: 16px 0;
+      min-height: 56px; /* Touch target >= 44px */
+      transition: background-color 0.1s, border-color 0.1s;
+      outline: none;
+      user-select: none;
+    }
 
-/* Loading / empty */
-.row-empty { text-align: center; color: var(--text-muted); padding: 32px 0; font-size: .75rem; }
-.row-loading { text-align: center; color: var(--border); padding: 32px 0; font-size: .75rem; }
+    .keypad-btn:active {
+      background-color: #ebe7dd;
+      border-color: var(--text-dark);
+    }
 
-/* Toggle */
-.tgl { background: none; border: 1px solid var(--border); border-radius: var(--r); padding: 3px 8px; font-size: .6875rem; cursor: pointer; color: var(--text-muted); }
-.tgl.on { border-color: var(--green); color: var(--green); background: var(--green-light); }
-</style>
+    .keypad-btn.action-btn {
+      font-size: 14px;
+      font-weight: 600;
+      background-color: #f3eee3;
+    }
+
+    .keypad-btn.action-btn:active {
+      background-color: #dfdacd;
+    }
+
+    .pin-debug-hint {
+      font-size: 11px;
+      color: var(--text-muted);
+      border-top: 1px dashed var(--border-color);
+      padding-top: 16px;
+      line-height: 1.5;
+    }
+
+    /* Dashboard Layout */
+    #dashboard-view {
+      display: none;
+      flex-direction: column;
+      flex-grow: 1;
+      padding: 24px 20px;
+      box-sizing: border-box;
+    }
+
+    /* Top Masthead Row */
+    .masthead-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--text-dark);
+      margin-bottom: 20px;
+    }
+
+    .masthead-brand {
+      font-family: var(--mono-stack);
+      font-size: 20px;
+      font-weight: bold;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .masthead-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* Pill Swaps & Custom Control Switches */
+    .language-pill {
+      display: inline-flex;
+      border: 1px solid var(--text-dark);
+      padding: 2px;
+      background: var(--bg-page);
+    }
+
+    .lang-item {
+      font-family: var(--sans-stack);
+      font-size: 10px;
+      font-weight: bold;
+      padding: 4px 8px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      min-height: auto;
+    }
+
+    .lang-item.active {
+      background-color: var(--text-dark);
+      color: var(--bg-page);
+    }
+
+    .lock-btn {
+      background-color: transparent;
+      border: 1px solid var(--text-dark);
+      color: var(--text-dark);
+      font-family: var(--sans-stack);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 6px 12px;
+      min-height: 32px;
+      display: flex;
+      align-items: center;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .lock-btn:active {
+      background-color: var(--text-dark);
+      color: var(--bg-page);
+    }
+
+    /* Large Numeric Display Block */
+    .total-revenue-section {
+      padding-bottom: 16px;
+      border-bottom: 1px dashed var(--border-color);
+      margin-bottom: 16px;
+    }
+
+    .metric-big-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .metric-big-value {
+      font-family: var(--mono-stack);
+      font-size: 32px;
+      font-weight: 600;
+      color: var(--color-green);
+    }
+
+    /* Aggregated 3-Column Stats Row */
+    .stats-trio {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .stat-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+
+    .stat-val {
+      font-family: var(--mono-stack);
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    /* 7-Day Trend Chart Area */
+    .trend-section {
+      margin-bottom: 32px;
+    }
+
+    .trend-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 12px;
+    }
+
+    .section-title-tag {
+      font-size: 11px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin: 0;
+    }
+
+    .section-desc-tag {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    /* CSS Custom Height Columns Grid */
+    .trend-chart-bar-container {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+      height: 90px;
+      align-items: flex-end;
+      border-bottom: 1px solid var(--text-dark);
+      padding-bottom: 4px;
+      margin-bottom: 6px;
+    }
+
+    .trend-column {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100%;
+      justify-content: flex-end;
+      cursor: crosshair;
+    }
+
+    .column-bar {
+      width: 100%;
+      background-color: #dfdacd;
+      transition: background-color 0.15s, height 0.3s ease-out;
+      min-height: 2px;
+    }
+
+    .trend-column:hover .column-bar {
+      background-color: var(--text-dark);
+    }
+
+    /* Inline Popover Tooltip for volume values */
+    .column-tooltip {
+      position: absolute;
+      bottom: 100%;
+      background: var(--text-dark);
+      color: var(--bg-page);
+      font-family: var(--mono-stack);
+      font-size: 9px;
+      padding: 2px 4px;
+      white-space: nowrap;
+      display: none;
+      z-index: 10;
+      margin-bottom: 4px;
+    }
+
+    .trend-column:hover .column-tooltip {
+      display: block;
+    }
+
+    .trend-labels-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+    }
+
+    .trend-day-label {
+      font-family: var(--mono-stack);
+      font-size: 9px;
+      color: var(--text-muted);
+      text-align: center;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+
+    /* Block Layout Sections */
+    .ledger-section {
+      border-top: 1px solid var(--text-dark);
+      padding-top: 16px;
+      margin-bottom: 36px;
+    }
+
+    .ledger-section-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 16px;
+    }
+
+    /* Strict High-Density Tables Styling */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+      text-align: left;
+      margin-bottom: 12px;
+    }
+
+    th {
+      border-bottom: 1px solid var(--text-dark);
+      padding: 6px 4px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-dark);
+    }
+
+    td {
+      border-bottom: 1px solid var(--border-color);
+      padding: 8px 4px;
+      vertical-align: middle;
+    }
+
+    .text-right {
+      text-align: right;
+    }
+
+    .mono-num {
+      font-family: var(--mono-stack);
+    }
+
+    /* Indicative Badges and Elements */
+    .status-dot {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+    }
+
+    .status-dot.active {
+      background-color: var(--color-green);
+    }
+
+    .status-dot.inactive {
+      background-color: #a8a49c;
+    }
+
+    .stale-badge {
+      display: inline-block;
+      background-color: var(--color-red);
+      color: #ffffff;
+      font-family: var(--mono-stack);
+      font-size: 8px;
+      font-weight: bold;
+      padding: 1px 4px;
+      margin-left: 4px;
+      letter-spacing: 0.05em;
+    }
+
+    .dormant-badge {
+      display: inline-block;
+      background-color: #7f1d1d;
+      color: #ffffff;
+      font-family: var(--mono-stack);
+      font-size: 9px;
+      font-weight: bold;
+      padding: 2px 6px;
+      margin-left: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      animation: dormantPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes dormantPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    /* Modern active toggle switches */
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 32px;
+      height: 18px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .switch-slider {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #dfdacd;
+      transition: .2s;
+      border: 1px solid var(--border-color);
+    }
+
+    .switch-slider:before {
+      position: absolute;
+      content: "";
+      height: 12px;
+      width: 12px;
+      left: 2px;
+      bottom: 2px;
+      background-color: white;
+      transition: .2s;
+    }
+
+    input:checked + .switch-slider {
+      background-color: var(--color-green);
+    }
+
+    input:checked + .switch-slider:before {
+      transform: translateX(14px);
+    }
+
+    /* Inline editable state */
+    .editable-cell {
+      border-bottom: 1px dotted var(--text-muted);
+      cursor: pointer;
+    }
+
+    .editable-cell:hover {
+      background-color: #f6f1e6;
+    }
+
+    .inline-edit-box {
+      display: flex;
+      width: 100%;
+      gap: 4px;
+      box-sizing: border-box;
+      align-items: center;
+    }
+
+    .inline-edit-input {
+      font-family: var(--sans-stack);
+      font-size: 11px;
+      padding: 2px 4px;
+      border: 1px solid var(--text-dark);
+      background-color: #fff;
+      color: var(--text-dark);
+      flex-grow: 1;
+      min-width: 0;
+    }
+
+    /* Elegant Custom Mini Buttons */
+    .min-btn {
+      font-family: var(--sans-stack);
+      font-size: 9px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border: 1px solid var(--text-dark);
+      background-color: var(--bg-page);
+      color: var(--text-dark);
+      text-transform: uppercase;
+      outline: none;
+      min-height: unset;
+    }
+
+    .min-btn.save-btn {
+      background-color: var(--text-dark);
+      color: var(--bg-page);
+    }
+
+    /* Filters Row Grouping */
+    .filters-bar {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .filter-ctrl {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .filter-label {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 3px;
+    }
+
+    .ledger-select {
+      font-family: var(--sans-stack);
+      font-size: 11px;
+      padding: 6px 8px;
+      border: 1px solid var(--border-color);
+      background-color: var(--bg-page);
+      color: var(--text-dark);
+      outline: none;
+      box-sizing: border-box;
+    }
+
+    .ledger-select:focus {
+      border-color: var(--text-dark);
+    }
+
+
+    /* Transaction Ledger Order Row Interactive style */
+    .order-header-row {
+      cursor: pointer;
+      transition: background-color 0.15s;
+    }
+
+    .order-header-row:hover {
+      background-color: #f7f5f0;
+    }
+
+    .order-header-row.active {
+      background-color: #f0ede6;
+    }
+
+    .expanded-items-tr {
+      background-color: #f9f8f5;
+    }
+
+    .expanded-container {
+      padding: 10px 14px;
+      border: 1px dashed var(--border-color);
+      background-color: #fcfbfa;
+      margin-bottom: 10px;
+    }
+
+    .expanded-meta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+      font-size: 10px;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 6px;
+    }
+
+    /* Collapsible items details sub-table */
+    .items-subtable {
+      width: 100%;
+      font-size: 10px;
+      margin: 0;
+    }
+
+    .items-subtable th {
+      font-size: 9px;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-color);
+      padding: 3px 2px;
+    }
+
+    .items-subtable td {
+      border-bottom: 1px dashed var(--border-color);
+      padding: 4px 2px;
+    }
+
+    .order-status-badge {
+      display: inline-block;
+      font-size: 9px;
+      font-weight: bold;
+      text-transform: uppercase;
+      padding: 1px 6px;
+      border: 1px solid transparent;
+    }
+
+    .order-status-badge.pending {
+      border-color: var(--text-muted);
+      color: var(--text-muted);
+    }
+
+    .order-status-badge.confirmed {
+      border-color: var(--text-dark);
+      background-color: var(--text-dark);
+      color: var(--bg-page);
+    }
+
+    .order-status-badge.done {
+      border-color: var(--color-green);
+      color: var(--color-green);
+    }
+
+
+    /* Block C Subpanels / Tab Navigation Controls */
+    .analytics-tabs-strip {
+      display: flex;
+      overflow-x: auto;
+      gap: 6px;
+      border-bottom: 1px solid var(--text-dark);
+      padding-bottom: 1px;
+      margin-bottom: 16px;
+    }
+
+    .analytics-tab-btn {
+      border: 1px solid var(--border-color);
+      border-bottom: none;
+      background-color: #f3eee3;
+      font-size: 10px;
+      font-weight: 500;
+      padding: 8px 12px;
+      min-height: auto;
+      white-space: nowrap;
+      color: var(--text-muted);
+    }
+
+    .analytics-tab-btn.active {
+      background-color: var(--bg-page);
+      border-color: var(--text-dark);
+      color: var(--text-dark);
+      font-weight: bold;
+    }
+
+    .analytics-subpanel {
+      display: none;
+    }
+
+    .analytics-subpanel.active {
+      display: block;
+    }
+
+    /* CSS Bar Ranking Ranking Progress-style container */
+    .rank-bar-layout {
+      margin-bottom: 12px;
+    }
+
+    .rank-bar-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      margin-bottom: 3px;
+    }
+
+    .rank-bar-progress-track {
+      height: 6px;
+      background-color: var(--border-color);
+      width: 100%;
+    }
+
+    .rank-bar-progress-fill {
+      height: 100%;
+      background-color: var(--text-muted);
+      transition: width 0.4s ease-out;
+    }
+
+    /* 24-Hour Vertical Bar Chart distribution */
+    .hours-chart-wrapper {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .hours-dist-axis-y {
+      display: grid;
+      grid-template-columns: repeat(24, 1fr);
+      gap: 3px;
+      height: 70px;
+      align-items: flex-end;
+      border-bottom: 1px solid var(--text-dark);
+      padding-bottom: 2px;
+      margin-bottom: 6px;
+    }
+
+    .hour-vertical-column {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      height: 100%;
+      position: relative;
+    }
+
+    .hour-bar {
+      background-color: #dfdacd;
+      width: 100%;
+      min-height: 1px;
+    }
+
+    .hour-vertical-column:hover .hour-bar {
+      background-color: var(--color-green);
+    }
+
+    .hour-bar-tooltip {
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--text-dark);
+      color: var(--bg-page);
+      font-family: var(--mono-stack);
+      font-size: 8px;
+      padding: 1px 3px;
+      white-space: nowrap;
+      display: none;
+      z-index: 10;
+    }
+
+    .hour-vertical-column:hover .hour-bar-tooltip {
+      display: block;
+    }
+
+    .hours-dist-axis-x {
+      display: flex;
+      justify-content: space-between;
+      font-size: 9px;
+      color: var(--text-muted);
+    }
+
+
+    /* Bottom Footer Area */
+    .ledger-footer {
+      border-top: 1px solid var(--text-dark);
+      padding: 24px 0;
+      margin-top: auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-close-btn {
+      border: 1px solid var(--text-dark);
+      background-color: transparent;
+      color: var(--text-dark);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 8px 16px;
+      min-height: 40px;
+    }
+
+    .footer-close-btn:active {
+      background-color: var(--text-dark);
+      color: var(--bg-page);
+    }
+
+    .footer-ver-tag {
+      font-family: var(--mono-stack);
+      font-size: 9px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+  </style>
 </head>
 <body>
 
-<!-- Login -->
-<div class="login-wrap" id="loginWrap">
-  <div class="login-card">
-    <h1>SuriOrder</h1>
-    <p>Platform</p>
-    <input type="password" id="pinInput" inputmode="numeric" maxlength="6" placeholder="······" autofocus>
-    <button id="loginBtn">Enter</button>
-    <div class="login-err" id="loginErr"></div>
+  <div class="app-wrapper">
+    <!-- Red Error Banner Slider -->
+    <div id="error-banner"></div>
+
+    <!-- 1. LOGIN SCREEN PANEL -->
+    <main id="login-view">
+      <div class="login-container">
+        <div class="logo-badge">SURIORDER</div>
+        <h2 class="login-header-title" data-i18n="pinTitle">SuriOrder Console Authentication</h2>
+        <p class="login-header-sub" data-i18n="pinSubtitle">Protected ledger access. Input 6-digit PIN to authenticate.</p>
+
+        <!-- Dynamic obscured password indicators -->
+        <div class="pin-display-dots">
+          <div class="pin-dot" id="dot-0"></div>
+          <div class="pin-dot" id="dot-1"></div>
+          <div class="pin-dot" id="dot-2"></div>
+          <div class="pin-dot" id="dot-3"></div>
+          <div class="pin-dot" id="dot-4"></div>
+          <div class="pin-dot" id="dot-5"></div>
+        </div>
+
+        <!-- 3x4 GRID numeric pad layout -->
+        <div class="keypad-grid">
+          <button class="keypad-btn" onclick="pressPin('1')">1</button>
+          <button class="keypad-btn" onclick="pressPin('2')">2</button>
+          <button class="keypad-btn" onclick="pressPin('3')">3</button>
+          
+          <button class="keypad-btn" onclick="pressPin('4')">4</button>
+          <button class="keypad-btn" onclick="pressPin('5')">5</button>
+          <button class="keypad-btn" onclick="pressPin('6')">6</button>
+          
+          <button class="keypad-btn" onclick="pressPin('7')">7</button>
+          <button class="keypad-btn" onclick="pressPin('8')">8</button>
+          <button class="keypad-btn" onclick="pressPin('9')">9</button>
+          
+          <button class="keypad-btn action-btn" onclick="clearPin()">✖</button>
+          <button class="keypad-btn" onclick="pressPin('0')">0</button>
+          <button class="keypad-btn action-btn" onclick="submitAuthPin()">✓</button>
+        </div>
+
+        <div class="pin-debug-hint">PIN is auto-generated on first start. Check server console logs or data/.owner_pin_raw</div>
+      </div>
+    </main>
+
+    <!-- 2. MAIN LEDGER REPORT SCREEN (HIDDEN BY DEFAULT) -->
+    <main id="dashboard-view">
+      
+      <!-- Masthead Header Grid -->
+      <header class="masthead-row">
+        <div>
+          <span class="masthead-brand">SuriOrder</span>
+        </div>
+        <div class="masthead-controls">
+          <!-- Dynamic high-fidelity Language Switcher -->
+          <div class="language-pill">
+            <button class="lang-item" id="lang-btn-zh" onclick="setLanguage('zh')">中文</button>
+            <button class="lang-item" id="lang-btn-en" onclick="setLanguage('en')">EN</button>
+          </div>
+          <!-- Administrative Logout Block -->
+          <button class="lock-btn" onclick="doLogout()" data-i18n="lock">Lock</button>
+        </div>
+      </header>
+
+      <!-- KPI Total platform order volume display banner -->
+      <section class="total-revenue-section">
+        <div class="metric-big-label" data-i18n="platformTotal">Total Platform Revenue</div>
+        <div class="metric-big-value" id="kpi-total-revenue">SRD 0.00</div>
+        <div style="font-size:11px;margin-top:2px;" id="kpi-revenue-trend"></div>
+      </section>
+
+      <!-- Sub-Aggregated KPIs Summary Stats Grid -->
+      <section class="stats-trio">
+        <div class="stat-card">
+          <span class="stat-label" data-i18n="shopsCount">Registered Shops</span>
+          <span class="stat-val text-dark mono-num" id="kpi-shops-count">-</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label" data-i18n="ordersCount">Total Cumulative Orders</span>
+          <span class="stat-val text-dark mono-num" id="kpi-orders-count">-</span>
+          <span id="kpi-orders-trend"></span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label" data-i18n="aovLabel">Avg Order Value (AOV)</span>
+          <span class="stat-val text-green mono-num" id="kpi-aov-val">-</span>
+        </div>
+      </section>
+
+      <!-- Highdensity 7-Day interactive Mini bars volume trends -->
+      <section class="trend-section">
+        <div class="trend-header">
+          <h3 class="section-title-tag" data-i18n="trendTitle">7-Day Volume Trend</h3>
+          <span class="section-desc-tag" data-i18n="hoverTip">hover bars for SRD values</span>
+        </div>
+        <div class="trend-chart-bar-container" id="bar-chart-daily-anchor">
+          <!-- Backpopulated dynamically by Javascript -->
+        </div>
+        <div class="trend-labels-grid" id="bar-labels-daily-anchor">
+          <!-- Daily Labels list -->
+        </div>
+      </section>
+
+
+      <!-- BLOCK A: REGISTERED RESTAURANT DIRECTORY TABLE -->
+      <section class="ledger-section">
+        <div class="ledger-section-title-row">
+          <h3 class="section-title-tag" data-i18n="sectionShops">BLOCK A · Registered Restaurant Directory</h3>
+          <span class="section-desc-tag" data-i18n="clickToEdit">click cuisine/region text to edit</span>
+        </div>
+        <div style="overflow-x: auto;">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 7%;" data-i18n="thStatus">Status</th>
+                <th style="width: 32%;" data-i18n="thShopName">Shop Name</th>
+                <th style="width: 33%;" data-i18n="thMetadata">Cuisine · Region</th>
+                <th style="width: 9%;" class="text-right" data-i18n="thMenuDepth">Items</th>
+                <th style="width: 9%;" class="text-right" data-i18n="thOrders7d">7d Orders</th>
+                <th style="width: 12%;" class="text-right" data-i18n="thRevenue">Revenue</th>
+                <th style="width: 8%;" class="text-right" data-i18n="thActiveToggle">Active</th>
+              </tr>
+            </thead>
+            <tbody id="shops-directory-tbody">
+              <!-- Dynamically Backpopulated -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+
+      <!-- BLOCK B: TRANSACTION JOURNAL (ORDERS LEDGER) -->
+      <section class="ledger-section">
+        <div class="ledger-section-title-row">
+          <h3 class="section-title-tag" data-i18n="sectionLedger">BLOCK B · Transaction Ledger (Last 50 Orders)</h3>
+        </div>
+
+        <!-- Real-time Filter Select Boxes Layout Row -->
+        <div class="filters-bar">
+          <div class="filter-ctrl">
+            <span class="filter-label" data-i18n="filterShop">Filter by Restaurant</span>
+            <select id="filter-shop-id" class="ledger-select" onchange="runFilterQuery()"></select>
+          </div>
+          <div class="filter-ctrl">
+            <span class="filter-label" data-i18n="filterStatus">Filter by State</span>
+            <select id="filter-status" class="ledger-select" onchange="runFilterQuery()"></select>
+          </div>
+        </div>
+
+        <div style="overflow-x: auto;">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 15%;" data-i18n="thTime">Time</th>
+                <th style="width: 30%;" data-i18n="thLedgerShop">Restaurant</th>
+                <th style="width: 33%;" data-i18n="thCustomer">Customer & Journal Details</th>
+                <th style="width: 12%;" class="text-right" data-i18n="thAmount">Amount (SRD)</th>
+                <th style="width: 10%;" class="text-right" data-i18n="thStatusLabel">Status</th>
+              </tr>
+            </thead>
+            <tbody id="orders-ledger-tbody">
+              <!-- Inline collapsible rows listed below -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+
+      <!-- BLOCK C: COMPREHENSIVE STATISTICAL ANALYTICS INSIGHTS -->
+      <section class="ledger-section">
+        <div class="ledger-section-title-row">
+          <h3 class="section-title-tag" data-i18n="sectionAnalytics">BLOCK C · Aggregated Platform Analytics</h3>
+        </div>
+
+        <!-- Segmented Navigation subtabs controllers -->
+        <div class="analytics-tabs-strip">
+          <button class="analytics-tab-btn active" id="tab-topitems-btn" onclick="activateAnalyticsTab('topitems')" data-i18n="tabTopItems">Top Dishes</button>
+          <button class="analytics-tab-btn" id="tab-hourly-btn" onclick="activateAnalyticsTab('hourly')" data-i18n="tabHourly">Hourly Dist.</button>
+          <button class="analytics-tab-btn" id="tab-weekly-btn" onclick="activateAnalyticsTab('weekly')" data-i18n="tabWeekly">Weekly AOV</button>
+          <button class="analytics-tab-btn" id="tab-repeats-btn" onclick="activateAnalyticsTab('repeats')" data-i18n="tabRepeats">Repeat Customers</button>
+          <button class="analytics-tab-btn" id="tab-menu-btn" onclick="activateAnalyticsTab('menu')" data-i18n="tabMenuDepth">Menu Depth</button>
+        </div>
+
+        <!-- Analytical Tab Container Panel 1: Top Items Star Dishes -->
+        <div id="panel-topitems" class="analytics-subpanel active">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 45%;" data-i18n="thItemName">Item Name</th>
+                <th style="width: 15%;" class="text-right" data-i18n="thUnitsSold">Units Sold</th>
+                <th style="width: 25%;" class="text-right">Rank Weight</th>
+                <th style="width: 15%;" class="text-right" data-i18n="thTotalRevenue">Total Revenue</th>
+              </tr>
+            </thead>
+            <tbody id="analytics-topitems-tbody">
+              <!-- Dynamically structured linear visual ratings bars inside table -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Analytical Tab Container Panel 2: Hourly Distribution columns -->
+        <div id="panel-hourly" class="analytics-subpanel">
+          <div class="hours-chart-wrapper">
+            <div class="metric-big-label" style="font-size: 10px; margin-bottom: 12px; font-weight: normal; text-transform: uppercase;" data-i18n="hourlyChartLabel">
+              24-Hour Cumulative Orders Distribution Chart
+            </div>
+            <div class="hours-dist-axis-y" id="hourly-axis-y-container">
+              <!-- 24 columns mapping to each hour interval -->
+            </div>
+            <div class="hours-dist-axis-x">
+              <span data-i18n="midnight">00:00 (Midnight)</span>
+              <span data-i18n="noon">12:00 (Noon)</span>
+              <span data-i18n="pmpeak">23:00 (PM Peak)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Analytical Tab Container Panel 3: Weekly AOV table -->
+        <div id="panel-weekly" class="analytics-subpanel">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 30%;" data-i18n="thWeeklyWeek">Target Week</th>
+                <th style="width: 20%;" class="text-right" data-i18n="thWeeklyOrders">Order Count</th>
+                <th style="width: 25%;" class="text-right" data-i18n="thWeeklyAOV">Weekly AOV</th>
+                <th style="width: 25%;" class="text-right" data-i18n="thWeeklyRevenue">Gross Revenue</th>
+              </tr>
+            </thead>
+            <tbody id="analytics-weekly-tbody">
+              <!-- Dynamically population -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Analytical Tab Container Panel 4: Loyal Repeat Customers cohort list -->
+        <div id="panel-repeats" class="analytics-subpanel">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 45%;" data-i18n="thRepeatsContact">Name & Contact</th>
+                <th style="width: 15%;" class="text-right" data-i18n="thRepeatsOrders">Orders Count</th>
+                <th style="width: 20%;" class="text-right" data-i18n="thRepeatsSpent">Total Spent (LTV)</th>
+                <th style="width: 20%;" class="text-right" data-i18n="thRepeatsLast">Last Purchase Date</th>
+              </tr>
+            </thead>
+            <tbody id="analytics-repeats-tbody">
+              <!-- Cohort listed -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Analytical Tab Container Panel 5: Menu Depth statistics overview -->
+        <div id="panel-menu" class="analytics-subpanel">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 40%;" data-i18n="thMenuRestaurant">Restaurant</th>
+                <th style="width: 20%;" class="text-right" data-i18n="thMenuItems">Item Count</th>
+                <th style="width: 20%;" class="text-right" data-i18n="thAvgPrice">Avg Price</th>
+                <th style="width: 20%;" class="text-right" data-i18n="thMenuRange">Min / Max Price Range</th>
+              </tr>
+            </thead>
+            <tbody id="analytics-menu-tbody">
+              <!-- Pricing interval matrix rows -->
+            </tbody>
+          </table>
+        </div>
+
+      </section>
+
+      <!-- System Footer Block -->
+      <footer class="ledger-footer">
+        <div>
+          <button class="footer-close-btn" onclick="doLogout()" data-i18n="logoutButton">Close Dashboard Ledger</button>
+        </div>
+        <div class="footer-ver-tag">SuriOrder Platform v1.2.6</div>
+      </footer>
+
+    </main>
+
   </div>
-</div>
 
-<!-- Dashboard -->
-<div class="dash" id="dash">
-  <div class="dash-top">
-    <h1>SuriOrder</h1>
-    <button id="logoutBtn">Lock</button>
-  </div>
-
-  <div class="err-banner" id="errBanner"></div>
-
-  <!-- Hero: Total Volume -->
-  <div class="hero-vol">
-    <div class="lbl">Total Platform Volume</div>
-    <div class="num" id="heroVol">—</div>
-  </div>
-
-  <!-- Stats row -->
-  <div class="stats-row">
-    <div><div class="lbl">Shops</div><div class="num" id="statShops">—</div></div>
-    <div><div class="lbl">Orders</div><div class="num" id="statOrders">—</div></div>
-    <div><div class="lbl">Avg Order</div><div class="num" id="statAvg">—</div></div>
-  </div>
-
-  <!-- Trend -->
-  <div class="sec-hd">7-Day Orders</div>
-  <div class="trend" id="trend"></div>
-
-  <!-- Shops -->
-  <div class="sec-hd">Shops</div>
-  <div class="shop-list" id="shopList"></div>
-
-  <!-- Orders -->
-  <div class="sec-hd">Recent Orders</div>
-  <div class="filters">
-    <select id="filterShop"><option value="">All shops</option></select>
-    <select id="filterStatus">
-      <option value="">All</option>
-      <option value="pending">Pending</option>
-      <option value="confirmed">Confirmed</option>
-      <option value="done">Done</option>
-    </select>
-  </div>
-  <div class="order-list" id="orderList"></div>
-</div>
-
-<script>
-const API = (path, opts) => {
-  const headers = { "Content-Type": "application/json" };
-  const token = sessionStorage.getItem("pt");
-  if (token) headers["Authorization"] = "Bearer " + token;
-  return fetch(path, { ...opts, headers }).then(r => {
-    if (r.status === 401) { sessionStorage.removeItem("pt"); showLogin(); throw new Error("unauthorized"); }
-    if (!r.ok) return r.json().then(e => { throw new Error(e.error || "error"); });
-    return r.json();
-  });
-};
-
-// ── Login ──
-const loginWrap = document.getElementById("loginWrap");
-const dash = document.getElementById("dash");
-const pinInput = document.getElementById("pinInput");
-const loginErr = document.getElementById("loginErr");
-const errBanner = document.getElementById("errBanner");
-
-let allShops = [];
-
-function showLogin() { loginWrap.style.display = "flex"; dash.style.display = "none"; sessionStorage.removeItem("pt"); }
-function showDash() { loginWrap.style.display = "none"; dash.style.display = "block"; loadAll(); }
-
-function showErr(msg) {
-  errBanner.textContent = msg; errBanner.style.display = "block";
-  setTimeout(() => { errBanner.style.display = "none"; }, 5000);
-}
-
-document.getElementById("loginBtn").addEventListener("click", async () => {
-  const pin = pinInput.value.trim();
-  if (!pin) return;
-  loginErr.style.display = "none";
-  try {
-    const r = await fetch("/api/platform/auth", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ pin }) });
-    if (!r.ok) { const e = await r.json(); throw new Error(e.error); }
-    const data = await r.json();
-    sessionStorage.setItem("pt", data.token);
-    showDash();
-  } catch (e) {
-    loginErr.textContent = e.message; loginErr.style.display = "block";
-    pinInput.value = "";
-  }
-});
-
-pinInput.addEventListener("keydown", e => { if (e.key === "Enter") document.getElementById("loginBtn").click(); });
-document.getElementById("logoutBtn").addEventListener("click", showLogin);
-
-// ── Load ──
-async function loadAll() {
-  const shopEl = document.getElementById("shopList");
-  const orderEl = document.getElementById("orderList");
-  shopEl.innerHTML = '<div class="row-loading">Loading...</div>';
-  orderEl.innerHTML = '<div class="row-loading">Loading...</div>';
-
-  try {
-    const [dashData, shops, orders] = await Promise.all([
-      API("/api/platform/dashboard"),
-      API("/api/platform/shops"),
-      API("/api/platform/orders")
-    ]);
-    allShops = shops;
-    renderAll(dashData, shops, orders);
-  } catch (e) {
-    if (e.message !== "unauthorized") showErr(e.message);
-  }
-}
-
-function renderAll(d, shops, orders) {
-  // Hero volume
-  const vol = d.daily ? d.daily.reduce((s, d) => s + d.total, 0) : 0;
-  document.getElementById("heroVol").textContent = vol ? "SRD " + vol.toLocaleString("en") : "SRD 0";
-
-  // Stats
-  document.getElementById("statShops").textContent = d.totalShops;
-  document.getElementById("statOrders").textContent = d.totalOrders;
-  document.getElementById("statAvg").textContent = d.avgOrderValue ? "SRD " + Number(d.avgOrderValue).toFixed(0) : "—";
-
-  // Trend
-  renderTrend(d.daily);
-
-  // Shops
-  renderShops(shops);
-
-  // Orders
-  renderOrders(orders);
-}
-
-// ── Trend ──
-function renderTrend(daily) {
-  const el = document.getElementById("trend");
-  if (!daily || !daily.length) { el.innerHTML = '<span class="trend-empty">No orders yet</span>'; return; }
-  const max = Math.max(...daily.map(d => d.cnt), 1);
-  el.innerHTML = daily.map(d => {
-    const h = Math.max(4, Math.round(d.cnt / max * 72));
-    const day = d.day.slice(5);
-    const hasData = d.cnt > 0;
-    return `<div class="trend-bar-wrap"><span class="trend-cnt">${d.cnt}</span><div class="trend-bar ${hasData ? 'has-data' : ''}" style="height:${h}px"></div><div class="trend-day">${day}</div></div>`;
-  }).join("");
-}
-
-// ── Shops ──
-function renderShops(shops) {
-  const el = document.getElementById("shopList");
-  const sel = document.getElementById("filterShop");
-  sel.innerHTML = '<option value="">All shops</option>' + shops.map(s => `<option value="${s.id}">${escHtml(s.name)}</option>`).join("");
-
-  if (!shops.length) { el.innerHTML = '<div class="row-empty">No shops</div>'; return; }
-
-  el.innerHTML = shops.map(s => {
-    const cuisine = s.cuisine_type || "";
-    const region = s.region || "";
-    const metaParts = [cuisine, region].filter(Boolean);
-    const meta = metaParts.length ? metaParts.join(" · ") : "Tap to add details";
-    const daysSince = s.last_order ? daysAgo(s.last_order) : 999;
-    const warn = s.last_order && daysSince > 7 ? `<span class="shop-warn">${daysSince}d</span>` : "";
-    const dotCls = s.active ? "dot-on" : "dot-off";
-    return `<div class="shop-row" data-shop-id="${escHtml(s.id)}">
-      <span class="shop-active-dot ${dotCls}"></span>
-      <div class="shop-name"><div class="n">${escHtml(s.name)}${warn}</div><div class="m" data-cuisine="${escHtml(cuisine)}" data-region="${escHtml(region)}">${escHtml(meta)}</div></div>
-      <div class="shop-meta"><span class="v">${s.order_count}</span><span class="l">orders</span></div>
-      <div class="shop-meta"><span class="v">${s.orders_7d}</span><span class="l">7d</span></div>
-      <button class="tgl ${s.active ? 'on' : ''}" data-id="${s.id}" data-active="${s.active ? 1 : 0}">${s.active ? 'On' : 'Off'}</button>
-    </div>`;
-  }).join("");
-
-  // Inline edit for cuisine/region
-  el.querySelectorAll(".shop-name .m").forEach(meta => {
-    meta.addEventListener("click", function startEdit() {
-      if (meta.querySelector("input")) return; // already editing
-      const row = meta.closest(".shop-row");
-      const shopId = row.dataset.shopId;
-      const origCuisine = meta.dataset.cuisine;
-      const origRegion = meta.dataset.region;
-
-      meta.innerHTML = `<div class="shop-edit-row">
-        <input type="text" value="${escHtml(origCuisine)}" placeholder="Cuisine" data-key="cuisine_type">
-        <input type="text" value="${escHtml(origRegion)}" placeholder="Region" data-key="region">
-      </div>`;
-      const inputs = meta.querySelectorAll("input");
-      inputs[0].focus();
-
-      async function save() {
-        const cuisine = inputs[0].value.trim();
-        const region = inputs[1].value.trim();
-        const parts = [cuisine, region].filter(Boolean);
-        meta.dataset.cuisine = cuisine;
-        meta.dataset.region = region;
-        meta.textContent = parts.length ? parts.join(" · ") : "Tap to add details";
-        try {
-          await API("/api/platform/shops/" + shopId, {
-            method: "PUT",
-            body: JSON.stringify({
-              cuisine_type: cuisine || "",
-              region: region || ""
-            })
-          });
-        } catch (e) { showErr(e.message); }
+  <script>
+    // LOCAL DICTIONARY OF CHINESE & ENGLISH SYSTEM TRANSLATIONS
+    const translations = {
+      zh: {
+        title: "SuriOrder Platform Ledger",
+        lock: "安全锁定",
+        platformTotal: "平台总流水分账数据 (SRD)",
+        shopsCount: "已连接的餐厅数",
+        ordersCount: "历史累计订单订单总额",
+        aovLabel: "平台平均客单价 (AOV)",
+        trendTitle: "7天平台交易额趋势",
+        hoverTip: "鼠标悬浮柱条可查看当日累计成交金额 (SRD)",
+        sectionShops: "板块 A · 平台注册餐厅名册管理",
+        clickToEdit: "可点击 [菜系 · 覆盖地区] 进行动态内联修改",
+        thStatus: "状态",
+        thShopName: "餐厅宿名",
+        thMetadata: "菜系特质 · 服务覆盖地区 (点击可便捷编辑)",
+        thMenuDepth: "菜品",
+        thOrdersCount: "全部订单",
+        thOrders7d: "7日订单",
+        thRevenue: "流水 (SRD)",
+        thActiveToggle: "服务",
+        badgeInactive: "已歇业",
+        badgeActive: "服务中",
+        editPrompt: "正在修改商家覆盖要素",
+        save: "保存",
+        cancel: "取消",
+        
+        sectionLedger: "板块 B · 平台实效成交流水账簿 (最新 50 笔交易)",
+        filterShop: "选择目标观测餐厅",
+        allShops: "— 全部合作餐厅 —",
+        filterStatus: "选定交易订单状态档次",
+        allStatuses: "— 全部财务状态 —",
+        statusPending: "挂账审核中 (Pending)",
+        statusConfirmed: "已确认待递 (Confirmed)",
+        statusDone: "结账已妥善完结 (Done)",
+        thTime: "创单时刻",
+        thLedgerShop: "合作餐厅",
+        thCustomer: "客资联络详情 / 采购细细账目",
+        thAmount: "流水总额 (SRD)",
+        thStatusLabel: "财务状态",
+        noOrders: "未检索到匹配的平台流水记载",
+        
+        sectionAnalytics: "板块 C · 平台数据综合分析看板",
+        tabTopItems: "明星单品 Top排行",
+        tabHourly: "24时订单频度分布",
+        tabWeekly: "周均交易值与毛营收",
+        tabRepeats: "核心复购私域池",
+        tabMenuDepth: "餐单定价深度透视",
+        
+        thItemName: "特色单品谱名",
+        thUnitsSold: "销量总件数",
+        thAvgPrice: "客均标价",
+        thTotalRevenue: "累计创收",
+        
+        hourlyChartLabel: "24小时制平台时段订单累积总量分布示意柱状图",
+        midnight: "00:00 (午夜)",
+        noon: "12:00 (中午时间)",
+        pmpeak: "23:00 (晚间波峰)",
+        
+        thWeeklyWeek: "财报周数",
+        thWeeklyOrders: "成交注文数",
+        thWeeklyAOV: "周平均客单价 (AOV)",
+        thWeeklyRevenue: "周总交易流水",
+        
+        thRepeatsContact: "微信会员/手机客资",
+        thRepeatsOrders: "忠诚复购单数",
+        thRepeatsSpent: "终身价值 (LTV)",
+        thRepeatsLast: "末次交易时间点",
+        loyalBadge: "资深老饕 ⭐",
+        
+        thMenuRestaurant: "合作餐厅",
+        thMenuItems: "菜单深度 (项)",
+        thMenuRange: "定价全谱跨度最高最低价",
+        
+        pinTitle: "SuriOrder 管理者总台安全凭证",
+        pinSubtitle: "内部核心财务账簿，请输入 6 位行政安全授权 PIN 码验证。",
+        pinLabel: "请输入管理员 PIN 码进行验证",
+        pinHint: "安全提示：可以使用标准配置好的调试 PIN 码 123456 解锁。",
+        pinError: "授权校验有误，访问安全总账簿失败！",
+        authButton: "验证验证并进入",
+        logoutButton: "关闭主面板 · 安全断开连接",
+        invalidResponse: "认证服务器抛出未校验错误",
+        unauthorized: "管理员凭证过期或失效，请验证重新登入。",
+      },
+      en: {
+        title: "SuriOrder Platform Ledger",
+        lock: "Lock Panel",
+        platformTotal: "Total Platform Revenue (SRD) · Live Stats",
+        shopsCount: "Connected Restaurants",
+        ordersCount: "Total Transactions",
+        aovLabel: "Average Order Value (AOV)",
+        trendTitle: "7-Day Volume Trend",
+        hoverTip: "hover bars for dynamic SRD values",
+        sectionShops: "BLOCK A · Registered Restaurant Directory",
+        clickToEdit: "click cuisine or region fields to inline edit",
+        thStatus: "Status",
+        thShopName: "Shop Name",
+        thMetadata: "Cuisine & Location Area (Click to edit)",
+        thMenuDepth: "Items",
+        thOrdersCount: "All Orders",
+        thOrders7d: "7d Orders",
+        thRevenue: "Revenue (SRD)",
+        thActiveToggle: "Active",
+        badgeInactive: "Inactive",
+        badgeActive: "Active",
+        editPrompt: "Editing Shop Elements",
+        save: "Save",
+        cancel: "Cancel",
+        
+        sectionLedger: "BLOCK B · Transaction Ledger (Last 50 Orders)",
+        filterShop: "Filter by Restaurant",
+        allShops: "— All Connected Shops —",
+        filterStatus: "Filter by State",
+        allStatuses: "— All States —",
+        statusPending: "Pending Ledger",
+        statusConfirmed: "Confirmed",
+        statusDone: "Done (Settled)",
+        thTime: "Time",
+        thLedgerShop: "Restaurant",
+        thCustomer: "Customer Details & Summary",
+        thAmount: "Amount (SRD)",
+        thStatusLabel: "Status",
+        noOrders: "No platform checkout entries found matching the filter",
+        
+        sectionAnalytics: "BLOCK C · Aggregated Platform Analytics",
+        tabTopItems: "Top Star Dishes",
+        tabHourly: "24h Hourly Dist.",
+        tabWeekly: "Weekly AOV Stats",
+        tabRepeats: "Repeat Customer cohorts",
+        tabMenuDepth: "Pricing Depth",
+        
+        thItemName: "Dishes Name",
+        thUnitsSold: "Units Sold",
+        thAvgPrice: "Avg Item Price",
+        thTotalRevenue: "Gross Sales",
+        
+        hourlyChartLabel: "24-Hour Cumulative Completed Orders Analytical bar distribution chart",
+        midnight: "00:00 (Midnight)",
+        noon: "12:00 (Noon)",
+        pmpeak: "23:00 (PM Peak)",
+        
+        thWeeklyWeek: "Fiscal week",
+        thWeeklyOrders: "Orders Count",
+        thWeeklyAOV: "Weekly AOV",
+        thWeeklyRevenue: "Weekly Volume (SRD)",
+        
+        thRepeatsContact: "Loyalty Phone Suffix / Name",
+        thRepeatsOrders: "Orders Checked",
+        thRepeatsSpent: "Customer LTV",
+        thRepeatsLast: "Last Order Time",
+        loyalBadge: "Loyal Patron ⭐",
+        
+        thMenuRestaurant: "Connected Restaurant Name",
+        thMenuItems: "Menu Total Items",
+        thMenuRange: "Pricing Depth (Min-Max range)",
+        
+        pinTitle: "SuriOrder Console Authentication",
+        pinSubtitle: "Protected ledger access. Input 6-digit PIN to authenticate.",
+        pinLabel: "Enter 6-Digit Administrative PIN",
+        pinHint: "Help: Enter debug PIN 123456 to bypass authentication.",
+        pinError: "Invalid PIN code. Access denied.",
+        authButton: "Verify & Enter Console",
+        logoutButton: "Close Dashboard Ledger",
+        invalidResponse: "Server authentication error",
+        unauthorized: "Session expired. Please authenticate again.",
       }
+    };
 
-      function cancel() {
-        meta.textContent = origCuisine || origRegion ? [origCuisine, origRegion].filter(Boolean).join(" · ") : "Tap to add details";
+    // SYSTEM APPLICATION VARIABLE STATES
+    let currentLanguage = localStorage.getItem("plang") || "zh";
+    let activePinCode = "";
+    let systemAuthToken = sessionStorage.getItem("pt");
+    let expandedOrdersSet = new Set();
+    let currentEditingShopId = null;
+    let currentEditingField = null; // 'cuisine_type' or 'region'
+
+    // CACHED DASHBOARD STATE
+    let cachedShopsList = [];
+    let cachedOrdersList = [];
+
+    // CORE REQUIRED ESCAPE FUNCTION
+    function escHtml(s) {
+      if (s === null || s === undefined) return '';
+      return String(s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    // REQUIRED API ROUTING ENCAPSULATOR
+    async function API(path, opts = {}) {
+      const token = sessionStorage.getItem("pt");
+      opts.headers = opts.headers || {};
+      opts.headers["Content-Type"] = "application/json";
+      if (token) {
+        opts.headers["Authorization"] = `Bearer ${token}`;
       }
+      
+      const res = await fetch(path, opts);
+      if (res.status === 401) {
+        sessionStorage.removeItem("pt");
+        systemAuthToken = null;
+        decideViewState();
+        showErrorBanner(translations[currentLanguage]["unauthorized"]);
+        throw new Error("Session expired or Unauthorized authorization state");
+      }
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || translations[currentLanguage]["invalidResponse"]);
+      }
+      return res.json();
+    }
 
-      inputs.forEach(inp => {
-        inp.addEventListener("keydown", e => {
-          if (e.key === "Enter") { e.preventDefault(); save(); }
-          if (e.key === "Escape") { cancel(); }
-        });
-        inp.addEventListener("blur", save);
+    // REQUIRED ELAPSED DAYS UTILITY FORMATTING
+    function daysAgo(dateStr) {
+      if (!dateStr) return null;
+      const past = new Date(dateStr);
+      const diffTime = Date.now() - past.getTime();
+      const diffDays = Math.floor(diffTime / 86400000);
+      return diffDays < 0 ? 0 : diffDays;
+    }
+
+    // SHOW TOP ALERTS BANNER FOR FAILS (5-Sec SLA Auto-Dissolve)
+    let bannerTimer = null;
+    function showErrorBanner(message) {
+      const bannerItem = document.getElementById("error-banner");
+      bannerItem.textContent = message;
+      bannerItem.style.display = "block";
+      if (bannerTimer) clearTimeout(bannerTimer);
+      bannerTimer = setTimeout(() => {
+        bannerItem.style.display = "none";
+      }, 5000);
+    }
+
+    // INITIALIZATION DOM HANDLERS
+    document.addEventListener("DOMContentLoaded", () => {
+      setLanguage(currentLanguage);
+      decideViewState();
+    });
+
+    // TRANSLATOR RENDER SYNC
+    function setLanguage(langKey) {
+      currentLanguage = langKey;
+      localStorage.setItem("plang", langKey);
+      
+      // Sync layout switcher pills highlight states
+      document.getElementById("lang-btn-zh").classList.toggle("active", langKey === "zh");
+      document.getElementById("lang-btn-en").classList.toggle("active", langKey === "en");
+
+      // Replace target nodes in place containing data-i18n tags
+      document.querySelectorAll("[data-i18n]").forEach(item => {
+        const locId = item.getAttribute("data-i18n");
+        if (translations[langKey] && translations[langKey][locId]) {
+          item.innerHTML = translations[langKey][locId];
+        }
       });
-    });
-  });
 
-  // Toggle handlers
-  el.querySelectorAll(".tgl").forEach(btn => {
-    btn.addEventListener("click", async () => {
-      const id = btn.dataset.id;
-      const newVal = btn.dataset.active === "1" ? 0 : 1;
+      // Update specific components that are rendered dynamically to reflect live translation changes
+      if (systemAuthToken) {
+        renderDashboardView();
+      }
+    }
+
+    // TOGGLE VIEWS LOGIC
+    function decideViewState() {
+      const loginBlock = document.getElementById("login-view");
+      const dashboardBlock = document.getElementById("dashboard-view");
+      
+      if (systemAuthToken) {
+        loginBlock.style.display = "none";
+        dashboardBlock.style.display = "flex";
+        loadInitialData();
+      } else {
+        loginBlock.style.display = "flex";
+        dashboardBlock.style.display = "none";
+        clearPin();
+      }
+    }
+
+    // VIRTUAL NUMPAD CLICKS HANDLERS
+    function updatePinDots() {
+      for (let idx = 0; idx < 6; idx++) {
+        const dot = document.getElementById(`dot-${idx}`);
+        if (idx < activePinCode.length) {
+          dot.classList.add("filled");
+        } else {
+          dot.classList.remove("filled");
+        }
+      }
+    }
+
+    function pressPin(digit) {
+      if (activePinCode.length < 6) {
+        activePinCode += digit;
+        updatePinDots();
+        // If 6-digits automatically submitted
+        if (activePinCode.length === 6) {
+          submitAuthPin();
+        }
+      }
+    }
+
+    function clearPin() {
+      activePinCode = "";
+      updatePinDots();
+    }
+
+    async function submitAuthPin() {
+      if (activePinCode.length < 6) {
+        showErrorBanner(translations[currentLanguage]["pinError"]);
+        return;
+      }
       try {
-        await API("/api/platform/shops/" + id, { method: "PUT", body: JSON.stringify({ active: newVal }) });
-        btn.dataset.active = String(newVal);
-        btn.textContent = newVal ? "On" : "Off";
-        btn.classList.toggle("on", !!newVal);
-      } catch (e) { showErr(e.message); }
-    });
-  });
-}
+        const data = await API("/api/platform/auth", {
+          method: "POST",
+          body: JSON.stringify({ pin: activePinCode })
+        });
+        if (data && data.token) {
+          sessionStorage.setItem("pt", data.token);
+          systemAuthToken = data.token;
+          decideViewState();
+        } else {
+          showErrorBanner(translations[currentLanguage]["pinError"]);
+          clearPin();
+        }
+      } catch (err) {
+        showErrorBanner(translations[currentLanguage]["pinError"]);
+        clearPin();
+      }
+    }
 
-// ── Orders ──
-function renderOrders(orders) {
-  const el = document.getElementById("orderList");
-  if (!orders.length) { el.innerHTML = '<div class="row-empty">No orders</div>'; return; }
+    function doLogout() {
+      sessionStorage.removeItem("pt");
+      systemAuthToken = null;
+      decideViewState();
+    }
 
-  el.innerHTML = orders.map(o => {
-    const t = o.created_at ? o.created_at.slice(11, 16) : "";
-    const stCls = "st-" + o.status;
-    return `<div class="order-row">
-      <span class="order-time">${escHtml(t)}</span>
-      <span class="order-shop">${escHtml(o.shop_name)}</span>
-      <span class="order-cust">${escHtml(o.customer_name)}</span>
-      <span class="order-amt">${o.total.toFixed(0)}</span>
-      <span class="order-status ${stCls}">${o.status}</span>
-    </div>`;
-  }).join("");
-}
+    // CORE LOADERS
+    async function loadInitialData() {
+      try {
+        // Fetch Dashboard overall indicators
+        const resDash = await API("/api/platform/dashboard");
+        
+        // Render kpi metrics
+        document.getElementById("kpi-shops-count").innerText = resDash.totalShops || 0;
+        document.getElementById("kpi-orders-count").innerText = resDash.totalOrders || 0;
+        
+        if (resDash.avgOrderValue !== null) {
+          document.getElementById("kpi-aov-val").innerText = "SRD " + resDash.avgOrderValue.toFixed(2);
+        } else {
+          document.getElementById("kpi-aov-val").innerText = "SRD 0.00";
+        }
 
-// ── Filters ──
-document.getElementById("filterShop").addEventListener("change", loadOrders);
-document.getElementById("filterStatus").addEventListener("change", loadOrders);
+        if (resDash.totalRevenue !== undefined) {
+          document.getElementById("kpi-total-revenue").innerText = "SRD " + resDash.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        } else {
+          document.getElementById("kpi-total-revenue").innerText = "SRD 0.00";
+        }
 
-async function loadOrders() {
-  const el = document.getElementById("orderList");
-  el.innerHTML = '<div class="row-loading">Loading...</div>';
-  const shop = document.getElementById("filterShop").value;
-  const status = document.getElementById("filterStatus").value;
-  const params = new URLSearchParams();
-  if (shop) params.set("shop_id", shop);
-  if (status) params.set("status", status);
-  try {
-    const orders = await API("/api/platform/orders?" + params);
-    renderOrders(orders);
-  } catch (e) { showErr(e.message); }
-}
+        // Week-over-week comparison arrows
+        const thisWeekTotal = (resDash.daily || []).reduce(function(s, d) { return s + d.total; }, 0);
+        const thisWeekOrders = (resDash.daily || []).reduce(function(s, d) { return s + d.cnt; }, 0);
+        const prevRev = resDash.prevWeek ? resDash.prevWeek.revenue : 0;
+        const prevOrd = resDash.prevWeek ? resDash.prevWeek.orders : 0;
+        function trendArrow(curr, prev) {
+          if (prev === 0) return '';
+          var pct = Math.round((curr - prev) / prev * 100);
+          var arrow = pct >= 0 ? '↑' : '↓';
+          return ' <span style=\"font-size:12px;color:' + (pct >= 0 ? 'var(--color-green)' : 'var(--color-red)') + ';\">' + arrow + ' ' + Math.abs(pct) + '% vs last week</span>';
+        }
+        document.getElementById("kpi-revenue-trend").innerHTML = trendArrow(thisWeekTotal, prevRev);
+        document.getElementById("kpi-orders-trend").innerHTML = trendArrow(thisWeekOrders, prevOrd);
 
-// ── Helpers ──
-function escHtml(s) { return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
-function daysAgo(d) { const then = new Date(d + (d.includes("T") ? "" : "T00:00:00")); return Math.floor((Date.now() - then) / 86400000); }
+        // Generate dynamic 7-Day CSS layout Column Charts
+        renderTrendGraph(resDash.daily || []);
 
-// Init
-if (sessionStorage.getItem("pt")) { showDash(); } else { showLogin(); }
-</script>
+        // Load active directories
+        cachedShopsList = await API("/api/platform/shops");
+        renderDashboardView();
+
+        // Sync filter options
+        populateFilterDropdowns(cachedShopsList);
+
+        // Fetch analytical sub-panels
+        const resAnalytics = await API("/api/platform/analytics");
+        renderAnalyticsViews(resAnalytics);
+
+        // Fetch transactions query
+        await runFilterQuery();
+
+      } catch (err) {
+        showErrorBanner(err.message || "Dashboard loading failed");
+      }
+    }
+
+    // DRAW 7-DAY MINI BAR GRAPHS
+    function renderTrendGraph(dailyArray) {
+      const graphAnchor = document.getElementById("bar-chart-daily-anchor");
+      const labelsAnchor = document.getElementById("bar-labels-daily-anchor");
+      
+      graphAnchor.innerHTML = "";
+      labelsAnchor.innerHTML = "";
+      
+      if (!dailyArray || dailyArray.length === 0) return;
+      
+      const maxTotal = Math.max(...dailyArray.map(obj => obj.total), 1);
+      
+      dailyArray.forEach(period => {
+        const heightMultiplier = Math.max((period.total / maxTotal) * 100, 3);
+        
+        // Column block wrapper
+        const colDiv = document.createElement("div");
+        colDiv.className = "trend-column";
+        
+        // Bar
+        const barItem = document.createElement("div");
+        barItem.className = "column-bar";
+        barItem.style.height = heightMultiplier + "%";
+        
+        // Tooltip
+        const tip = document.createElement("div");
+        tip.className = "column-tooltip";
+        tip.innerHTML = `${escHtml(period.day)}<br><b>SRD ${period.total.toFixed(1)}</b> (${period.cnt} orders)`;
+        
+        colDiv.appendChild(tip);
+        colDiv.appendChild(barItem);
+        graphAnchor.appendChild(colDiv);
+        
+        // X label
+        const lbl = document.createElement("div");
+        lbl.className = "trend-day-label";
+        const dateChunk = period.day.substring(5); // Format MM-DD
+        lbl.textContent = dateChunk;
+        labelsAnchor.appendChild(lbl);
+      });
+    }
+
+    // DIRECTORY DYNAMIC CONTENT GENERATION
+    function renderDashboardView() {
+      if (!cachedShopsList || cachedShopsList.length === 0) return;
+      
+      const tbody = document.getElementById("shops-directory-tbody");
+      tbody.innerHTML = "";
+
+      cachedShopsList.forEach(shop => {
+        const trRow = document.createElement("tr");
+
+        // Cell 1: indicator active light dot
+        const tdStatus = document.createElement("td");
+        const statusSpan = document.createElement("span");
+        statusSpan.className = "status-dot " + (shop.active === 1 ? "active" : "inactive");
+        tdStatus.appendChild(statusSpan);
+        trRow.appendChild(tdStatus);
+
+        // Cell 2: Restaurant Name
+        const tdName = document.createElement("td");
+        tdName.style.fontWeight = "600";
+        tdName.appendChild(document.createTextNode(shop.name));
+        
+        // Check dynamic days elapsed warning
+        const daysGap = daysAgo(shop.last_order);
+        if (daysGap !== null && daysGap > 7) {
+          const warnBadge = document.createElement("span");
+          if (daysGap > 30) {
+            warnBadge.className = "dormant-badge";
+            warnBadge.textContent = "DORMANT " + daysGap + "d";
+          } else {
+            warnBadge.className = "stale-badge";
+            warnBadge.textContent = "⚠️ " + daysGap + "d";
+          }
+          tdName.appendChild(warnBadge);
+        }
+        trRow.appendChild(tdName);
+
+        // Cell 3: Clickable Editable Metadata: Cuisine & regions
+        const tdMeta = document.createElement("td");
+        const isEditingThisShop = (currentEditingShopId === shop.id);
+        
+        if (isEditingThisShop) {
+          // Render editable input field
+          const editWrapper = document.createElement("div");
+          editWrapper.className = "inline-edit-box";
+          
+          const rawInput = document.createElement("input");
+          rawInput.type = "text";
+          rawInput.className = "inline-edit-input";
+          rawInput.id = `input-meta-${shop.id}`;
+          rawInput.value = `${shop.cuisine_type || ''} / ${shop.region || ''}`;
+          rawInput.focus();
+          
+          // Save and Cancel Inline control buttons
+          const sBtn = document.createElement("button");
+          sBtn.className = "min-btn save-btn";
+          sBtn.textContent = translations[currentLanguage]["save"];
+          sBtn.onclick = (e) => {
+            e.stopPropagation();
+            saveShopMetadataInline(shop.id);
+          };
+
+          const cBtn = document.createElement("button");
+          cBtn.className = "min-btn";
+          cBtn.textContent = translations[currentLanguage]["cancel"];
+          cBtn.onclick = (e) => {
+            e.stopPropagation();
+            currentEditingShopId = null;
+            renderDashboardView();
+          };
+
+          editWrapper.appendChild(rawInput);
+          editWrapper.appendChild(sBtn);
+          editWrapper.appendChild(cBtn);
+          tdMeta.appendChild(editWrapper);
+        } else {
+          // Static content
+          const spanText = document.createElement("span");
+          spanText.className = "editable-cell";
+          const cuisineText = shop.cuisine_type || "N/A";
+          const regionText = shop.region || "N/A";
+          spanText.textContent = `${cuisineText} · ${regionText}`;
+          spanText.onclick = (e) => {
+            e.stopPropagation();
+            currentEditingShopId = shop.id;
+            renderDashboardView();
+            // Automatically focus input after render frame
+            setTimeout(() => {
+              const inp = document.getElementById(`input-meta-${shop.id}`);
+              if (inp) inp.select();
+            }, 10);
+          };
+          tdMeta.appendChild(spanText);
+        }
+        trRow.appendChild(tdMeta);
+
+        // Cell 4: Item depth
+        const tdItems = document.createElement("td");
+        tdItems.className = "text-right mono-num";
+        tdItems.textContent = shop.item_count || 0;
+        trRow.appendChild(tdItems);
+
+        // Cell 5: Order depth in past 7 days
+        const tdOrders7d = document.createElement("td");
+        tdOrders7d.className = "text-right mono-num";
+        tdOrders7d.textContent = shop.orders_7d || 0;
+        trRow.appendChild(tdOrders7d);
+
+        // Cell 6: Total revenue
+        const tdRevenue = document.createElement("td");
+        tdRevenue.className = "text-right mono-num";
+        tdRevenue.textContent = "SRD " + ((shop.total_revenue || 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 }));
+        trRow.appendChild(tdRevenue);
+
+        // Cell 7: Active Action Toggle switch
+        const tdToggle = document.createElement("td");
+        tdToggle.className = "text-right";
+        
+        const labelSwitch = document.createElement("label");
+        labelSwitch.className = "toggle-switch";
+        
+        const cbInput = document.createElement("input");
+        cbInput.type = "checkbox";
+        cbInput.checked = (shop.active === 1);
+        cbInput.onchange = async () => {
+          const nextActive = cbInput.checked ? 1 : 0;
+          await handleActiveToggle(shop.id, nextActive);
+        };
+        
+        const slider = document.createElement("span");
+        slider.className = "switch-slider";
+        
+        labelSwitch.appendChild(cbInput);
+        labelSwitch.appendChild(slider);
+        tdToggle.appendChild(labelSwitch);
+        trRow.appendChild(tdToggle);
+
+        tbody.appendChild(trRow);
+      });
+    }
+
+    // UPDATE DATABASE FOR ACTIVE TOGGLE
+    async function handleActiveToggle(shopId, targetState) {
+      try {
+        await API(`/api/platform/shops/${shopId}`, {
+          method: "PUT",
+          body: JSON.stringify({ active: targetState })
+        });
+        // Sync cached states
+        const cachedItem = cachedShopsList.find(s => s.id === shopId);
+        if (cachedItem) {
+          cachedItem.active = targetState;
+        }
+        renderDashboardView();
+      } catch (err) {
+        showErrorBanner(err.message);
+        loadInitialData(); // Reload safely to roll back UI toggle state
+      }
+    }
+
+    // SAVE INTERACTIVE INLINE FIELD
+    async function saveShopMetadataInline(shopId) {
+      const fieldId = `input-meta-${shopId}`;
+      const elementInp = document.getElementById(fieldId);
+      if (!elementInp) return;
+      
+      const chunkStr = elementInp.value.trim();
+      let parts = chunkStr.split(/[\/·,]/);
+      let cuisineVal = parts[0] ? parts[0].trim() : "";
+      let regionVal = parts[1] ? parts[1].trim() : "";
+
+      try {
+        await API(`/api/platform/shops/${shopId}`, {
+          method: "PUT",
+          body: JSON.stringify({
+            cuisine_type: cuisineVal || null,
+            region: regionVal || null
+          })
+        });
+        currentEditingShopId = null;
+        // HotReload
+        loadInitialData();
+      } catch (err) {
+        showErrorBanner(err.message);
+      }
+    }
+
+    // FILTERS SELECTION SYNC
+    let hasInitializedFilterSelections = false;
+    function populateFilterDropdowns(shopsArray) {
+      if (hasInitializedFilterSelections) return;
+      
+      const shopDropdown = document.getElementById("filter-shop-id");
+      const statusDropdown = document.getElementById("filter-status");
+
+      // Reset
+      shopDropdown.innerHTML = "";
+      statusDropdown.innerHTML = "";
+
+      // Option default All Shops
+      const optAllShops = document.createElement("option");
+      optAllShops.value = "";
+      optAllShops.textContent = translations[currentLanguage]["allShops"];
+      shopDropdown.appendChild(optAllShops);
+
+      shopsArray.forEach(shopObj => {
+        const opt = document.createElement("option");
+        opt.value = shopObj.id;
+        opt.textContent = shopObj.name;
+        shopDropdown.appendChild(opt);
+      });
+
+      // Status values entries
+      const optAllStates = document.createElement("option");
+      optAllStates.value = "";
+      optAllStates.textContent = translations[currentLanguage]["allStatuses"];
+      statusDropdown.appendChild(optAllStates);
+
+      const statusChoices = [
+        { key: "pending", loc: "statusPending" },
+        { key: "confirmed", loc: "statusConfirmed" },
+        { key: "done", loc: "statusDone" }
+      ];
+
+      statusChoices.forEach(choiceObj => {
+        const optStatus = document.createElement("option");
+        optStatus.value = choiceObj.key;
+        optStatus.textContent = translations[currentLanguage][choiceObj.loc];
+        statusDropdown.appendChild(optStatus);
+      });
+
+      hasInitializedFilterSelections = true;
+    }
+
+    // API QUERY TRIGGERED FOR DROPDOWN MODAL FOR FILTERING
+    async function runFilterQuery() {
+      const selectedShopId = document.getElementById("filter-shop-id").value;
+      const selectedStatus = document.getElementById("filter-status").value;
+
+      try {
+        const queryResult = await API(`/api/platform/orders?shop_id=${encodeURIComponent(selectedShopId)}&status=${encodeURIComponent(selectedStatus)}`);
+        cachedOrdersList = queryResult;
+        renderOrdersLedgerTable();
+      } catch (err) {
+        showErrorBanner(err.message);
+      }
+    }
+
+    // RENDER ORDER ROWS & CORRESPONDING INLINE EXTENSION ROWS
+    function renderOrdersLedgerTable() {
+      const tbody = document.getElementById("orders-ledger-tbody");
+      tbody.innerHTML = "";
+
+      if (!cachedOrdersList || cachedOrdersList.length === 0) {
+        const rowEmpty = document.createElement("tr");
+        const cellEmpty = document.createElement("td");
+        cellEmpty.colSpan = 5;
+        cellEmpty.className = "text-center";
+        cellEmpty.style.color = "var(--text-muted)";
+        cellEmpty.style.padding = "24px 0";
+        cellEmpty.textContent = translations[currentLanguage]["noOrders"];
+        rowEmpty.appendChild(cellEmpty);
+        tbody.appendChild(rowEmpty);
+        return;
+      }
+
+      cachedOrdersList.forEach(order => {
+        const isCurrentlyExpanded = expandedOrdersSet.has(order.id);
+        
+        // 1. Core ledger summary row
+        const rowSummary = document.createElement("tr");
+        rowSummary.className = "order-header-row " + (isCurrentlyExpanded ? "active" : "");
+        rowSummary.onclick = () => {
+          toggleOrderExpansion(order.id);
+        };
+
+        // Time
+        const tdTime = document.createElement("td");
+        tdTime.className = "mono-num";
+        // Display nice readable time chunks
+        let shortTime = order.created_at;
+        try {
+          const dateObj = new Date(order.created_at);
+          shortTime = dateObj.toISOString().replace("T", " ").substring(5, 16);
+        } catch(e){}
+        tdTime.textContent = shortTime;
+        rowSummary.appendChild(tdTime);
+
+        // Restaurant Name
+        const tdShop = document.createElement("td");
+        tdShop.style.fontWeight = "500";
+        tdShop.textContent = order.shop_name || "Unknown";
+        rowSummary.appendChild(tdShop);
+
+        // Customer Details summary
+        const tdCust = document.createElement("td");
+        const briefPhone = order.customer_phone ? ` (${order.customer_phone.slice(-4)})` : "";
+        tdCust.innerHTML = `<strong>${escHtml(order.customer_name)}</strong><span style="color: var(--text-muted); font-size: 10px;">${escHtml(briefPhone)}</span>`;
+        rowSummary.appendChild(tdCust);
+
+        // Total Amount
+        const tdTotal = document.createElement("td");
+        tdTotal.className = "text-right mono-num";
+        tdTotal.style.fontWeight = "600";
+        tdTotal.textContent = `SRD ${order.total.toFixed(2)}`;
+        rowSummary.appendChild(tdTotal);
+
+        // Status badge
+        const tdStatus = document.createElement("td");
+        tdStatus.className = "text-right";
+        const badgeSpan = document.createElement("span");
+        badgeSpan.className = `order-status-badge ${order.status}`;
+        
+        // Sync readable dynamic status labels
+        let statusStringLabel = order.status;
+        if (order.status === "pending") statusStringLabel = currentLanguage === "zh" ? "挂账审核" : "Pending";
+        if (order.status === "confirmed") statusStringLabel = currentLanguage === "zh" ? "已确认" : "Confirmed";
+        if (order.status === "done") statusStringLabel = currentLanguage === "zh" ? "已结清" : "Done";
+        
+        badgeSpan.textContent = statusStringLabel;
+        tdStatus.appendChild(badgeSpan);
+        rowSummary.appendChild(tdStatus);
+
+        tbody.appendChild(rowSummary);
+
+        // 2. Collapsible detail sub-table block wrapper row
+        if (isCurrentlyExpanded) {
+          const rowExpansion = document.createElement("tr");
+          rowExpansion.className = "expanded-items-tr";
+          
+          const cellExpansion = document.createElement("td");
+          cellExpansion.colSpan = 5;
+          cellExpansion.style.padding = "0";
+
+          // Expand block wrapper container
+          const divExp = document.createElement("div");
+          divExp.className = "expanded-container";
+
+          // Header meta information
+          const divMeta = document.createElement("div");
+          divMeta.className = "expanded-meta-grid";
+          
+          const metaCol1 = document.createElement("div");
+          const labelPay = currentLanguage === "zh" ? "付款手段" : "Payment Method";
+          const payVal = order.payment_method === "cod" ? (currentLanguage === "zh" ? "货到付款 Cash" : "Cash on Delivery") : (currentLanguage === "zh" ? "转账 Bank Transfer" : "Bank Transfer");
+          metaCol1.innerHTML = `<b>${labelPay}:</b> ${escHtml(payVal)}`;
+
+          const metaCol2 = document.createElement("div");
+          const labelPickup = currentLanguage === "zh" ? "约定提货" : "Pickup Target";
+          metaCol2.innerHTML = `<b>${labelPickup}:</b> ${escHtml(order.pickup_time || "N/A")} / Note: ${escHtml(order.note || '—')}`;
+
+          divMeta.appendChild(metaCol1);
+          divMeta.appendChild(metaCol2);
+          divExp.appendChild(divMeta);
+
+          // Subtable listing items
+          const subTable = document.createElement("table");
+          subTable.className = "items-subtable";
+
+          const subThead = document.createElement("thead");
+          const subTrHead = document.createElement("tr");
+          
+          const thItem = document.createElement("th");
+          thItem.textContent = currentLanguage === "zh" ? "订购项" : "Item Ledger name";
+          thItem.align = "left";
+
+          const thQty = document.createElement("th");
+          thQty.textContent = currentLanguage === "zh" ? "数量" : "Qty";
+          thQty.className = "text-right";
+          thQty.style.width = "10%";
+
+          const thPrice = document.createElement("th");
+          thPrice.textContent = currentLanguage === "zh" ? "单份" : "Price";
+          thPrice.className = "text-right";
+          thPrice.style.width = "18%";
+
+          const thSubTot = document.createElement("th");
+          thSubTot.textContent = currentLanguage === "zh" ? "小计" : "Subtotal";
+          thSubTot.className = "text-right";
+          thSubTot.style.width = "20%";
+
+          subTrHead.appendChild(thItem);
+          subTrHead.appendChild(thQty);
+          subTrHead.appendChild(thPrice);
+          subTrHead.appendChild(thSubTot);
+          subThead.appendChild(subTrHead);
+          subTable.appendChild(subThead);
+
+          const subTbody = document.createElement("tbody");
+
+          // Parse JSON lists safely
+          let rawItems = [];
+          try {
+            rawItems = JSON.parse(order.items_json);
+          } catch(e) {
+            rawItems = [{ name: "Standard Order Line", qty: 1, price: order.total }];
+          }
+
+          if (Array.isArray(rawItems)) {
+            rawItems.forEach(it => {
+              const trIt = document.createElement("tr");
+
+              const tdItName = document.createElement("td");
+              tdItName.style.fontWeight = "500";
+              tdItName.textContent = it.name || "N/A";
+              trIt.appendChild(tdItName);
+
+              const tdItQty = document.createElement("td");
+              tdItQty.className = "text-right mono-num";
+              tdItQty.textContent = it.qty || 1;
+              trIt.appendChild(tdItQty);
+
+              const tdItPrice = document.createElement("td");
+              tdItPrice.className = "text-right mono-num";
+              tdItPrice.textContent = "SRD " + (it.price || 0).toFixed(2);
+              trIt.appendChild(tdItPrice);
+
+              const tdItSub = document.createElement("td");
+              tdItSub.className = "text-right mono-num";
+              const lineTotal = (it.price || 0) * (it.qty || 1);
+              tdItSub.textContent = "SRD " + lineTotal.toFixed(2);
+              trIt.appendChild(tdItSub);
+
+              subTbody.appendChild(trIt);
+            });
+          }
+
+          subTable.appendChild(subTbody);
+          divExp.appendChild(subTable);
+          cellExpansion.appendChild(divExp);
+          rowExpansion.appendChild(cellExpansion);
+          tbody.appendChild(rowExpansion);
+        }
+      });
+    }
+
+    function toggleOrderExpansion(orderId) {
+      if (expandedOrdersSet.has(orderId)) {
+        expandedOrdersSet.delete(orderId);
+      } else {
+        expandedOrdersSet.add(orderId);
+      }
+      renderOrdersLedgerTable();
+    }
+
+
+    // BLOCK C SUBTABS SELECTOR
+    function activateAnalyticsTab(tabCode) {
+      // Toggle button states
+      document.querySelectorAll(".analytics-tab-btn").forEach(btn => {
+        btn.classList.remove("active");
+      });
+      document.getElementById(`tab-${tabCode}-btn`).classList.add("active");
+
+      // Toggle Panels
+      document.querySelectorAll(".analytics-subpanel").forEach(pnl => {
+        pnl.classList.remove("active");
+      });
+      document.getElementById(`panel-${tabCode}`).classList.add("active");
+    }
+
+    // BLOCK C CONTENT POPULATION
+    function renderAnalyticsViews(metrics) {
+      // 1. Render Top Items
+      const tbodyTop = document.getElementById("analytics-topitems-tbody");
+      tbodyTop.innerHTML = "";
+      
+      const recordsTop = metrics.topItems || [];
+      const maxQty = recordsTop.length > 0 ? Math.max(...recordsTop.map(it => it.total_qty), 1) : 1;
+
+      recordsTop.forEach(itemObj => {
+        const tr = document.createElement("tr");
+
+        // name
+        const tdName = document.createElement("td");
+        tdName.style.fontWeight = "600";
+        tdName.textContent = itemObj.name || "N/A";
+        tr.appendChild(tdName);
+
+        // units sold
+        const tdSold = document.createElement("td");
+        tdSold.className = "text-right mono-num";
+        tdSold.textContent = itemObj.total_qty || 0;
+        tr.appendChild(tdSold);
+
+        // progressive rank widget bar element
+        const tdProgress = document.createElement("td");
+        const barFrame = document.createElement("div");
+        barFrame.className = "rank-bar-layout";
+        
+        const track = document.createElement("div");
+        track.className = "rank-bar-progress-track";
+        
+        const fill = document.createElement("div");
+        fill.className = "rank-bar-progress-fill";
+        const percentRatio = (itemObj.total_qty / maxQty) * 100;
+        fill.style.width = percentRatio + "%";
+        
+        track.appendChild(fill);
+        barFrame.appendChild(track);
+        tdProgress.appendChild(barFrame);
+        tr.appendChild(tdProgress);
+
+        // gross cash revenue
+        const tdRev = document.createElement("td");
+        tdRev.className = "text-right mono-num";
+        tdRev.style.fontWeight = "600";
+        tdRev.textContent = "SRD " + (itemObj.revenue || 0).toLocaleString();
+        tr.appendChild(tdRev);
+
+        tbodyTop.appendChild(tr);
+      });
+
+      // 2. Draw 24-Hour Distribution charts
+      const containerHourly = document.getElementById("hourly-axis-y-container");
+      containerHourly.innerHTML = "";
+      
+      const hoursData = metrics.hourlyDist || [];
+      const maxHourlyCount = hoursData.length > 0 ? Math.max(...hoursData.map(h => h.cnt), 1) : 1;
+
+      for (let hIndex = 0; hIndex < 24; hIndex++) {
+        const hourRecord = hoursData.find(obj => obj.hour === hIndex) || { hour: hIndex, cnt: 0, total: 0 };
+        const heightPercent = Math.max((hourRecord.cnt / maxHourlyCount) * 100, 3);
+
+        const colDiv = document.createElement("div");
+        colDiv.className = "hour-vertical-column";
+
+        const barItem = document.createElement("div");
+        barItem.className = "hour-bar";
+        barItem.style.height = heightPercent + "%";
+
+        const tooltip = document.createElement("div");
+        tooltip.className = "hour-bar-tooltip";
+        tooltip.innerHTML = `H: ${hIndex}:00<br><b>${hourRecord.cnt} orders</b><br>SRD ${hourRecord.total.toLocaleString()}`;
+
+        colDiv.appendChild(tooltip);
+        colDiv.appendChild(barItem);
+        containerHourly.appendChild(colDiv);
+      }
+
+      // 3. Render Weekly Growth
+      const tbodyWeekly = document.getElementById("analytics-weekly-tbody");
+      tbodyWeekly.innerHTML = "";
+      
+      (metrics.weeklyAOV || []).forEach(rowObj => {
+        const tr = document.createElement("tr");
+
+        const tdWeek = document.createElement("td");
+        tdWeek.className = "mono-num";
+        tdWeek.textContent = rowObj.week;
+        tr.appendChild(tdWeek);
+
+        const tdCnt = document.createElement("td");
+        tdCnt.className = "text-right mono-num";
+        tdCnt.textContent = rowObj.cnt;
+        tr.appendChild(tdCnt);
+
+        const tdAov = document.createElement("td");
+        tdAov.className = "text-right mono-num text-green";
+        tdAov.style.fontWeight = "500";
+        tdAov.textContent = "SRD " + (rowObj.aov || 0).toFixed(2);
+        tr.appendChild(tdAov);
+
+        const tdGross = document.createElement("td");
+        tdGross.className = "text-right mono-num";
+        tdGross.style.fontWeight = "600";
+        tdGross.textContent = "SRD " + (rowObj.total || 0).toLocaleString();
+        tr.appendChild(tdGross);
+
+        tbodyWeekly.appendChild(tr);
+      });
+
+      // 4. Render Repeat cohort path profiles
+      const tbodyRepeats = document.getElementById("analytics-repeats-tbody");
+      tbodyRepeats.innerHTML = "";
+
+      (metrics.repeatCustomers || []).forEach(rowObj => {
+        const tr = document.createElement("tr");
+
+        // name and customer context
+        const tdName = document.createElement("td");
+        tdName.style.fontWeight = "600";
+        tdName.appendChild(document.createTextNode(rowObj.customer_name));
+
+        // loyalty decorator
+        if (rowObj.order_count >= 3) {
+          const lBadge = document.createElement("span");
+          lBadge.className = "stale-badge";
+          lBadge.style.backgroundColor = "var(--color-green)";
+          lBadge.style.fontSize = "8px";
+          lBadge.style.marginLeft = "6px";
+          lBadge.textContent = translations[currentLanguage]["loyalBadge"];
+          tdName.appendChild(lBadge);
+        }
+
+        const briefSpan = document.createElement("div");
+        briefSpan.style.fontSize = "9px";
+        briefSpan.style.color = "var(--text-muted)";
+        briefSpan.textContent = rowObj.customer_phone || "—";
+        tdName.appendChild(briefSpan);
+        tr.appendChild(tdName);
+
+        // counts
+        const tdCnt = document.createElement("td");
+        tdCnt.className = "text-right mono-num";
+        tdCnt.style.fontWeight = "600";
+        tdCnt.textContent = rowObj.order_count;
+        tr.appendChild(tdCnt);
+
+        // Cash spent value LTV
+        const tdTotal = document.createElement("td");
+        tdTotal.className = "text-right mono-num text-green";
+        tdTotal.textContent = "SRD " + (rowObj.total_spent || 0).toFixed(2);
+        tr.appendChild(tdTotal);
+
+        // last purchase
+        const tdLast = document.createElement("td");
+        tdLast.className = "text-right mono-num text-muted";
+        let dateFriendly = rowObj.last_order || "N/A";
+        try {
+          dateFriendly = rowObj.last_order.split("T")[0];
+        } catch(e){}
+        tdLast.textContent = dateFriendly;
+        tr.appendChild(tdLast);
+
+        tbodyRepeats.appendChild(tr);
+      });
+
+      // 5. Pricing menu depth
+      const tbodyMenu = document.getElementById("analytics-menu-tbody");
+      tbodyMenu.innerHTML = "";
+
+      (metrics.menuDepth || []).forEach(rowObj => {
+        const tr = document.createElement("tr");
+
+        const tdName = document.createElement("td");
+        tdName.style.fontWeight = "600";
+        tdName.textContent = rowObj.name;
+        tr.appendChild(tdName);
+
+        const tdCount = document.createElement("td");
+        tdCount.className = "text-right mono-num";
+        tdCount.textContent = rowObj.item_count || 0;
+        tr.appendChild(tdCount);
+
+        const tdAvg = document.createElement("td");
+        tdAvg.className = "text-right mono-num";
+        tdAvg.textContent = "SRD " + (rowObj.avg_price || 0).toFixed(2);
+        tr.appendChild(tdAvg);
+
+        const tdRange = document.createElement("td");
+        tdRange.className = "text-right mono-num text-muted";
+        tdRange.textContent = `SRD ${rowObj.min_price} - ${rowObj.max_price}`;
+        tr.appendChild(tdRange);
+
+        tbodyMenu.appendChild(tr);
+      });
+
+      // Rerender sub-modules with elements carrying translations
+      renderDashboardView();
+    }
+  </script>
 </body>
 </html>

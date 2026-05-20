@@ -46,7 +46,8 @@ function registerPlatformRoutes(app, db, { JWT_SECRET, platformAuth, platformLim
         (SELECT COUNT(*) FROM shops) as totalShops,
         (SELECT COUNT(*) FROM orders) as totalOrders,
         (SELECT COUNT(*) FROM items) as totalItems,
-        (SELECT ROUND(AVG(total),2) FROM orders) as avgOrderValue
+        (SELECT ROUND(AVG(total),2) FROM orders) as avgOrderValue,
+        (SELECT COALESCE(SUM(total),0) FROM orders) as totalRevenue
     `).get();
 
     const daily = db.prepare(`
@@ -55,11 +56,16 @@ function registerPlatformRoutes(app, db, { JWT_SECRET, platformAuth, platformLim
       GROUP BY date(created_at) ORDER BY day
     `).all();
 
+    const prevWeek = db.prepare(`
+      SELECT COALESCE(SUM(total),0) as revenue, COUNT(*) as orders
+      FROM orders WHERE created_at >= datetime('now','-14 days') AND created_at < datetime('now','-7 days')
+    `).get();
+
     const processing = db.prepare(`
       SELECT status, COUNT(*) as cnt FROM orders GROUP BY status
     `).all();
 
-    res.json({ ...totals, daily, processing });
+    res.json({ ...totals, daily, prevWeek, processing });
   });
 
   // Section A: shop table with per-shop stats
@@ -71,7 +77,8 @@ function registerPlatformRoutes(app, db, { JWT_SECRET, platformAuth, platformLim
         COUNT(DISTINCT i.id) as item_count,
         COUNT(DISTINCT o.id) as order_count,
         COUNT(DISTINCT o.id) FILTER (WHERE o.created_at >= datetime('now','-7 days')) as orders_7d,
-        MAX(o.created_at) as last_order
+        MAX(o.created_at) as last_order,
+        COALESCE((SELECT SUM(o2.total) FROM orders o2 WHERE o2.shop_id = s.id), 0) as total_revenue
       FROM shops s
       LEFT JOIN items i ON i.shop_id = s.id
       LEFT JOIN orders o ON o.shop_id = s.id

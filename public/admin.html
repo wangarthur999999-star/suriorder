@@ -83,6 +83,16 @@
   .stat-pulse { animation: statPulse .5s ease-in-out 3; }
   @keyframes statPulse { 0%, 100% { background: var(--card); } 50% { background: var(--warn-light); } }
 
+  /* ── Trend Chart ── */
+  .trend-chart { background: var(--card); padding: 16px; border-radius: var(--r-lg); box-shadow: var(--shadow); margin-bottom: 20px; }
+  .trend-chart h3 { font-size: .75rem; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; font-weight: 600; margin: 0 0 12px 0; }
+  .trend-bars { display: flex; gap: 6px; align-items: flex-end; height: 100px; }
+  .trend-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
+  .trend-bar { width: 100%; max-width: 36px; background: var(--pri); border-radius: 4px 4px 0 0; min-height: 4px; transition: height .4s var(--tran-slow); position: relative; }
+  .trend-bar:hover { background: var(--pri-dark); }
+  .trend-bar-val { font-size: .65rem; font-weight: 700; color: var(--text); }
+  .trend-bar-label { font-size: .6rem; color: var(--muted); text-transform: uppercase; }
+
   /* ── Tabs ── */
   .tabs { display: flex; gap: 4px; margin-bottom: 16px; background: var(--card); border-radius: var(--r-lg); padding: 4px; box-shadow: var(--shadow); }
   .tabs button {
@@ -232,6 +242,18 @@
   }
   @keyframes bannerPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
 
+  /* ── Order Row Expansion ── */
+  .order-row { cursor: pointer; transition: background var(--tran); }
+  .order-row:hover { background: var(--pri-bg); }
+  .order-expand-arrow { display: inline-block; width: 16px; font-size: .7rem; color: var(--muted); transition: transform var(--tran); }
+  .order-expand-arrow.open { transform: rotate(90deg); }
+  .order-detail-row { display: none; background: var(--bg); }
+  .order-detail-row.expanded { display: table-row; }
+  .order-detail-row td { padding: 8px 12px 8px 32px; font-size: .78rem; }
+  .order-detail-table { width: 100%; border-collapse: collapse; }
+  .order-detail-table th { font-size: .68rem; padding: 4px 8px; background: transparent; }
+  .order-detail-table td { font-size: .76rem; padding: 3px 8px; border-bottom: none; }
+
   /* ── Empty / Loading ── */
   .empty-row { text-align: center; padding: 32px; color: var(--muted); }
 
@@ -252,9 +274,180 @@
     }
     .panel td { display: block; padding: 4px 0; border-bottom: none; font-size: .82rem; }
     .panel td:first-child { font-weight: 700; color: var(--pri); font-size: .9rem; }
+    .order-detail-row.expanded { display: block; }
+    .order-detail-row td { padding: 0; }
+    .order-detail-table { font-size: .76rem; }
+    .order-detail-table th, .order-detail-table td { display: table-cell; padding: 3px 6px; }
   }
   @media (min-width: 1024px) {
     .container { max-width: 960px; }
+  }
+
+  /* ====== 接单大屏 ====== */
+  #order-screen {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: #0f172a;
+    color: #e2e8f0;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  #order-screen.active { display: flex; }
+  #order-screen .os-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    background: #1e293b;
+    border-bottom: 1px solid #334155;
+    flex-shrink: 0;
+  }
+  #order-screen .os-header h2 { margin: 0; font-size: 24px; color: #f8fafc; }
+  #order-screen .os-header .os-badge {
+    background: #16a34a;
+    color: #fff;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 14px;
+    animation: pulse-badge 2s infinite;
+  }
+  @keyframes pulse-badge {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+  #order-screen .os-exit {
+    padding: 8px 20px;
+    border: 1px solid #475569;
+    border-radius: 10px;
+    background: transparent;
+    color: #94a3b8;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  #order-screen .os-exit:hover { background: #334155; color: #f8fafc; }
+
+  #order-screen .os-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 16px;
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+    align-content: start;
+  }
+
+  .os-card {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 16px;
+    padding: 20px;
+    animation: card-in 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: relative;
+    transition: all 0.4s;
+  }
+  .os-card.confirmed {
+    background: #14532d;
+    border-color: #16a34a;
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  @keyframes card-in {
+    from { opacity: 0; transform: scale(0.85) translateY(20px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .os-card .osc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .os-card .osc-id { font-size: 12px; color: #64748b; font-family: monospace; }
+  .os-card .osc-cust { font-size: 18px; font-weight: 600; color: #f8fafc; }
+  .os-card .osc-phone { font-size: 13px; color: #94a3b8; }
+
+  .os-card .osc-items { font-size: 14px; color: #cbd5e1; line-height: 1.6; }
+  .os-card .osc-items .oi-row { display: flex; justify-content: space-between; padding: 2px 0; }
+  .os-card .osc-items .oi-qty { color: #64748b; margin-right: 8px; }
+
+  .os-card .osc-tags { display: flex; gap: 8px; flex-wrap: wrap; }
+  .os-card .osc-tag {
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .os-card .osc-tag.dinein { background: #1e3a5f; color: #60a5fa; }
+  .os-card .osc-tag.takeaway { background: #3b1f5e; color: #a78bfa; }
+  .os-card .osc-tag.cod { background: #1e3a5f; color: #60a5fa; }
+  .os-card .osc-tag.bank { background: #5f3b1e; color: #fbbf24; }
+
+  .os-card .osc-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 10px;
+    border-top: 1px solid #334155;
+  }
+  .os-card .osc-total { font-size: 20px; font-weight: 700; color: #f8fafc; }
+  .os-card .osc-confirm {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 10px;
+    background: #16a34a;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .os-card .osc-confirm:hover { background: #15803d; transform: scale(1.05); }
+  .os-card .osc-confirm:active { transform: scale(0.97); }
+
+  .os-card .osc-note {
+    font-size: 12px;
+    color: #94a3b8;
+    padding: 6px 10px;
+    background: #0f172a;
+    border-radius: 6px;
+  }
+
+  .os-card .osc-time {
+    font-size: 12px;
+    color: #64748b;
+  }
+
+  /* ====== @media print — 58mm/80mm 热敏小票 ====== */
+  @media print {
+    body * { visibility: hidden !important; }
+    #order-screen, #order-screen * { visibility: visible !important; }
+    #order-screen {
+      position: absolute !important;
+      inset: auto !important;
+      background: #fff !important;
+      color: #000 !important;
+    }
+    #order-screen .os-header,
+    #order-screen .os-exit,
+    #order-screen .osc-confirm { display: none !important; }
+    #order-screen .os-card:not(.printing) { display: none !important; }
+    #order-screen .os-card.printing {
+      border: none !important;
+      padding: 8px !important;
+      margin: 0 !important;
+      background: #fff !important;
+      color: #000 !important;
+    }
+    #order-screen .os-card.printing * { color: #000 !important; }
+    #order-screen .os-card.printing .osc-id { font-size: 10px; }
+    #order-screen .os-card.printing .osc-cust { font-size: 14px; }
+    #order-screen .os-card.printing .osc-items { font-size: 11px; }
+    @page { margin: 2mm; size: 80mm auto; }
   }
 </style>
 </head>
@@ -304,6 +497,7 @@
     </div>
     <h1 id="dash-shop-name">Dashboard</h1>
     <p class="shop-id" id="dash-shop-id"></p>
+    <button id="enter-os-btn" style="margin-top:10px;padding:10px 24px;border:none;border-radius:12px;background:#16a34a;color:#fff;font-size:15px;font-weight:600;cursor:pointer;">🔔 进入接单大屏</button>
   </header>
 
   <div class="stats" id="stats">
@@ -312,6 +506,8 @@
     <div class="stat-card skeleton" style="height:72px"></div>
     <div class="stat-card skeleton" style="height:72px"></div>
   </div>
+
+  <div class="trend-chart" id="trend-chart" style="display:none"></div>
 
   <div class="tabs" id="tabs-bar" role="tablist" aria-label="Admin sections">
     <button class="active" data-tab="orders" id="tab-orders" role="tab" aria-selected="true">Bestellingen</button>
@@ -340,6 +536,7 @@
       <input type="text" id="item-name" placeholder="Naam gerecht (NL)">
       <input type="text" id="item-name-zh" placeholder="名称 (中文)">
       <input type="text" id="item-name-en" placeholder="Name (EN)">
+      <input type="text" id="item-name-es" placeholder="Nombre (ES)">
       <input type="number" id="item-price" placeholder="Prijs (SRD)" step="0.01">
       <select id="item-cat"><option value="">Categorie</option></select>
       <button class="btn btn--pri" id="add-btn">+ Toevoegen</button>
@@ -367,7 +564,7 @@
       <input type="tel" id="set-wa">
       <label id="lbl-lang">Taal</label>
       <select id="set-lang">
-        <option value="nl">Nederlands</option><option value="en">English</option><option value="zh">中文</option>
+        <option value="nl">Nederlands</option><option value="en">English</option><option value="zh">中文</option><option value="es">Español</option>
       </select>
       <hr>
       <label id="lbl-bank-name">Bank naam</label>
@@ -380,6 +577,20 @@
     </div>
   </div>
 
+</div>
+
+<!-- 接单大屏 -->
+<div id="order-screen">
+  <div class="os-header">
+    <div>
+      <h2>接单大屏</h2>
+      <span class="os-badge">实时</span>
+    </div>
+    <button class="os-exit" id="os-exit-btn">退出</button>
+  </div>
+  <div class="os-grid" id="os-grid">
+    <div class="os-empty" style="grid-column:1/-1;text-align:center;padding:60px 20px;color:#64748b;">等待订单中...</div>
+  </div>
 </div>
 
 <script src="/shared.js"></script>
@@ -440,7 +651,12 @@ var L_admin = {
     wizard_copied: "Gekopieerd!",
     cat_label: "Categorieën", cat_new_ph: "Nieuwe categorienaam", cat_add_btn: "+ Toevoegen",
     cat_delete_confirm: "Categorie en items verwijderen?",
-    th_avail: "Beschikbaar", sold_out: "Uitverkocht", return_badge: "Vaste klant"
+    th_avail: "Beschikbaar", sold_out: "Uitverkocht", return_badge: "Vaste klant",
+    os_title: "Bestellingen Scherm", os_exit: "Verlaten", os_enter: "🔔 Order Scherm",
+    os_active: "Live", os_confirm: "✅ Bevestigen", os_confirmed: "Bevestigd",
+    os_dine_in: "🍽 Dine-in", os_takeaway: "🛍 Afhalen",
+    os_cod: "💵 Contant", os_bank: "🏦 Overboeking", os_pickup: "Ophalen",
+    os_empty: "Wachten op bestellingen..."
   },
   en: {
     login_subtitle: "Manage your menu and orders",
@@ -495,7 +711,12 @@ var L_admin = {
     wizard_copied: "Copied!",
     cat_label: "Categories", cat_new_ph: "New category name", cat_add_btn: "+ Add",
     cat_delete_confirm: "Delete category and its items?",
-    th_avail: "Available", sold_out: "Sold out", return_badge: "Regular"
+    th_avail: "Available", sold_out: "Sold out", return_badge: "Regular",
+    os_title: "Order Screen", os_exit: "Exit", os_enter: "🔔 Order Screen",
+    os_active: "Live", os_confirm: "✅ Confirm", os_confirmed: "Confirmed",
+    os_dine_in: "🍽 Dine-in", os_takeaway: "🛍 Takeaway",
+    os_cod: "💵 Cash", os_bank: "🏦 Transfer", os_pickup: "Pickup",
+    os_empty: "Waiting for orders..."
   },
   zh: {
     login_subtitle: "管理菜单和订单",
@@ -550,7 +771,12 @@ var L_admin = {
     wizard_copied: "已复制！",
     cat_label: "分类", cat_new_ph: "新分类名称", cat_add_btn: "+ 添加",
     cat_delete_confirm: "确定删除分类及其菜品？",
-    th_avail: "状态", sold_out: "售罄", return_badge: "熟客"
+    th_avail: "状态", sold_out: "售罄", return_badge: "熟客",
+    os_title: "接单大屏", os_exit: "退出", os_enter: "🔔 进入接单大屏",
+    os_active: "实时", os_confirm: "✅ 确认接单", os_confirmed: "已确认",
+    os_dine_in: "🍽 堂食", os_takeaway: "🛍 外带",
+    os_cod: "💵 现金", os_bank: "🏦 转账", os_pickup: "取餐时间",
+    os_empty: "等待订单中..."
   },
   es: {
     login_subtitle: "Gestiona tu menú y pedidos",
@@ -605,11 +831,33 @@ var L_admin = {
     wizard_copied: "¡Copiado!",
     cat_label: "Categorías", cat_new_ph: "Nueva categoría", cat_add_btn: "+ Agregar",
     cat_delete_confirm: "¿Eliminar categoría y todos sus platos?",
-    th_avail: "Disponible", sold_out: "Agotado", return_badge: "Cliente frecuente"
+    th_avail: "Disponible", sold_out: "Agotado", return_badge: "Cliente frecuente",
+    os_title: "Pantalla de Pedidos", os_exit: "Salir", os_enter: "🔔 Pantalla de Pedidos",
+    os_active: "En vivo", os_confirm: "✅ Confirmar", os_confirmed: "Confirmado",
+    os_dine_in: "🍽 Para servir", os_takeaway: "🛍 Para llevar",
+    os_cod: "💵 Efectivo", os_bank: "🏦 Transferencia", os_pickup: "Recoger",
+    os_empty: "Esperando pedidos..."
   }
 };
 
 var token = null, shop = null, tab = 'orders', adminLang = localStorage.getItem('suriorder_admin_lang') || 'nl';
+
+(function restoreSession() {
+  var saved = localStorage.getItem('suriorder_token');
+  var savedShop = localStorage.getItem('suriorder_shop');
+  if (saved && savedShop) {
+    try {
+      token = saved;
+      shop = JSON.parse(savedShop);
+      adminLang = localStorage.getItem('suriorder_admin_lang') || shop.language || 'nl';
+      setAdminLang(adminLang);
+      showDashboard();
+    } catch (_) {
+      localStorage.removeItem('suriorder_token');
+      localStorage.removeItem('suriorder_shop');
+    }
+  }
+})();
 
 function t(key) { return L_admin[adminLang]?.[key] || L_admin.nl[key] || key; }
 
@@ -647,6 +895,7 @@ function updateUITexts() {
     document.getElementById('item-name').placeholder = t('item_name_ph');
     document.getElementById('item-name-zh').placeholder = t('item_name_zh_ph');
     document.getElementById('item-name-en').placeholder = t('item_name_en_ph');
+    document.getElementById('item-name-es').placeholder = t('item_name_es_ph');
     document.getElementById('item-price').placeholder = t('item_price_ph');
     document.getElementById('item-cat').options[0].textContent = t('cat_opt');
     document.getElementById('add-btn').textContent = t('add_btn');
@@ -665,6 +914,8 @@ function updateUITexts() {
     document.getElementById('lbl-bank-acc').textContent = t('settings_bank_account');
     document.getElementById('lbl-bank-holder').textContent = t('settings_bank_holder');
     document.getElementById('save-settings-btn').textContent = t('settings_save');
+    var enterOsBtn = document.getElementById('enter-os-btn');
+    if (enterOsBtn) enterOsBtn.textContent = t('os_enter');
     updateMenuLinkBox();
     loadOrders(); loadItems();
   }
@@ -695,6 +946,8 @@ async function register(){
     if(!r.ok){ var e=await r.json().catch(function(){return{};}); Toast.error(e.error||t('alert_reg_error')); btn.disabled=false; btn.textContent=t('reg_btn'); return; }
     var d=await r.json();
     token = d.token; shop = d.shop;
+    localStorage.setItem('suriorder_token', token);
+    localStorage.setItem('suriorder_shop', JSON.stringify(shop));
     document.getElementById('login-pin').value='';
     Toast.success(t('alert_account_created').replace('{id}', d.id), 5000);
     adminLang = shop.language || 'nl';
@@ -711,6 +964,8 @@ async function login(){
     var r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({shop_id:id,admin_pin:pin})});
     if(!r.ok){ Toast.error(t('alert_invalid_login')); btn.disabled=false; btn.textContent=t('login_btn'); return; }
     var d=await r.json(); token=d.token; shop=d.shop;
+    localStorage.setItem('suriorder_token', token);
+    localStorage.setItem('suriorder_shop', JSON.stringify(shop));
     adminLang = shop.language || 'nl';
     setAdminLang(adminLang);
     showDashboard();
@@ -742,6 +997,20 @@ async function loadDashboard(){
     '<div class="stat-card"><div class="label">'+t('stats_today_revenue')+'</div><div class="value">SRD '+((d.ordersToday?.total||0)).toFixed(0)+'</div></div>'+
     '<div class="stat-card"><div class="label">'+t('stats_week_revenue')+'</div><div class="value">SRD '+((d.ordersWeek?.total||0)).toFixed(0)+'</div></div>'+
     '<div class="stat-card" id="stat-pending"><div class="label">'+t('stats_pending')+'</div><div class="value">'+(d.pending?.count||0)+'</div></div>';
+    var chart = document.getElementById('trend-chart');
+    if (d.daily && d.daily.length) {
+      var maxCnt = Math.max.apply(null, d.daily.map(function(r){ return r.cnt; })) || 1;
+      var days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      chart.style.display = 'block';
+      chart.innerHTML = '<h3>' + t('stats_week_revenue') + ' — 7 ' + (adminLang==='zh'?'天':adminLang==='es'?'días':adminLang==='en'?'days':'dagen') + '</h3>' +
+        '<div class="trend-bars">' + d.daily.map(function(r){
+          var h = Math.max(4, Math.round((r.cnt / maxCnt) * 96));
+          var dIdx = new Date(r.day + 'T12:00:00').getDay();
+          return '<div class="trend-bar-wrap"><div class="trend-bar-val">' + r.cnt + '</div><div class="trend-bar" style="height:' + h + 'px" title="' + r.day + ': ' + r.cnt + ' orders, SRD ' + (r.total||0).toFixed(0) + '"></div><div class="trend-bar-label">' + days[dIdx] + '</div></div>';
+        }).join('') + '</div>';
+    } else {
+      chart.style.display = 'none';
+    }
   } catch(e) { Toast.error('Failed to load dashboard'); }
 }
 
@@ -761,15 +1030,20 @@ async function loadOrders(){
     var payBtn='';
     if(o.payment_status==='unpaid') payBtn='<button class="btn btn--pri btn--xs" data-pay-id="'+esc(o.id)+'" data-pay-to="paid" aria-label="'+t('mark_paid')+'">'+t('mark_paid')+'</button>';
     if(o.payment_status==='paid') payBtn='<button class="btn btn--danger btn--xs" data-pay-id="'+esc(o.id)+'" data-pay-to="refunded" aria-label="'+t('mark_refunded')+'">'+t('mark_refunded')+'</button>';
-    return '<tr>'+
-      '<td>#'+esc(String(o.id)).slice(0,8)+'</td>'+
+    var detailRows = items.map(function(i, idx){
+      var subtotal = (i.qty||0) * (i.price||0);
+      return '<tr><td>' + esc(i.name) + '</td><td>' + (i.qty||0) + '</td><td>SRD ' + (i.price||0).toFixed(2) + '</td><td>SRD ' + subtotal.toFixed(2) + '</td></tr>';
+    }).join('');
+    return '<tr class="order-row" data-order-id="'+esc(o.id)+'">'+
+      '<td><span class="order-expand-arrow">▶</span> #'+esc(String(o.id)).slice(0,8)+'</td>'+
       '<td>'+esc(o.customer_name)+(o.prev_orders > 0 ? '<br><span class="return-badge" style="color:var(--pri);font-size:.72rem;font-weight:600">🔄 '+t('return_badge')+' (x'+o.prev_orders+')</span>' : '')+(o.customer_phone ? '<br><a class="order-link" href="https://wa.me/'+o.customer_phone.replace(/[^0-9]/g,'')+'" target="_blank" rel="noopener">💬 '+esc(o.customer_phone)+'</a>' : '')+'</td>'+
       '<td>'+items.map(function(i){ return i.qty+'x '+esc(i.name); }).join(', ')+'</td>'+
       '<td>SRD '+o.total.toFixed(2)+' <span class="'+psClass+'">'+t(ps)+'</span> '+payBtn+'</td>'+
       '<td class="col-time">'+esc(o.created_at?.slice(11,16)||'')+'</td>'+
       '<td><span class="order-status '+sc+'">'+esc(o.status)+'</span></td>'+
       '<td><select data-order-id="'+esc(o.id)+'" aria-label="'+t('actie')+'" class="order-status-select" style="font-size:.75rem;padding:4px;border-radius:var(--r-sm);border:1px solid var(--border)"><option value="">'+t('actie')+'</option><option value="confirmed">'+t('bevestig')+'</option><option value="done">'+t('klaar')+'</option><option value="cancelled">'+t('annuleer')+'</option></select></td>'+
-      '</tr>';
+      '</tr>'+
+      '<tr class="order-detail-row" data-order-detail="'+esc(o.id)+'"><td colspan="7"><table class="order-detail-table"><thead><tr><th style="text-align:left">Item</th><th>Qty</th><th>Price</th><th>Subtotal</th></tr></thead><tbody>'+detailRows+'</tbody></table></td></tr>';
   }).join('') || '<tr><td colspan="7" class="empty-row">'+t('empty_orders')+'</td></tr>';
   } catch(e) { tbody.innerHTML = '<tr><td colspan="7" class="empty-row">'+t('empty_orders')+'</td></tr>'; Toast.error('Failed to load orders'); }
 }
@@ -793,11 +1067,12 @@ async function addItem(){
   var name=document.getElementById('item-name').value.trim(),
       name_zh=document.getElementById('item-name-zh').value.trim(),
       name_en=document.getElementById('item-name-en').value.trim(),
+      name_es=document.getElementById('item-name-es').value.trim(),
       price=parseFloat(document.getElementById('item-price').value),
       category_id=document.getElementById('item-cat').value||null;
   if(!name||!price) return Toast.warn(t('alert_name_price'));
-  await fetch('/api/admin/items',{method:'POST',headers:authHeaders(),body:JSON.stringify({name:name,name_zh:name_zh,name_en:name_en,price:price,category_id:category_id?parseInt(category_id):null})});
-  document.getElementById('item-name').value=''; document.getElementById('item-name-zh').value=''; document.getElementById('item-name-en').value=''; document.getElementById('item-price').value='';
+  await fetch('/api/admin/items',{method:'POST',headers:authHeaders(),body:JSON.stringify({name:name,name_zh:name_zh,name_en:name_en,name_es:name_es,price:price,category_id:category_id?parseInt(category_id):null})});
+  document.getElementById('item-name').value=''; document.getElementById('item-name-zh').value=''; document.getElementById('item-name-en').value=''; document.getElementById('item-name-es').value=''; document.getElementById('item-price').value='';
   Toast.success(t('toast_item_added'));
   loadItems();
 }
@@ -832,7 +1107,10 @@ async function addCategory() {
 }
 
 function deleteCategory(id) {
-  showConfirm(t('cat_delete_confirm'), function() {
+  var chip = document.querySelector('.cat-del[data-cat-id="' + id + '"]');
+  var catName = chip ? chip.parentElement.textContent.replace('×','').trim() : '';
+  var msg = catName ? (adminLang==='zh' ? '确定删除分类「' + catName + '」及其所有菜品？' : adminLang==='es' ? '¿Eliminar categoría "' + catName + '" y todos sus platos?' : adminLang==='en' ? 'Delete category "' + catName + '" and all its items?' : 'Categorie "' + catName + '" en alle items verwijderen?') : t('cat_delete_confirm');
+  showConfirm(msg, function() {
     fetch('/api/admin/categories/'+id, { method: 'DELETE', headers: authHeaders() }).then(function() {
       loadCategories(); loadItems();
     });
@@ -984,6 +1262,8 @@ function copyShopId(ev) {
 
 // ── SSE Notifications ──
 var eventSource = null;
+var sseReconnectTimer = null;
+var sseReconnectDelay = 1000;
 
 function startNotificationStream() {
   if (eventSource) return;
@@ -1007,10 +1287,21 @@ function startNotificationStream() {
     } catch (_) { /* ignore malformed events */ }
   });
 
-  eventSource.onerror = function() {};
+  eventSource.onerror = function() {
+    stopNotificationStream();
+    sseReconnectTimer = setTimeout(function() {
+      startNotificationStream();
+    }, sseReconnectDelay);
+    sseReconnectDelay = Math.min(sseReconnectDelay * 2, 30000);
+  };
+
+  eventSource.onopen = function() {
+    sseReconnectDelay = 1000;
+  };
 }
 
 function stopNotificationStream() {
+  if (sseReconnectTimer) { clearTimeout(sseReconnectTimer); sseReconnectTimer = null; }
   if (eventSource) { eventSource.close(); eventSource = null; }
 }
 
@@ -1043,6 +1334,189 @@ function showNotification(order) {
   banner.style.display = 'block';
   setTimeout(function(){ banner.style.display = 'none'; }, 5000);
 }
+
+// ====== 接单大屏 ======
+var orderScreenActive = false;
+var orderScreenOrders = {};  // { orderId: { ...order, confirmed: false, speechTimer: null } }
+
+function enterOrderScreen() {
+  orderScreenActive = true;
+  document.getElementById('order-screen').classList.add('active');
+  // Update static texts
+  document.querySelector('#order-screen .os-header h2').textContent = t('os_title');
+  document.querySelector('#order-screen .os-header .os-badge').textContent = t('os_active');
+  document.getElementById('os-exit-btn').textContent = t('os_exit');
+  document.getElementById('os-grid').innerHTML = '<div class="os-empty" style="grid-column:1/-1;text-align:center;padding:60px 20px;color:#64748b;">' + t('os_empty') + '</div>';
+
+  // Unlock speech synthesis
+  var u = new SpeechSynthesisUtterance('');
+  u.volume = 0;
+  speechSynthesis.speak(u);
+
+  // Resume SSE if needed
+  if (!eventSource || eventSource.readyState > 1) {
+    startNotificationStream();
+  }
+}
+
+function exitOrderScreen() {
+  orderScreenActive = false;
+  document.getElementById('order-screen').classList.remove('active');
+  // Stop all speech
+  speechSynthesis.cancel();
+  // Clear order tracking
+  Object.keys(orderScreenOrders).forEach(function(k) {
+    var o = orderScreenOrders[k];
+    if (o.speechTimer) clearInterval(o.speechTimer);
+  });
+  orderScreenOrders = {};
+}
+
+function getLangCode() {
+  var m = { nl: 'nl-NL', en: 'en-US', zh: 'zh-CN', es: 'es-ES' };
+  return m[adminLang] || 'nl-NL';
+}
+
+function speakOrder(order) {
+  var itemsText = order.items.map(function(i) { return i.qty + (adminLang === 'zh' ? '份' : 'x') + i.name; }).join(adminLang === 'zh' ? '、' : ', ');
+  var lang = adminLang;
+  var text;
+  if (lang === 'zh') {
+    text = '新订单！' + order.customer_name + '，' + itemsText + '，合计' + order.total.toFixed(2) + '苏元，' + (order.payment_method === 'cod' ? '现金支付' : '转账支付') + '，' + (order.dining_option === 'dine_in' ? '堂食' : '外带');
+  } else if (lang === 'nl') {
+    text = 'Nieuwe bestelling! ' + order.customer_name + ', ' + itemsText + ', totaal ' + order.total.toFixed(2) + ' SRD, ' + (order.payment_method === 'cod' ? 'contant' : 'overschrijving') + ', ' + (order.dining_option === 'dine_in' ? 'dine-in' : 'afhalen');
+  } else if (lang === 'es') {
+    text = 'Nuevo pedido! ' + order.customer_name + ', ' + itemsText + ', total ' + order.total.toFixed(2) + ' SRD, ' + (order.payment_method === 'cod' ? 'efectivo' : 'transferencia') + ', ' + (order.dining_option === 'dine_in' ? 'para servir' : 'para llevar');
+  } else {
+    text = 'New order! ' + order.customer_name + ', ' + itemsText + ', total ' + order.total.toFixed(2) + ' SRD, ' + (order.payment_method === 'cod' ? 'cash' : 'transfer') + ', ' + (order.dining_option === 'dine_in' ? 'dine-in' : 'takeaway');
+  }
+
+  var u = new SpeechSynthesisUtterance(text);
+  u.lang = getLangCode();
+  u.rate = 0.9;
+  u.volume = 1;
+  speechSynthesis.speak(u);
+}
+
+function startSpeechLoop(order) {
+  // Speak immediately
+  speakOrder(order);
+  // Repeat every 5 seconds until confirmed
+  var timer = setInterval(function() {
+    if (orderScreenOrders[order.id] && !orderScreenOrders[order.id].confirmed) {
+      speakOrder(order);
+    } else {
+      clearInterval(timer);
+    }
+  }, 5000);
+  return timer;
+}
+
+function addOrderCard(order) {
+  var grid = document.getElementById('os-grid');
+  // Remove empty state if present
+  var emptyEl = grid.querySelector('.os-empty');
+  if (emptyEl) emptyEl.remove();
+
+  var card = document.createElement('div');
+  card.className = 'os-card';
+  card.id = 'osc-' + order.id;
+
+  var itemsHtml = order.items.map(function(i) {
+    return '<div class="oi-row"><span><span class="oi-qty">' + i.qty + 'x</span>' + esc(i.name) + '</span><span>SRD ' + Number(i.price).toFixed(2) + '</span></div>';
+  }).join('');
+
+  var lang = adminLang;
+  var dineInLabel = order.dining_option === 'dine_in' ? t('os_dine_in') : t('os_takeaway');
+  var payLabel = order.payment_method === 'cod' ? t('os_cod') : t('os_bank');
+  var dineInClass = order.dining_option === 'dine_in' ? 'dinein' : 'takeaway';
+  var payClass = order.payment_method === 'cod' ? 'cod' : 'bank';
+
+  var noteHtml = '';
+  if (order.note) {
+    noteHtml = '<div class="osc-note">📝 ' + esc(order.note) + '</div>';
+  }
+
+  var pickupHtml = '';
+  if (order.pickup_time) {
+    pickupHtml = '<div class="osc-time">🕐 ' + t('os_pickup') + ': ' + esc(order.pickup_time) + '</div>';
+  }
+
+  card.innerHTML =
+    '<div class="osc-header">' +
+      '<span class="osc-cust">' + esc(order.customer_name) + '</span>' +
+      '<span class="osc-id">#' + esc(String(order.id)) + '</span>' +
+    '</div>' +
+    '<div class="osc-phone">📞 ' + esc(order.customer_phone) + '</div>' +
+    '<div class="osc-items">' + itemsHtml + '</div>' +
+    '<div class="osc-tags">' +
+      '<span class="osc-tag ' + dineInClass + '">' + dineInLabel + '</span>' +
+      '<span class="osc-tag ' + payClass + '">' + payLabel + '</span>' +
+    '</div>' +
+    pickupHtml +
+    noteHtml +
+    '<div class="osc-footer">' +
+      '<span class="osc-total">SRD ' + order.total.toFixed(2) + '</span>' +
+      '<button class="osc-confirm" onclick="confirmOrderScreen(\'' + order.id + '\')">' + t('os_confirm') + '</button>' +
+    '</div>';
+
+  grid.insertBefore(card, grid.firstChild);
+
+  // Track order
+  orderScreenOrders[order.id] = { order: order, confirmed: false, speechTimer: null };
+  // Start speech loop
+  orderScreenOrders[order.id].speechTimer = startSpeechLoop(order);
+}
+
+async function confirmOrderScreen(orderId) {
+  var entry = orderScreenOrders[orderId];
+  if (!entry || entry.confirmed) return;
+  entry.confirmed = true;
+
+  // Stop speech for this order
+  if (entry.speechTimer) clearInterval(entry.speechTimer);
+
+  // Update status on server
+  try {
+    await fetch('/api/admin/orders/' + orderId, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ status: 'confirmed' })
+    });
+  } catch (e) { /* fire and forget */ }
+
+  // Print
+  var card = document.getElementById('osc-' + orderId);
+  if (card) {
+    card.classList.add('printing');
+    window.print();
+    card.classList.remove('printing');
+  }
+
+  // Mark confirmed and remove after 3s
+  if (card) {
+    card.classList.add('confirmed');
+    var btn = card.querySelector('.osc-confirm');
+    if (btn) { btn.textContent = t('os_confirmed'); btn.disabled = true; }
+    setTimeout(function() {
+      card.remove();
+      delete orderScreenOrders[orderId];
+      // Show empty state if no orders left
+      if (Object.keys(orderScreenOrders).length === 0) {
+        document.getElementById('os-grid').innerHTML = '<div class="os-empty" style="grid-column:1/-1;text-align:center;padding:60px 20px;color:#64748b;">' + t('os_empty') + '</div>';
+      }
+    }, 3000);
+  }
+}
+
+// Hook into existing SSE new-order events via showNotification wrapper
+var _origShowNotification = showNotification;
+showNotification = function(order) {
+  _origShowNotification(order);
+  if (orderScreenActive && !orderScreenOrders[order.id]) {
+    addOrderCard(order);
+  }
+};
 
 function bindAdminEvents() {
   // Admin language switch
@@ -1091,8 +1565,23 @@ function bindAdminEvents() {
     this.select();
   });
 
-  // Orders table: payment status buttons (delegated)
+  // Orders table: row expand/collapse (delegated)
   document.getElementById('orders-tbody').addEventListener('click', function(e) {
+    var row = e.target.closest('.order-row');
+    if (row && !e.target.closest('button') && !e.target.closest('select') && !e.target.closest('a')) {
+      var oid = row.dataset.orderId;
+      var detail = document.querySelector('[data-order-detail="' + oid + '"]');
+      var arrow = row.querySelector('.order-expand-arrow');
+      if (detail) {
+        detail.classList.toggle('expanded');
+        if (arrow) {
+          arrow.textContent = detail.classList.contains('expanded') ? '▼' : '▶';
+          arrow.classList.toggle('open', detail.classList.contains('expanded'));
+        }
+      }
+      return;
+    }
+    // payment status buttons
     var btn = e.target.closest('button[data-pay-id]');
     if (!btn) return;
     updatePaymentStatus(btn.dataset.payId, btn.dataset.payTo);
@@ -1151,9 +1640,16 @@ function bindAdminEvents() {
     }
   });
 
-  // Escape key for wizard overlay
-  document.getElementById('wizard-overlay').addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') endWizard();
+  // Wizard overlay: click backdrop to dismiss
+  document.getElementById('wizard-overlay').addEventListener('click', function(e) {
+    if (e.target === e.currentTarget) endWizard();
+  });
+
+  // Escape key for wizard overlay (listen on document — overlay div can't receive focus)
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && document.getElementById('wizard-overlay').style.display !== 'none') {
+      endWizard();
+    }
   });
 
   // Enter key for login/register
@@ -1162,6 +1658,21 @@ function bindAdminEvents() {
   });
   document.getElementById('reg-pin').addEventListener('keydown', function(e) {
     if (e.key === 'Enter') register();
+  });
+
+  // Enter order screen button
+  var enterOsBtn = document.getElementById('enter-os-btn');
+  if (enterOsBtn) enterOsBtn.addEventListener('click', enterOrderScreen);
+
+  // Exit order screen button
+  var exitOsBtn = document.getElementById('os-exit-btn');
+  if (exitOsBtn) exitOsBtn.addEventListener('click', exitOrderScreen);
+
+  // Escape key to exit order screen
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && orderScreenActive) {
+      exitOrderScreen();
+    }
   });
 }
 

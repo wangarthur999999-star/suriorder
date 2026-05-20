@@ -9,13 +9,18 @@ function registerAdminRoutes(app, db, { auth }) {
     const ordersToday = db.prepare("SELECT COUNT(*) as count, SUM(total) as total FROM orders WHERE shop_id=? AND date(created_at)=?").get(req.shopId, today);
     const ordersWeek = db.prepare("SELECT COUNT(*) as count, SUM(total) as total FROM orders WHERE shop_id=? AND created_at >= datetime('now','-7 days')").get(req.shopId);
     const pending = db.prepare("SELECT COUNT(*) as count FROM orders WHERE shop_id=? AND status='pending'").get(req.shopId);
+    const daily = db.prepare(`
+      SELECT date(created_at) as day, COUNT(*) as cnt, SUM(total) as total
+      FROM orders WHERE shop_id=? AND created_at >= datetime('now','-7 days')
+      GROUP BY date(created_at) ORDER BY day
+    `).all(req.shopId);
     const topItems = db.prepare(`
       SELECT i.name, COUNT(*) as cnt FROM orders o, json_each(o.items_json) j
       JOIN items i ON i.id = json_extract(j.value, '$.id')
       WHERE o.shop_id=? AND o.created_at >= datetime('now','-30 days')
       GROUP BY i.name ORDER BY cnt DESC LIMIT 5
     `).all(req.shopId);
-    res.json({ ordersToday, ordersWeek, pending, topItems });
+    res.json({ ordersToday, ordersWeek, pending, daily, topItems });
   });
 
   // Items list

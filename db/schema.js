@@ -63,6 +63,7 @@ function initDb(db) {
   add("orders", "payment_method", "TEXT DEFAULT 'cod'");
   add("orders", "payment_status", "TEXT DEFAULT 'unpaid'");
   add("orders", "payment_note", "TEXT");
+  add("orders", "dining_option", "TEXT DEFAULT 'takeaway'");
   add("shops", "bank_name", "TEXT");
   add("shops", "bank_account", "TEXT");
   add("shops", "bank_account_name", "TEXT");

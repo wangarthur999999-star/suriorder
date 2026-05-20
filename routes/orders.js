@@ -6,11 +6,13 @@ function registerOrderRoutes(app, db, { auth, orderLimiter }) {
 
   // Public: place order
   app.post("/api/order", orderLimiter, (req, res) => {
-    const { shop_id, customer_phone, items, note, pickup_time } = req.body;
+    const { shop_id, customer_phone, items, note, pickup_time, dining_option } = req.body;
     const customer_name = sanitizeName(req.body.customer_name);
     if (!shop_id || !customer_name || !customer_phone || !items || !items.length) return res.status(400).json({ error: "missing fields" });
     if (!/^\+?597\d{6,7}$/.test(customer_phone)) return res.status(400).json({ error: "invalid phone" });
     if (!Array.isArray(items) || items.length > 50) return res.status(400).json({ error: "too many items" });
+    const diningOption = dining_option || 'takeaway';
+    if (!['dine_in', 'takeaway'].includes(diningOption)) return res.status(400).json({ error: "invalid dining_option" });
     const shop = db.prepare("SELECT * FROM shops WHERE id=? AND active=1").get(shop_id);
     if (!shop) return res.status(404).json({ error: "shop not found" });
 
@@ -32,7 +34,7 @@ function registerOrderRoutes(app, db, { auth, orderLimiter }) {
     const paymentMethod = validPaymentMethods.includes(req.body.payment_method) ? req.body.payment_method : "cod";
 
     const orderId = crypto.randomBytes(4).toString("hex");
-    db.prepare("INSERT INTO orders (id, shop_id, customer_name, customer_phone, items_json, total, note, pickup_time, payment_method) VALUES (?,?,?,?,?,?,?,?,?)").run(orderId, shop_id, customer_name, customer_phone, JSON.stringify(orderItems), total, note || null, pickup_time || null, paymentMethod);
+    db.prepare("INSERT INTO orders (id, shop_id, customer_name, customer_phone, items_json, total, note, pickup_time, dining_option, payment_method) VALUES (?,?,?,?,?,?,?,?,?,?)").run(orderId, shop_id, customer_name, customer_phone, JSON.stringify(orderItems), total, note || null, pickup_time || null, diningOption, paymentMethod);
 
     const events = require("../lib/events");
     events.emit("new-order", {
@@ -40,6 +42,7 @@ function registerOrderRoutes(app, db, { auth, orderLimiter }) {
       items: orderItems, total, note: note || null,
       pickup_time: pickup_time || null, status: "pending",
       payment_method: paymentMethod, payment_status: "unpaid",
+      dining_option: diningOption,
       created_at: new Date().toISOString(),
     });
 
@@ -48,8 +51,15 @@ function registerOrderRoutes(app, db, { auth, orderLimiter }) {
     // WhatsApp notifications (fire-and-forget)
     const wa = require("../lib/whatsapp");
     wa.notifyMerchantNewOrder(shop.whatsapp_number, {
-      order_id: orderId, customer_name, customer_phone,
-      total, payment_method: paymentMethod,
+      order_id: orderId,
+      customer_name,
+      customer_phone,
+      items: orderItems,
+      total,
+      payment_method: paymentMethod,
+      pickup_time: pickup_time || null,
+      note: note || null,
+      dining_option: diningOption,
     });
     wa.sendCustomerConfirmation(customer_phone, {
       order_id: orderId, total, payment_method: paymentMethod, pickup_time: pickup_time || null,

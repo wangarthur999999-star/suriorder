@@ -67,9 +67,10 @@ function initDb(db) {
   add("shops", "bank_account", "TEXT");
   add("shops", "bank_account_name", "TEXT");
 
-  // Auto-seed demo shop if not present
+  // Auto-seed demo shop if not present (only when SEED_DEMO=true or not in production)
+  const shouldSeed = process.env.SEED_DEMO === "true" || process.env.NODE_ENV !== "production";
   const demoExists = db.prepare("SELECT 1 FROM shops WHERE id='demo'").get();
-  if (!demoExists) {
+  if (shouldSeed && !demoExists) {
     const demoHash = bcrypt.hashSync("1234", 10);
     db.prepare("INSERT INTO shops (id, name, phone, language, admin_pin, whatsapp_number) VALUES (?,?,?,?,?,?)").run("demo", "Wangs Eatery", "+5971234567", "nl", demoHash, "+5971234567");
 
@@ -94,8 +95,10 @@ function initDb(db) {
     demoItems.forEach((item, idx) => {
       insertItem.run("demo", item[0], item[1], item[2], item[3], item[4], item[5], item[6], item[7], item[8], item[9], idx);
     });
-    console.log("Auto-seeded demo shop");
   }
+
+  // Performance: composite index for order listing queries
+  db.exec("CREATE INDEX IF NOT EXISTS idx_orders_shop_created ON orders(shop_id, created_at DESC)");
 }
 
 module.exports = { initDb };

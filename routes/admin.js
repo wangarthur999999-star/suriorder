@@ -41,7 +41,7 @@ function registerAdminRoutes(app, db, { auth }) {
   app.put("/api/admin/items/:id", auth, (req, res) => {
     const { name, name_zh, name_en, name_es, desc, desc_zh, desc_en, desc_es, price, available, category_id, image_url } = req.body;
     if (price != null && (typeof price !== "number" || price < 0)) return res.status(400).json({ error: "invalid price" });
-    db.prepare(`UPDATE items SET
+    const result = db.prepare(`UPDATE items SET
       name=COALESCE(?,name), name_zh=COALESCE(?,name_zh), name_en=COALESCE(?,name_en), name_es=COALESCE(?,name_es),
       desc=COALESCE(?,desc), desc_zh=COALESCE(?,desc_zh), desc_en=COALESCE(?,desc_en), desc_es=COALESCE(?,desc_es),
       price=COALESCE(?,price), available=COALESCE(?,available), category_id=COALESCE(?,category_id), image_url=COALESCE(?,image_url)
@@ -50,12 +50,14 @@ function registerAdminRoutes(app, db, { auth }) {
       desc != null ? sanitizeText(desc) : null, desc_zh != null ? sanitizeText(desc_zh) : null, desc_en != null ? sanitizeText(desc_en) : null, desc_es != null ? sanitizeText(desc_es) : null,
       price ?? null, available ?? null, category_id ?? null, image_url ?? null,
       req.params.id, req.shopId);
+    if (result.changes === 0) return res.status(404).json({ error: "item not found" });
     res.json({ ok: true });
   });
 
   // Delete item
   app.delete("/api/admin/items/:id", auth, (req, res) => {
-    db.prepare("DELETE FROM items WHERE id=? AND shop_id=?").run(req.params.id, req.shopId);
+    const result = db.prepare("DELETE FROM items WHERE id=? AND shop_id=?").run(req.params.id, req.shopId);
+    if (result.changes === 0) return res.status(404).json({ error: "item not found" });
     res.json({ ok: true });
   });
 
@@ -74,7 +76,8 @@ function registerAdminRoutes(app, db, { auth }) {
 
   // Delete category
   app.delete("/api/admin/categories/:id", auth, (req, res) => {
-    db.prepare("DELETE FROM categories WHERE id=? AND shop_id=?").run(req.params.id, req.shopId);
+    const result = db.prepare("DELETE FROM categories WHERE id=? AND shop_id=?").run(req.params.id, req.shopId);
+    if (result.changes === 0) return res.status(404).json({ error: "category not found" });
     res.json({ ok: true });
   });
 

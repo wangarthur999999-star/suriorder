@@ -286,10 +286,10 @@ const L = {
   nl:{shop_desc:"Gerechten bestellen",all:"Alles",cart_empty:"0 items",order_btn:"Bestellen",checkout_title:"Uw bestelling",name_ph:"Naam",phone_ph:"Telefoon (+597...)",note_ph:"Opmerkingen",submit:"Plaats bestelling",cancel:"Annuleren",success_title:"Gelukt!",success_msg:"Uw bestelling is geplaatst.",order_id:"Bestelling",total:"Totaal",share:"Delen via WhatsApp",annuleren:"Annuleren",pay_cod:"💵 Contant",pay_bank:"🏦 Overschrijving",bank_title:"Bank overschrijving",bank_details:"Maak over naar: ",confirm_wa:"Bevestig uw bestelling via WhatsApp",alert_name:"Vul uw naam in",alert_phone:"Vul uw telefoonnummer in",alert_phone_format:"Ongeldig telefoonnummer. Gebruik formaat +597XXXXXXX",alert_order_error:"Fout bij plaatsen bestelling",empty_menu:"Geen items beschikbaar",consent_text:"Ik ga akkoord met de <a href='/privacy' target='_blank'>privacyverklaring</a> en <a href='/tos' target='_blank'>servicevoorwaarden</a>",alert_consent:"Accepteer eerst de servicevoorwaarden en privacyverklaring",footer:"SuriOrder — WhatsApp-first bestellen voor Suriname",footer_privacy:"Privacy",footer_tos:"Voorwaarden"},
   zh:{shop_desc:"在线点餐",all:"全部",cart_empty:"0 件",order_btn:"下单",checkout_title:"确认订单",name_ph:"姓名",phone_ph:"电话 (+597...)",note_ph:"备注",submit:"提交订单",cancel:"取消",success_title:"下单成功！",success_msg:"您的订单已提交。",order_id:"订单号",total:"合计",share:"通过 WhatsApp 分享",annuleren:"取消",pay_cod:"💵 现金支付",pay_bank:"🏦 银行转账",bank_title:"银行转账信息",bank_details:"请转账至：",confirm_wa:"通过 WhatsApp 确认订单",alert_name:"请输入姓名",alert_phone:"请输入电话号码",alert_phone_format:"电话号码格式无效，请使用 +597XXXXXXX",alert_order_error:"订单提交失败",empty_menu:"暂无菜品",consent_text:"我同意<a href='/privacy' target='_blank'>隐私政策</a>和<a href='/tos' target='_blank'>服务条款</a>",alert_consent:"请先同意服务条款和隐私政策",footer:"SuriOrder — 苏里南 WhatsApp 优先点餐平台",footer_privacy:"隐私",footer_tos:"条款"},
   en:{shop_desc:"Order food",all:"All",cart_empty:"0 items",order_btn:"Order",checkout_title:"Your order",name_ph:"Name",phone_ph:"Phone (+597...)",note_ph:"Note",submit:"Place order",cancel:"Cancel",success_title:"Success!",success_msg:"Your order has been placed.",order_id:"Order",total:"Total",share:"Share via WhatsApp",annuleren:"Cancel",pay_cod:"💵 Cash",pay_bank:"🏦 Bank Transfer",bank_title:"Bank Transfer",bank_details:"Transfer to: ",confirm_wa:"Confirm your order via WhatsApp",alert_name:"Please enter your name",alert_phone:"Please enter your phone number",alert_phone_format:"Invalid phone number. Use format +597XXXXXXX",alert_order_error:"Failed to place order",empty_menu:"No items available",consent_text:"I agree to the <a href='/privacy' target='_blank'>Privacy Policy</a> and <a href='/tos' target='_blank'>Terms of Service</a>",alert_consent:"Please accept the Terms of Service and Privacy Policy first",footer:"SuriOrder — WhatsApp-first ordering for Suriname",footer_privacy:"Privacy",footer_tos:"Terms"},
-  es:{shop_desc:"Pedir comida",all:"Todo",cart_empty:"0 items",order_btn:"Pedir",checkout_title:"Tu pedido",name_ph:"Nombre",phone_ph:"Teléfono (+597...)",note_ph:"Nota",submit:"Enviar pedido",cancel:"Cancelar",success_title:"¡Listo!",success_msg:"Tu pedido ha sido enviado.",order_id:"Pedido",total:"Total",share:"Compartir por WhatsApp",annuleren:"Cancelar",pay_cod:"💵 Efectivo",pay_bank:"🏦 Transferencia",bank_title:"Transferencia bancaria",bank_details:"Transferir a: ",confirm_wa:"Confirma tu pedido por WhatsApp",alert_name:"Ingresa tu nombre",alert_phone:"Ingresa tu número",alert_phone_format:"Número inválido. Usa formato +597XXXXXXX",alert_order_error:"Error al enviar pedido",empty_menu:"Sin platos disponibles",consent_text:"Acepto la <a href='/privacy' target='_blank'>Política de Privacidad</a> y los <a href='/tos' target='_blank'>Términos de Servicio</a>",alert_consent:"Acepta primero los Términos y la Política de Privacidad",footer:"SuriOrder — Pedidos por WhatsApp en Surinam",footer_privacy:"Privacidad",footer_tos:"Términos"},
+  es:{shop_desc:"Pedir comida",all:"Todo",cart_empty:"0 items",order_btn:"Pedir",checkout_title:"Tu pedido",name_ph:"Nombre",phone_ph:"Teléfono (+597...)",note_ph:"Nota",submit:"Enviar pedido",cancel:"Cancelar",success_title:"¡Listo!",success_msg:"Tu pedido ha sido enviado.",order_id:"Pedido",total:"Total",share:"Compartir por WhatsApp",annuleren:"Cancelar",pay_cod:"💵 Efectivo",pay_bank:"🏦 Transferencia",bank_title:"Transferencia bancaria",bank_details:"Transferir a: ",confirm_wa:"Confirma tu pedido por WhatsApp",alert_name:"Ingresa tu nombre",alert_phone:"Ingresa tu número",alert_phone_format:"Número inválido. Usa formato +597XXXXXX",alert_order_error:"Error al enviar pedido",empty_menu:"Sin platos disponibles",consent_text:"Acepto la <a href='/privacy' target='_blank'>Política de Privacidad</a> y los <a href='/tos' target='_blank'>Términos de Servicio</a>",alert_consent:"Acepta primero los Términos y la Política de Privacidad",footer:"SuriOrder — Pedidos por WhatsApp en Surinam",footer_privacy:"Privacidad",footer_tos:"Términos"},
 };
 
-let shopId, shop, categories=[], items=[], cart={}, lang='nl', pickupTime='Nu', paymentMethod='cod', activeCat=0;
+let shopId, shop, categories=[], items=[], cart={}, lang=localStorage.getItem('suriorder_lang')||'nl', pickupTime='Nu', paymentMethod='cod', activeCat=0;
 
 function bindEvents() {
   // Language switch
@@ -378,6 +378,7 @@ function fmtPrice(n){ return 'SRD '+Number(n).toFixed(2); }
 
 function setLang(l){
   lang=l;
+  localStorage.setItem('suriorder_lang', l);
   document.querySelectorAll('.lang-switch button').forEach(function(b){ b.classList.toggle('active',b.id==='btn-'+l); });
   document.getElementById('consent-text').innerHTML = t('consent_text');
   document.getElementById('footer-privacy').textContent = t('footer_privacy');
@@ -496,11 +497,15 @@ async function submitOrder(){
   var phone=document.getElementById('cust-phone').value.trim();
   if(!name) return Toast.warn(t('alert_name'));
   if(!phone) return Toast.warn(t('alert_phone'));
-  if(!/^\+?597\d{7}$/.test(phone)) return Toast.error(t('alert_phone_format'));
+  if(!/^\+?597\d{6,7}$/.test(phone)) return Toast.error(t('alert_phone_format'));
   if(!document.getElementById('consent-check').checked) return Toast.warn(t('alert_consent'));
+  var btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.textContent = '...';
+  try {
   var items_arr = Object.entries(cart).map(function(e){ return {id:parseInt(e[0]), qty:e[1]}; });
   var r = await fetch('/api/order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({shop_id:shopId,customer_name:name,customer_phone:phone,items:items_arr,note:document.getElementById('cust-note').value.trim(),pickup_time:pickupTime,payment_method:paymentMethod})});
-  if(!r.ok){ Toast.error(t('alert_order_error')); return; }
+  if(!r.ok){ var errData = await r.json().catch(function(){return {};}); btn.disabled = false; btn.textContent = t('submit'); Toast.error(errData.error || t('alert_order_error')); return; }
   var order=await r.json();
   document.getElementById('checkout-modal').classList.add('hidden');
   document.getElementById('cat-nav').classList.add('hidden');
@@ -517,6 +522,10 @@ async function submitOrder(){
   }
   sv.innerHTML = '<div class="success"><div class="icon">✅</div><h2>'+t('success_title')+'</h2><p>'+t('success_msg')+'</p><p style="font-weight:700;margin-top:8px">'+t('order_id')+': #'+esc(order.order_id)+'</p><p>'+t('total')+': '+fmtPrice(order.total)+'</p>'+waConfirmBtn+'<a class="share-btn" href="https://wa.me/?text='+encodeURIComponent('🍽️ '+shop.name+' - Bestel online: '+link)+'" target="_blank" rel="noopener">📱 '+t('share')+'</a><br><button class="btn btn--pri" id="btn-reload" style="margin-top:16px">Nieuwe bestelling</button></div>';
   cart={};updateCart();
+  } catch(_) {
+    btn.disabled = false; btn.textContent = t('submit');
+    Toast.error(t('alert_order_error'));
+  }
 }
 
 init();

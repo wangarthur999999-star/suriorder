@@ -38,7 +38,7 @@ app.use(helmet({
   },
 }));
 app.use(morgan("short"));
-app.use(express.json({ limit: "100kb" }));
+app.use(express.json({ limit: "100kb", verify: (req, _res, buf) => { req.rawBody = buf; } }));
 app.use(express.static("public"));
 app.use("/api", apiLimiter);
 

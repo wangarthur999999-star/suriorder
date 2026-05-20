@@ -49,6 +49,15 @@
   header.top h1 { font-size: 1.15rem; font-weight: 700; }
   header.top .shop-id { font-size: .75rem; opacity: .8; }
 
+  .logout-btn {
+    position: absolute; top: 12px; left: 12px;
+    background: rgba(255,255,255,.15); border: none; color: #fff;
+    padding: 6px 14px; border-radius: var(--r); font-size: .8rem;
+    cursor: pointer; font-weight: 500; min-height: var(--touch-sm);
+    transition: background var(--tran);
+  }
+  .logout-btn:hover { background: rgba(255,255,255,.3); }
+
   /* ── Admin Language Switch ── */
   .admin-lang-switch { position: absolute; top: 14px; right: 12px; display: flex; gap: 2px; background: rgba(255,255,255,.2); border-radius: var(--r); padding: 2px; }
   .admin-lang-switch button {
@@ -270,6 +279,7 @@
   <div class="menu-link-box" id="menu-link-box"></div>
 
   <header class="top">
+    <button class="logout-btn" id="logout-btn" title="Logout">↩</button>
     <div class="admin-lang-switch" id="admin-lang-switch" role="group" aria-label="Select admin language">
       <button data-admin-lang="nl" class="active" id="adm-btn-nl">NL</button>
       <button data-admin-lang="en" id="adm-btn-en">EN</button>
@@ -579,12 +589,13 @@ var L_admin = {
   }
 };
 
-var token = null, shop = null, tab = 'orders', adminLang = 'nl';
+var token = null, shop = null, tab = 'orders', adminLang = localStorage.getItem('suriorder_admin_lang') || 'nl';
 
 function t(key) { return L_admin[adminLang]?.[key] || L_admin.nl[key] || key; }
 
 function setAdminLang(l) {
   adminLang = l;
+  localStorage.setItem('suriorder_admin_lang', l);
   document.querySelectorAll('.admin-lang-switch button').forEach(function(b){ b.classList.toggle('active', b.id === 'adm-btn-' + l); });
   updateUITexts();
 }
@@ -1006,6 +1017,14 @@ function bindAdminEvents() {
     var btn = e.target.closest('button');
     if (!btn || !btn.dataset.adminLang) return;
     setAdminLang(btn.dataset.adminLang);
+  });
+
+  // Logout button
+  document.getElementById('logout-btn').addEventListener('click', function() {
+    localStorage.removeItem('suriorder_token');
+    localStorage.removeItem('suriorder_shop_id');
+    localStorage.removeItem('suriorder_admin_lang');
+    location.reload();
   });
 
   // Tabs bar

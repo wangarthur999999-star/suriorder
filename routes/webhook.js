@@ -1,4 +1,5 @@
 // WhatsApp webhook route — receives incoming messages and status updates
+const crypto = require("crypto");
 const { verifyWebhook, processIncoming, sendText } = require("../lib/whatsapp");
 
 function registerWebhookRoute(app, db) {
@@ -18,6 +19,20 @@ function registerWebhookRoute(app, db) {
 
   // Incoming messages and status updates (POST)
   app.post("/api/whatsapp/webhook", (req, res) => {
+    // Verify X-Hub-Signature-256 when app secret is configured
+    const appSecret = process.env.WHATSAPP_APP_SECRET;
+    if (appSecret) {
+      const signature = req.headers["x-hub-signature-256"];
+      if (!signature) return res.status(403).json({ error: "missing signature" });
+      const hmac = crypto.createHmac("sha256", appSecret);
+      hmac.update(req.rawBody || JSON.stringify(req.body));
+      const expected = "sha256=" + hmac.digest("hex");
+      const sigBuf = Buffer.from(signature);
+      const expBuf = Buffer.from(expected);
+      if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) {
+        return res.status(403).json({ error: "invalid signature" });
+      }
+    }
     const events = processIncoming(req.body);
 
     for (const ev of events) {

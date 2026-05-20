@@ -3,6 +3,7 @@ const Database = require("better-sqlite3");
 const path = require("path");
 const fs = require("fs");
 const crypto = require("crypto");
+const bcrypt = require("bcryptjs");
 const helmet = require("helmet");
 const morgan = require("morgan");
 
@@ -15,11 +16,14 @@ const { apiLimiter, orderLimiter } = require("./middleware/rateLimit");
 const rateLimit = require("express-rate-limit");
 
 const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 5, standardHeaders: true, legacyHeaders: false, message: { error: "too many attempts" } });
+const platformLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 5, standardHeaders: true, legacyHeaders: false, message: { error: "too many attempts" } });
 const { registerAuthRoutes } = require("./routes/auth");
 const { registerShopRoutes } = require("./routes/shops");
 const { registerOrderRoutes } = require("./routes/orders");
 const { registerAdminRoutes } = require("./routes/admin");
 const { registerWebhookRoute } = require("./routes/webhook");
+const { platformAuthMiddleware } = require("./middleware/platformAuth");
+const { registerPlatformRoutes } = require("./routes/platform");
 
 fs.mkdirSync(path.join(__dirname, "data"), { recursive: true });
 
@@ -66,6 +70,24 @@ if (!JWT_SECRET) {
 } else {
   try { fs.writeFileSync(JWT_SECRET_FILE, JWT_SECRET); } catch (_) {}
 }
+// Owner PIN: env var > persisted file > generate once and log
+const OWNER_PIN_FILE = path.join(__dirname, "data", ".owner_pin_hash");
+const OWNER_PIN_FILE_RAW = path.join(__dirname, "data", ".owner_pin_raw");
+let OWNER_PIN = process.env.OWNER_PIN;
+if (OWNER_PIN) {
+  const hash = bcrypt.hashSync(OWNER_PIN, 10);
+  try { fs.writeFileSync(OWNER_PIN_FILE, hash); } catch (_) {}
+  try { fs.unlinkSync(OWNER_PIN_FILE_RAW); } catch (_) {}
+} else {
+  try { OWNER_PIN = fs.readFileSync(OWNER_PIN_FILE_RAW, "utf-8").trim(); } catch (_) {}
+  if (!OWNER_PIN) {
+    OWNER_PIN = crypto.randomInt(100000, 999999).toString();
+    const hash = bcrypt.hashSync(OWNER_PIN, 10);
+    try { fs.writeFileSync(OWNER_PIN_FILE_RAW, OWNER_PIN); } catch (_) {}
+    try { fs.writeFileSync(OWNER_PIN_FILE, hash); } catch (_) {}
+  }
+}
+
 const PORT = process.env.PORT || 3456;
 
 const ORDER_HTML = fs.readFileSync(path.join(__dirname, "public", "order.html"), "utf-8");
@@ -84,6 +106,8 @@ registerShopRoutes(app, db);
 registerOrderRoutes(app, db, { auth, orderLimiter });
 registerAdminRoutes(app, db, { auth });
 registerWebhookRoute(app, db);
+const platformAuth = platformAuthMiddleware(JWT_SECRET);
+registerPlatformRoutes(app, db, { JWT_SECRET, platformAuth, platformLimiter });
 
 // Health check
 app.get("/health", (_req, res) => {
@@ -115,6 +139,9 @@ app.get("/tos", (_req, res) => res.sendFile(path.join(__dirname, "public", "tos.
 
 const server = app.listen(PORT, () => {
   logger.info("server started", { port: PORT, env: process.env.NODE_ENV || "development" });
+  if (!process.env.OWNER_PIN) {
+    logger.info("platform PIN auto-generated (see data/.owner_pin_raw)");
+  }
 });
 
 process.on("SIGTERM", () => {

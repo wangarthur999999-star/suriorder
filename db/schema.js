@@ -66,6 +66,9 @@ function initDb(db) {
   add("shops", "bank_name", "TEXT");
   add("shops", "bank_account", "TEXT");
   add("shops", "bank_account_name", "TEXT");
+  add("shops", "cuisine_type", "TEXT");
+  add("shops", "region", "TEXT");
+  add("shops", "business_hours", "TEXT");
 
   // Auto-seed demo shop if not present
   const demoExists = db.prepare("SELECT 1 FROM shops WHERE id='demo'").get();
@@ -96,9 +99,13 @@ function initDb(db) {
     });
   }
 
+  // Self-healing: ensure demo shop stays active
+  db.prepare("UPDATE shops SET active=1 WHERE id='demo' AND active!=1").run();
+
   // Performance: composite index for order listing queries
   db.exec("CREATE INDEX IF NOT EXISTS idx_orders_shop_created ON orders(shop_id, created_at DESC)");
   db.exec("CREATE INDEX IF NOT EXISTS idx_orders_shop_phone ON orders(shop_id, customer_phone)");
+  db.exec("CREATE INDEX IF NOT EXISTS idx_orders_created ON orders(created_at DESC)");
 }
 
 module.exports = { initDb };

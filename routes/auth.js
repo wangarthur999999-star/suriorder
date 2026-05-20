@@ -16,7 +16,7 @@ function registerAuthRoutes(app, db, { JWT_SECRET, auth, loginLimiter }) {
     const lang = validLangs.includes(language) ? language : "nl";
     const hash = bcrypt.hashSync(admin_pin, 10);
     db.prepare("INSERT INTO shops (id, name, phone, language, admin_pin, whatsapp_number) VALUES (?,?,?,?,?,?)").run(id, sanitizeName(name), sanitizeName(phone), lang, hash, sanitizeName(whatsapp_number));
-    const token = jwt.sign({ shopId: id }, JWT_SECRET, { expiresIn: "7d" });
+    const token = jwt.sign({ shopId: id, type: "shop" }, JWT_SECRET, { expiresIn: "7d" });
     const created = db.prepare("SELECT * FROM shops WHERE id=?").get(id);
     const { admin_pin: _, ...safeShop } = created;
     res.json({ id, name, token, shop: safeShop });
@@ -30,7 +30,7 @@ function registerAuthRoutes(app, db, { JWT_SECRET, auth, loginLimiter }) {
     if (!shop) return res.status(401).json({ error: "invalid credentials" });
     const valid = bcrypt.compareSync(admin_pin, shop.admin_pin);
     if (!valid) return res.status(401).json({ error: "invalid credentials" });
-    const token = jwt.sign({ shopId: shop.id }, JWT_SECRET, { expiresIn: "7d" });
+    const token = jwt.sign({ shopId: shop.id, type: "shop" }, JWT_SECRET, { expiresIn: "7d" });
     const { admin_pin: _, ...safeShop } = shop;
     res.json({ token, shop: safeShop });
   });

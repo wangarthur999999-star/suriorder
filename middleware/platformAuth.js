@@ -1,16 +1,15 @@
 const jwt = require("jsonwebtoken");
 
-function authMiddleware(JWT_SECRET) {
-  return function auth(req, res, next) {
+function platformAuthMiddleware(JWT_SECRET) {
+  return function platformAuth(req, res, next) {
     const header = req.headers.authorization || "";
-    const token = header.startsWith("Bearer ") ? header.slice(7) : (process.env.ALLOW_QUERY_TOKEN === '1' ? (req.query.token || "") : "");
+    const token = header.startsWith("Bearer ") ? header.slice(7) : "";
     if (!token) return res.status(401).json({ error: "unauthorized" });
     try {
       const payload = jwt.verify(token, JWT_SECRET);
-      if (!payload.shopId || payload.type !== "shop") {
+      if (payload.role !== "platform_owner" || payload.type !== "platform") {
         return res.status(401).json({ error: "unauthorized" });
       }
-      req.shopId = payload.shopId;
       next();
     } catch {
       res.status(401).json({ error: "unauthorized" });
@@ -18,4 +17,4 @@ function authMiddleware(JWT_SECRET) {
   };
 }
 
-module.exports = { authMiddleware };
+module.exports = { platformAuthMiddleware };

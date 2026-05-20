@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SuriOrder Platform</title>
+<style>
+:root {
+  --bg: #faf8f5;
+  --surface: #ffffff;
+  --text: #1a1a1a;
+  --text-muted: #8b7355;
+  --green: #16a34a;
+  --green-light: #dcfce7;
+  --accent: #f97316;
+  --accent-light: #fff7ed;
+  --border: #e8e3d9;
+  --danger: #dc2626;
+  --danger-bg: #fef2f2;
+  --warn: #d97706;
+  --warn-bg: #fffbeb;
+  --r: 8px;
+  --num-stack: "SF Mono", "JetBrains Mono", "Consolas", monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  min-height: 100dvh;
+}
+
+/* ── Login ── */
+.login-wrap {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100dvh; padding: 24px;
+}
+.login-card {
+  background: var(--surface); border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.06); padding: 40px 32px; width: 100%; max-width: 360px;
+  text-align: center; border: 1px solid var(--border);
+}
+.login-card h1 { font-size: 1.125rem; font-weight: 600; letter-spacing: .02em; margin-bottom: 4px; }
+.login-card p { color: var(--text-muted); font-size: .8125rem; margin-bottom: 24px; }
+.login-card input {
+  width: 100%; padding: 14px 16px; border: 1px solid var(--border);
+  border-radius: var(--r); font-size: 1.5rem; text-align: center;
+  letter-spacing: .5em; font-family: var(--num-stack); outline: none; background: var(--bg);
+}
+.login-card input:focus { border-color: var(--text-muted); background: var(--surface); }
+.login-card button {
+  width: 100%; margin-top: 16px; padding: 12px;
+  background: var(--text); color: #fff; border: none;
+  border-radius: var(--r); font-size: .875rem; font-weight: 600; cursor: pointer; letter-spacing: .02em;
+}
+.login-card button:active { opacity: .8; }
+.login-err { color: var(--danger); font-size: .75rem; margin-top: 10px; display: none; }
+
+/* ── Dashboard ── */
+.dash { display: none; padding: 20px 16px; max-width: 680px; margin: 0 auto; }
+
+.dash-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+.dash-top h1 { font-size: .9375rem; font-weight: 600; letter-spacing: .02em; }
+.dash-top button {
+  background: none; border: 1px solid var(--border); border-radius: var(--r);
+  padding: 5px 12px; font-size: .75rem; color: var(--text-muted); cursor: pointer;
+}
+
+/* Error banner */
+.err-banner { display: none; background: var(--danger-bg); color: var(--danger); padding: 8px 14px; border-radius: var(--r); font-size: .75rem; margin-bottom: 16px; }
+
+/* ── Hero: Total Volume ── */
+.hero-vol { margin-bottom: 32px; }
+.hero-vol .lbl { font-size: .625rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 4px; }
+.hero-vol .num { font-size: 2.75rem; font-weight: 700; font-family: var(--num-stack); line-height: 1; }
+
+/* ── Stats row ── */
+.stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 0; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+.stats-row .num { font-size: 1.5rem; font-weight: 700; font-family: var(--num-stack); line-height: 1.2; }
+.stats-row .lbl { font-size: .625rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 2px; }
+
+/* ── Section header ── */
+.sec-hd { font-size: .6875rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+
+/* ── Trend ── */
+.trend { display: flex; align-items: flex-end; gap: 8px; height: 90px; margin-bottom: 32px; }
+.trend-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; }
+.trend-bar {
+  width: 100%; max-width: 36px; background: var(--text-muted);
+  border-radius: 3px 3px 0 0; min-height: 3px; opacity: .45; position: relative;
+}
+.trend-bar.has-data { background: var(--accent); opacity: .85; }
+.trend-cnt { font-size: .625rem; font-family: var(--num-stack); color: var(--text-muted); margin-bottom: 2px; }
+.trend-day { font-size: .5625rem; color: var(--text-muted); margin-top: 4px; }
+.trend-empty { color: var(--text-muted); font-size: .75rem; align-self: center; font-style: italic; }
+
+/* ── Shop table ── */
+.shop-list { margin-bottom: 28px; }
+.shop-row { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); gap: 10px; }
+.shop-row:last-child { border-bottom: none; }
+.shop-name { flex: 1; min-width: 0; }
+.shop-name .n { font-size: .875rem; font-weight: 600; }
+.shop-name .m { font-size: .6875rem; color: var(--text-muted); margin-top: 1px; cursor: pointer; border-bottom: 1px dashed var(--border); display: inline-block; }
+.shop-name .m:hover { color: var(--text); border-bottom-color: var(--text-muted); }
+.shop-edit-row { display: flex; gap: 4px; margin-top: 2px; }
+.shop-edit-row input {
+  width: 80px; padding: 3px 5px; border: 1px solid var(--text-muted); border-radius: 3px;
+  font-size: .6875rem; background: var(--surface); outline: none; font-family: inherit;
+}
+.shop-edit-row input:focus { border-color: var(--text); }
+.shop-meta { text-align: right; }
+.shop-meta .v { font-family: var(--num-stack); font-size: .8125rem; font-weight: 600; }
+.shop-meta .l { font-size: .625rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; display: block; }
+.shop-warn { background: var(--warn-bg); margin-left: 6px; padding: 1px 6px; border-radius: 3px; font-size: .625rem; color: var(--warn); font-weight: 600; white-space: nowrap; }
+.shop-active-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 4px; }
+.dot-on { background: var(--green); }
+.dot-off { background: var(--border); }
+
+/* ── Orders ── */
+.order-list { margin-bottom: 28px; }
+.order-row { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); gap: 8px; font-size: .8125rem; }
+.order-row:last-child { border-bottom: none; }
+.order-time { font-family: var(--num-stack); font-size: .6875rem; color: var(--text-muted); width: 42px; flex-shrink: 0; }
+.order-shop { width: 80px; flex-shrink: 0; font-weight: 600; font-size: .75rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.order-cust { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.order-amt { font-family: var(--num-stack); font-weight: 600; text-align: right; font-size: .8125rem; }
+.order-status { width: 60px; flex-shrink: 0; text-align: right; font-size: .6875rem; font-weight: 600; }
+.st-pending { color: var(--accent); }
+.st-confirmed { color: #2563eb; }
+.st-done { color: var(--green); }
+
+/* Filters */
+.filters { display: flex; gap: 8px; margin-bottom: 10px; }
+.filters select {
+  padding: 5px 8px; border: 1px solid var(--border); border-radius: var(--r);
+  font-size: .75rem; background: var(--surface); outline: none; color: var(--text);
+}
+
+/* Loading / empty */
+.row-empty { text-align: center; color: var(--text-muted); padding: 32px 0; font-size: .75rem; }
+.row-loading { text-align: center; color: var(--border); padding: 32px 0; font-size: .75rem; }
+
+/* Toggle */
+.tgl { background: none; border: 1px solid var(--border); border-radius: var(--r); padding: 3px 8px; font-size: .6875rem; cursor: pointer; color: var(--text-muted); }
+.tgl.on { border-color: var(--green); color: var(--green); background: var(--green-light); }
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-card">
+    <h1>SuriOrder</h1>
+    <p>Platform</p>
+    <input type="password" id="pinInput" inputmode="numeric" maxlength="6" placeholder="······" autofocus>
+    <button id="loginBtn">Enter</button>
+    <div class="login-err" id="loginErr"></div>
+  </div>
+</div>
+
+<!-- Dashboard -->
+<div class="dash" id="dash">
+  <div class="dash-top">
+    <h1>SuriOrder</h1>
+    <button id="logoutBtn">Lock</button>
+  </div>
+
+  <div class="err-banner" id="errBanner"></div>
+
+  <!-- Hero: Total Volume -->
+  <div class="hero-vol">
+    <div class="lbl">Total Platform Volume</div>
+    <div class="num" id="heroVol">—</div>
+  </div>
+
+  <!-- Stats row -->
+  <div class="stats-row">
+    <div><div class="lbl">Shops</div><div class="num" id="statShops">—</div></div>
+    <div><div class="lbl">Orders</div><div class="num" id="statOrders">—</div></div>
+    <div><div class="lbl">Avg Order</div><div class="num" id="statAvg">—</div></div>
+  </div>
+
+  <!-- Trend -->
+  <div class="sec-hd">7-Day Orders</div>
+  <div class="trend" id="trend"></div>
+
+  <!-- Shops -->
+  <div class="sec-hd">Shops</div>
+  <div class="shop-list" id="shopList"></div>
+
+  <!-- Orders -->
+  <div class="sec-hd">Recent Orders</div>
+  <div class="filters">
+    <select id="filterShop"><option value="">All shops</option></select>
+    <select id="filterStatus">
+      <option value="">All</option>
+      <option value="pending">Pending</option>
+      <option value="confirmed">Confirmed</option>
+      <option value="done">Done</option>
+    </select>
+  </div>
+  <div class="order-list" id="orderList"></div>
+</div>
+
+<script>
+const API = (path, opts) => {
+  const headers = { "Content-Type": "application/json" };
+  const token = sessionStorage.getItem("pt");
+  if (token) headers["Authorization"] = "Bearer " + token;
+  return fetch(path, { ...opts, headers }).then(r => {
+    if (r.status === 401) { sessionStorage.removeItem("pt"); showLogin(); throw new Error("unauthorized"); }
+    if (!r.ok) return r.json().then(e => { throw new Error(e.error || "error"); });
+    return r.json();
+  });
+};
+
+// ── Login ──
+const loginWrap = document.getElementById("loginWrap");
+const dash = document.getElementById("dash");
+const pinInput = document.getElementById("pinInput");
+const loginErr = document.getElementById("loginErr");
+const errBanner = document.getElementById("errBanner");
+
+let allShops = [];
+
+function showLogin() { loginWrap.style.display = "flex"; dash.style.display = "none"; sessionStorage.removeItem("pt"); }
+function showDash() { loginWrap.style.display = "none"; dash.style.display = "block"; loadAll(); }
+
+function showErr(msg) {
+  errBanner.textContent = msg; errBanner.style.display = "block";
+  setTimeout(() => { errBanner.style.display = "none"; }, 5000);
+}
+
+document.getElementById("loginBtn").addEventListener("click", async () => {
+  const pin = pinInput.value.trim();
+  if (!pin) return;
+  loginErr.style.display = "none";
+  try {
+    const r = await fetch("/api/platform/auth", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ pin }) });
+    if (!r.ok) { const e = await r.json(); throw new Error(e.error); }
+    const data = await r.json();
+    sessionStorage.setItem("pt", data.token);
+    showDash();
+  } catch (e) {
+    loginErr.textContent = e.message; loginErr.style.display = "block";
+    pinInput.value = "";
+  }
+});
+
+pinInput.addEventListener("keydown", e => { if (e.key === "Enter") document.getElementById("loginBtn").click(); });
+document.getElementById("logoutBtn").addEventListener("click", showLogin);
+
+// ── Load ──
+async function loadAll() {
+  const shopEl = document.getElementById("shopList");
+  const orderEl = document.getElementById("orderList");
+  shopEl.innerHTML = '<div class="row-loading">Loading...</div>';
+  orderEl.innerHTML = '<div class="row-loading">Loading...</div>';
+
+  try {
+    const [dashData, shops, orders] = await Promise.all([
+      API("/api/platform/dashboard"),
+      API("/api/platform/shops"),
+      API("/api/platform/orders")
+    ]);
+    allShops = shops;
+    renderAll(dashData, shops, orders);
+  } catch (e) {
+    if (e.message !== "unauthorized") showErr(e.message);
+  }
+}
+
+function renderAll(d, shops, orders) {
+  // Hero volume
+  const vol = d.daily ? d.daily.reduce((s, d) => s + d.total, 0) : 0;
+  document.getElementById("heroVol").textContent = vol ? "SRD " + vol.toLocaleString("en") : "SRD 0";
+
+  // Stats
+  document.getElementById("statShops").textContent = d.totalShops;
+  document.getElementById("statOrders").textContent = d.totalOrders;
+  document.getElementById("statAvg").textContent = d.avgOrderValue ? "SRD " + Number(d.avgOrderValue).toFixed(0) : "—";
+
+  // Trend
+  renderTrend(d.daily);
+
+  // Shops
+  renderShops(shops);
+
+  // Orders
+  renderOrders(orders);
+}
+
+// ── Trend ──
+function renderTrend(daily) {
+  const el = document.getElementById("trend");
+  if (!daily || !daily.length) { el.innerHTML = '<span class="trend-empty">No orders yet</span>'; return; }
+  const max = Math.max(...daily.map(d => d.cnt), 1);
+  el.innerHTML = daily.map(d => {
+    const h = Math.max(4, Math.round(d.cnt / max * 72));
+    const day = d.day.slice(5);
+    const hasData = d.cnt > 0;
+    return `<div class="trend-bar-wrap"><span class="trend-cnt">${d.cnt}</span><div class="trend-bar ${hasData ? 'has-data' : ''}" style="height:${h}px"></div><div class="trend-day">${day}</div></div>`;
+  }).join("");
+}
+
+// ── Shops ──
+function renderShops(shops) {
+  const el = document.getElementById("shopList");
+  const sel = document.getElementById("filterShop");
+  sel.innerHTML = '<option value="">All shops</option>' + shops.map(s => `<option value="${s.id}">${escHtml(s.name)}</option>`).join("");
+
+  if (!shops.length) { el.innerHTML = '<div class="row-empty">No shops</div>'; return; }
+
+  el.innerHTML = shops.map(s => {
+    const cuisine = s.cuisine_type || "";
+    const region = s.region || "";
+    const metaParts = [cuisine, region].filter(Boolean);
+    const meta = metaParts.length ? metaParts.join(" · ") : "Tap to add details";
+    const daysSince = s.last_order ? daysAgo(s.last_order) : 999;
+    const warn = s.last_order && daysSince > 7 ? `<span class="shop-warn">${daysSince}d</span>` : "";
+    const dotCls = s.active ? "dot-on" : "dot-off";
+    return `<div class="shop-row" data-shop-id="${escHtml(s.id)}">
+      <span class="shop-active-dot ${dotCls}"></span>
+      <div class="shop-name"><div class="n">${escHtml(s.name)}${warn}</div><div class="m" data-cuisine="${escHtml(cuisine)}" data-region="${escHtml(region)}">${escHtml(meta)}</div></div>
+      <div class="shop-meta"><span class="v">${s.order_count}</span><span class="l">orders</span></div>
+      <div class="shop-meta"><span class="v">${s.orders_7d}</span><span class="l">7d</span></div>
+      <button class="tgl ${s.active ? 'on' : ''}" data-id="${s.id}" data-active="${s.active ? 1 : 0}">${s.active ? 'On' : 'Off'}</button>
+    </div>`;
+  }).join("");
+
+  // Inline edit for cuisine/region
+  el.querySelectorAll(".shop-name .m").forEach(meta => {
+    meta.addEventListener("click", function startEdit() {
+      if (meta.querySelector("input")) return; // already editing
+      const row = meta.closest(".shop-row");
+      const shopId = row.dataset.shopId;
+      const origCuisine = meta.dataset.cuisine;
+      const origRegion = meta.dataset.region;
+
+      meta.innerHTML = `<div class="shop-edit-row">
+        <input type="text" value="${escHtml(origCuisine)}" placeholder="Cuisine" data-key="cuisine_type">
+        <input type="text" value="${escHtml(origRegion)}" placeholder="Region" data-key="region">
+      </div>`;
+      const inputs = meta.querySelectorAll("input");
+      inputs[0].focus();
+
+      async function save() {
+        const cuisine = inputs[0].value.trim();
+        const region = inputs[1].value.trim();
+        const parts = [cuisine, region].filter(Boolean);
+        meta.dataset.cuisine = cuisine;
+        meta.dataset.region = region;
+        meta.textContent = parts.length ? parts.join(" · ") : "Tap to add details";
+        try {
+          await API("/api/platform/shops/" + shopId, {
+            method: "PUT",
+            body: JSON.stringify({
+              cuisine_type: cuisine || "",
+              region: region || ""
+            })
+          });
+        } catch (e) { showErr(e.message); }
+      }
+
+      function cancel() {
+        meta.textContent = origCuisine || origRegion ? [origCuisine, origRegion].filter(Boolean).join(" · ") : "Tap to add details";
+      }
+
+      inputs.forEach(inp => {
+        inp.addEventListener("keydown", e => {
+          if (e.key === "Enter") { e.preventDefault(); save(); }
+          if (e.key === "Escape") { cancel(); }
+        });
+        inp.addEventListener("blur", save);
+      });
+    });
+  });
+
+  // Toggle handlers
+  el.querySelectorAll(".tgl").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const id = btn.dataset.id;
+      const newVal = btn.dataset.active === "1" ? 0 : 1;
+      try {
+        await API("/api/platform/shops/" + id, { method: "PUT", body: JSON.stringify({ active: newVal }) });
+        btn.dataset.active = String(newVal);
+        btn.textContent = newVal ? "On" : "Off";
+        btn.classList.toggle("on", !!newVal);
+      } catch (e) { showErr(e.message); }
+    });
+  });
+}
+
+// ── Orders ──
+function renderOrders(orders) {
+  const el = document.getElementById("orderList");
+  if (!orders.length) { el.innerHTML = '<div class="row-empty">No orders</div>'; return; }
+
+  el.innerHTML = orders.map(o => {
+    const t = o.created_at ? o.created_at.slice(11, 16) : "";
+    const stCls = "st-" + o.status;
+    return `<div class="order-row">
+      <span class="order-time">${escHtml(t)}</span>
+      <span class="order-shop">${escHtml(o.shop_name)}</span>
+      <span class="order-cust">${escHtml(o.customer_name)}</span>
+      <span class="order-amt">${o.total.toFixed(0)}</span>
+      <span class="order-status ${stCls}">${o.status}</span>
+    </div>`;
+  }).join("");
+}
+
+// ── Filters ──
+document.getElementById("filterShop").addEventListener("change", loadOrders);
+document.getElementById("filterStatus").addEventListener("change", loadOrders);
+
+async function loadOrders() {
+  const el = document.getElementById("orderList");
+  el.innerHTML = '<div class="row-loading">Loading...</div>';
+  const shop = document.getElementById("filterShop").value;
+  const status = document.getElementById("filterStatus").value;
+  const params = new URLSearchParams();
+  if (shop) params.set("shop_id", shop);
+  if (status) params.set("status", status);
+  try {
+    const orders = await API("/api/platform/orders?" + params);
+    renderOrders(orders);
+  } catch (e) { showErr(e.message); }
+}
+
+// ── Helpers ──
+function escHtml(s) { return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function daysAgo(d) { const then = new Date(d + (d.includes("T") ? "" : "T00:00:00")); return Math.floor((Date.now() - then) / 86400000); }
+
+// Init
+if (sessionStorage.getItem("pt")) { showDash(); } else { showLogin(); }
+</script>
+</body>
+</html>

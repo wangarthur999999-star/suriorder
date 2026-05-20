@@ -84,7 +84,7 @@
     transition: transform var(--tran), box-shadow var(--tran);
     cursor: pointer;
   }
-  .shop-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+  .shop-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lift); }
   .shop-card .info { flex: 1; min-width: 0; }
   .shop-card .info h3 { font-size: 1rem; font-weight: 700; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .shop-card .info p { font-size: .8rem; color: var(--text-sec); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -103,8 +103,8 @@
   .shop-card .actions a:active { transform: scale(.96); }
   .btn-order { background: var(--pri); color: #fff; }
   .btn-order:hover { background: var(--pri-dark); }
-  .btn-wa { background: #25D366; color: #fff; }
-  .btn-wa:hover { background: #1fa954; }
+  .btn-wa { background: var(--wa); color: #fff; }
+  .btn-wa:hover { background: var(--wa-hover); }
 
   /* ── Empty State ── */
   .empty-state { text-align: center; padding: 48px 16px; color: var(--muted); }

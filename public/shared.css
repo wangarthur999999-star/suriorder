@@ -29,18 +29,36 @@
   /* Focus ring */
   --focus-ring: 0 0 0 3px rgba(22, 163, 74, .4);
 
-  /* Radius hierarchy */
-  --r-sm:  6px;
-  --r:     8px;
-  --r-lg:  12px;
-  --r-xl:  16px;
-  --r-2xl: 20px;
+  /* Radius hierarchy — scaled up for warmer feel */
+  --r-sm:  8px;
+  --r:     10px;
+  --r-lg:  14px;
+  --r-xl:  18px;
+  --r-2xl: 24px;
 
   /* Shadow hierarchy */
   --shadow-sm: 0 1px 2px rgba(0,0,0,.04);
   --shadow:    0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
   --shadow-md: 0 4px 12px rgba(0,0,0,.08), 0 2px 4px rgba(0,0,0,.04);
   --shadow-lg: 0 10px 30px rgba(0,0,0,.1), 0 4px 8px rgba(0,0,0,.05);
+  --shadow-card: 0 2px 12px rgba(0,0,0,.06);
+  --shadow-lift: 0 8px 24px rgba(0,0,0,.10);
+
+  /* Warm accent — orange */
+  --accent:       #f97316;
+  --accent-light: #fff7ed;
+  --accent-dark:  #ea580c;
+
+  /* WhatsApp brand */
+  --wa:       #25D366;
+  --wa-hover: #1fa954;
+
+  /* Category color palette — left stripe on menu cards */
+  --cat-1: #16a34a;
+  --cat-2: #f97316;
+  --cat-3: #3b82f6;
+  --cat-4: #a855f7;
+  --cat-5: #eab308;
 
   /* Touch targets */
   --touch:    44px;

@@ -72,7 +72,12 @@
   .stat-card {
     background: var(--card); padding: 16px; border-radius: var(--r-lg);
     box-shadow: var(--shadow); transition: background var(--tran);
+    border-left: 4px solid var(--pri);
   }
+  .stat-card:nth-child(1) { border-left-color: var(--pri); }
+  .stat-card:nth-child(2) { border-left-color: var(--accent); }
+  .stat-card:nth-child(3) { border-left-color: var(--cat-3); }
+  .stat-card:nth-child(4) { border-left-color: var(--cat-4); }
   .stat-card .label { font-size: .72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; font-weight: 600; }
   .stat-card .value { font-size: 1.5rem; font-weight: 800; margin-top: 4px; }
   .stat-pulse { animation: statPulse .5s ease-in-out 3; }
@@ -87,7 +92,7 @@
     transition: all var(--tran); color: var(--text-sec);
   }
   .tabs button:hover { color: var(--pri); }
-  .tabs button.active { background: var(--pri); color: #fff; }
+  .tabs button.active { background: transparent; color: var(--pri); box-shadow: inset 0 -3px 0 0 var(--pri); border-radius: 0; }
 
   /* ── Panels ── */
   .panel { display: none; animation: panelIn var(--tran-slow) ease; }
@@ -99,7 +104,7 @@
   th, td { padding: 10px 12px; text-align: left; font-size: .82rem; border-bottom: 1px solid var(--border); }
   th { background: var(--bg); font-weight: 700; color: var(--text-sec); font-size: .75rem; text-transform: uppercase; letter-spacing: .3px; }
   tr:last-child td { border-bottom: none; }
-  .order-link { font-size: .72rem; color: #25D366; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 3px; }
+  .order-link { font-size: .72rem; color: var(--wa); text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 3px; }
   .order-link:hover { text-decoration: underline; }
 	.item-sold-out { opacity: .5; }
 	.item-sold-out:hover { opacity: .75; }
@@ -107,9 +112,9 @@
   /* ── Order Status Badges ── */
   .order-status { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: .72rem; font-weight: 600; }
   .status-pending   { background: var(--warn-light); color: var(--warn-dark); }
-  .status-confirmed { background: var(--info-light); color: #1e40af; }
-  .status-done      { background: var(--pri-light); color: #065f46; }
-  .status-cancelled { background: var(--danger-light); color: #991b1b; }
+  .status-confirmed { background: var(--info-light); color: var(--info); }
+  .status-done      { background: var(--pri-light); color: var(--pri-dark); }
+  .status-cancelled { background: var(--danger-light); color: var(--danger); }
 
   /* ── Payment Badges ── */
   .pay-badge {
@@ -117,8 +122,8 @@
     font-size: .68rem; font-weight: 600; margin-left: 4px;
   }
   .pay-unpaid   { background: var(--warn-light); color: var(--warn-dark); }
-  .pay-paid     { background: var(--pri-light); color: #065f46; }
-  .pay-refunded { background: var(--danger-light); color: #991b1b; }
+  .pay-paid     { background: var(--pri-light); color: var(--pri-dark); }
+  .pay-refunded { background: var(--danger-light); color: var(--danger); }
 
   /* ── Category Chips ── */
   .cat-chips { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
@@ -173,8 +178,8 @@
 
   /* ── Button Extensions ── */
   .btn--icon { padding: 4px 8px; font-size: .68rem; line-height: 1; margin-right: 3px; }
-  .btn--wa { background: #25D366; color: #fff; }
-  .btn--wa:hover { background: #1fa954; }
+  .btn--wa { background: var(--wa); color: #fff; }
+  .btn--wa:hover { background: var(--wa-hover); }
 
   /* ── Wizard ── */
   .wizard-overlay {
@@ -235,9 +240,18 @@
     .container { padding: 8px; }
     .stats { grid-template-columns: 1fr 1fr; gap: 8px; }
     .stat-card .value { font-size: 1.2rem; }
-    th, td { padding: 8px 6px; font-size: .75rem; }
-    .col-time { display: none; }
     .form-row input, .form-row select { min-width: 100px; font-size: .78rem; }
+
+    /* Orders as cards */
+    .panel table { background: transparent; box-shadow: none; border-radius: 0; overflow: visible; }
+    .panel thead { display: none; }
+    .panel tbody { display: flex; flex-direction: column; gap: 10px; }
+    .panel tr {
+      display: block; background: var(--card); border-radius: var(--r-lg);
+      box-shadow: var(--shadow-card); padding: 12px;
+    }
+    .panel td { display: block; padding: 4px 0; border-bottom: none; font-size: .82rem; }
+    .panel td:first-child { font-weight: 700; color: var(--pri); font-size: .9rem; }
   }
   @media (min-width: 1024px) {
     .container { max-width: 960px; }
@@ -719,21 +733,26 @@ function showDashboard(){
 
 async function loadDashboard(){
   showSkeleton('stats', 4, '72px');
-  var r=await fetch('/api/admin/dashboard',{headers:authHeaders()});
-  var d=await r.json();
-  document.getElementById('stats').innerHTML=
+  try {
+    var r=await fetch('/api/admin/dashboard',{headers:authHeaders()});
+    if (!r.ok) throw new Error(r.status);
+    var d=await r.json();
+    document.getElementById('stats').innerHTML=
     '<div class="stat-card"><div class="label">'+t('stats_today_orders')+'</div><div class="value">'+(d.ordersToday?.count||0)+'</div></div>'+
     '<div class="stat-card"><div class="label">'+t('stats_today_revenue')+'</div><div class="value">SRD '+((d.ordersToday?.total||0)).toFixed(0)+'</div></div>'+
     '<div class="stat-card"><div class="label">'+t('stats_week_revenue')+'</div><div class="value">SRD '+((d.ordersWeek?.total||0)).toFixed(0)+'</div></div>'+
     '<div class="stat-card" id="stat-pending"><div class="label">'+t('stats_pending')+'</div><div class="value">'+(d.pending?.count||0)+'</div></div>';
+  } catch(e) { Toast.error('Failed to load dashboard'); }
 }
 
 async function loadOrders(){
   var tbody = document.getElementById('orders-tbody');
   tbody.innerHTML = '<tr><td colspan="7"><div style="display:flex;justify-content:center;padding:40px"><div class="spinner"></div></div></td></tr>';
-  var r=await fetch('/api/admin/orders',{headers:authHeaders()});
-  var orders=await r.json();
-  tbody.innerHTML=orders.map(function(o){
+  try {
+    var r=await fetch('/api/admin/orders',{headers:authHeaders()});
+    if (!r.ok) throw new Error(r.status);
+    var orders=await r.json();
+    tbody.innerHTML=orders.map(function(o){
     var items; try{items=JSON.parse(o.items_json)}catch(e){items=[]}
     var sc='status-'+esc(o.status);
     var psMap={unpaid:'pay_unpaid',paid:'pay_paid',refunded:'pay_refunded'};
@@ -752,6 +771,7 @@ async function loadOrders(){
       '<td><select data-order-id="'+esc(o.id)+'" aria-label="'+t('actie')+'" class="order-status-select" style="font-size:.75rem;padding:4px;border-radius:var(--r-sm);border:1px solid var(--border)"><option value="">'+t('actie')+'</option><option value="confirmed">'+t('bevestig')+'</option><option value="done">'+t('klaar')+'</option><option value="cancelled">'+t('annuleer')+'</option></select></td>'+
       '</tr>';
   }).join('') || '<tr><td colspan="7" class="empty-row">'+t('empty_orders')+'</td></tr>';
+  } catch(e) { tbody.innerHTML = '<tr><td colspan="7" class="empty-row">'+t('empty_orders')+'</td></tr>'; Toast.error('Failed to load orders'); }
 }
 
 async function updateOrderStatus(id,s){
@@ -761,9 +781,12 @@ async function updateOrderStatus(id,s){
 }
 
 async function loadItems(){
-  var r=await fetch('/api/admin/items',{headers:authHeaders()});
-  var items=await r.json();
-  document.getElementById('items-list').innerHTML='<table><thead><tr><th>'+t('th_name')+'</th><th>'+t('th_cat')+'</th><th>'+t('th_price')+'</th><th>'+t('th_avail')+'</th><th></th></tr></thead><tbody>'+items.map(function(i){ var soldOutBtn=i.available?'<button class="btn btn--warn btn--xs" data-available-id="'+i.id+'" data-available-cur="1">'+t('sold_out')+'</button>':'<button class="btn btn--pri btn--xs" data-available-id="'+i.id+'" data-available-cur="0">'+t('th_avail')+'</button>'; return '<tr class="'+ (i.available?'':'item-sold-out') +'"><td>'+esc(i.name)+(i.name_zh?' / '+esc(i.name_zh):'')+(i.name_es?' / '+esc(i.name_es):'')+'</td><td>'+esc(i.category_name||'-')+'</td><td>SRD '+i.price.toFixed(2)+'</td><td>'+soldOutBtn+'</td><td><button class="btn btn--danger btn--xs" data-item-id="'+i.id+'" aria-label="'+t('delete_confirm')+'">✕</button></td></tr>'; }).join('')+'</tbody></table>';
+  try {
+    var r=await fetch('/api/admin/items',{headers:authHeaders()});
+    if (!r.ok) throw new Error(r.status);
+    var items=await r.json();
+    document.getElementById('items-list').innerHTML='<table><thead><tr><th>'+t('th_name')+'</th><th>'+t('th_cat')+'</th><th>'+t('th_price')+'</th><th>'+t('th_avail')+'</th><th></th></tr></thead><tbody>'+items.map(function(i){ var soldOutBtn=i.available?'<button class="btn btn--warn btn--xs" data-available-id="'+i.id+'" data-available-cur="1">'+t('sold_out')+'</button>':'<button class="btn btn--pri btn--xs" data-available-id="'+i.id+'" data-available-cur="0">'+t('th_avail')+'</button>'; return '<tr class="'+ (i.available?'':'item-sold-out') +'"><td>'+esc(i.name)+(i.name_zh?' / '+esc(i.name_zh):'')+(i.name_es?' / '+esc(i.name_es):'')+'</td><td>'+esc(i.category_name||'-')+'</td><td>SRD '+i.price.toFixed(2)+'</td><td>'+soldOutBtn+'</td><td><button class="btn btn--danger btn--xs" data-item-id="'+i.id+'" aria-label="'+t('delete_confirm')+'">✕</button></td></tr>'; }).join('')+'</tbody></table>';
+  } catch(e) { Toast.error('Failed to load items'); }
 }
 
 async function addItem(){
@@ -787,12 +810,15 @@ function deleteItem(id){
 }
 
 async function loadCategories() {
-  var r = await fetch('/api/admin/categories', { headers: authHeaders() });
-  var cats = await r.json();
-  document.getElementById('cat-chips').innerHTML = cats.map(function(c) {
+  try {
+    var r = await fetch('/api/admin/categories', { headers: authHeaders() });
+    if (!r.ok) throw new Error(r.status);
+    var cats = await r.json();
+    document.getElementById('cat-chips').innerHTML = cats.map(function(c) {
     return '<span class="cat-chip">'+esc(c.name)+'<button class="cat-del" data-cat-id="'+c.id+'" aria-label="'+t('delete_confirm')+'" title="'+t('delete_confirm')+'">×</button></span>';
   }).join('');
   document.getElementById('item-cat').innerHTML = '<option value="">'+t('cat_opt')+'</option>'+cats.map(function(c){ return '<option value="'+c.id+'">'+esc(c.name)+'</option>'; }).join('');
+  } catch(e) { Toast.error('Failed to load categories'); }
 }
 
 async function addCategory() {

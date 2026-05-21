@@ -185,4 +185,30 @@ function registerPlatformRoutes(app, db, { JWT_SECRET, platformAuth, platformLim
   });
 }
 
+  // Off-instance backup: trigger atomic backup and stream as download
+  app.get("/api/platform/backup", platformAuth, (req, res) => {
+    try {
+      const dir = path.join(__dirname, "..", "data");
+      const ts = new Date().toISOString().replace(/:/g, "-").replace(/\..+/, "");
+      const filename = `suriorder-backup-${ts}.db`;
+      const dest = path.join(dir, filename);
+
+      db.backup(dest);
+      logger.info("manual backup created for off-instance download", { filename });
+
+      res.setHeader("Content-Type", "application/octet-stream");
+      res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+      const stream = fs.createReadStream(dest);
+      stream.pipe(res);
+      stream.on("end", () => {
+        // Clean up after download — keep the backup for local retention too
+        logger.info("off-instance backup download complete", { filename });
+      });
+    } catch (err) {
+      logger.error("off-instance backup failed", { error: err.message });
+      res.status(500).json({ error: "backup failed" });
+    }
+  });
+}
+
 module.exports = { registerPlatformRoutes };

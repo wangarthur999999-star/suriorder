@@ -86,7 +86,7 @@ function registerOrderRoutes(app, db, { auth, orderLimiter }) {
     let appendTotal = 0;
     const appendItems = [];
     for (const oi of items) {
-      const dbi = db.prepare('SELECT * FROM items WHERE id=?').get(oi.id);
+      const dbi = db.prepare('SELECT * FROM items WHERE id=? AND shop_id=?').get(oi.id, order.shop_id);
       if (!dbi) return res.status(400).json({ error: 'item ' + oi.id + ' not found' });
       const qty = parseInt(oi.qty);
       if (!Number.isFinite(qty) || qty < 1 || qty > 999) return res.status(400).json({ error: 'invalid quantity' });

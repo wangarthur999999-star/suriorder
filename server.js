@@ -33,6 +33,7 @@ fs.mkdirSync(path.join(__dirname, "data"), { recursive: true });
 const app = express();
 app.set('trust proxy', 1);
 app.use(helmet({
+  permissionsPolicy: { features: { camera: [], microphone: [], geolocation: [] } },
   contentSecurityPolicy: {
     directives: {
       "default-src": ["'self'"],

@@ -37,10 +37,10 @@ function registerWebhookRoute(app, db) {
 
     for (const ev of events) {
       if (ev.type === "text" && ev.from && ev.text) {
-        // Check if message is from a known restaurant
-        const shop = db.prepare(
-          "SELECT id FROM shops WHERE whatsapp_number LIKE ? AND active=1"
-        ).get(`%${ev.from}%`);
+        // Check if message is from a known restaurant (normalize phone for exact match)
+        const normalizedFrom = ev.from.replace(/\D/g, '');
+        const shops = db.prepare("SELECT id, whatsapp_number FROM shops WHERE active=1").all();
+        const shop = shops.find(s => s.whatsapp_number.replace(/\D/g, '') === normalizedFrom);
         if (shop) {
           handleMerchantMessage(shop.id, ev.from, ev.text, db);
         }

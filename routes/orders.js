@@ -1,6 +1,6 @@
 const crypto = require("crypto");
 const logger = require("../lib/logger");
-const { sanitizeName } = require("../lib/sanitize");
+const { sanitizeName, sanitizeText } = require("../lib/sanitize");
 
 function registerOrderRoutes(app, db, { auth, orderLimiter }) {
 
@@ -163,7 +163,7 @@ function registerOrderRoutes(app, db, { auth, orderLimiter }) {
       changes += db.prepare("UPDATE orders SET payment_status=? WHERE id=? AND shop_id=?").run(payment_status, req.params.id, req.shopId).changes;
     }
     if (payment_note !== undefined) {
-      changes += db.prepare("UPDATE orders SET payment_note=? WHERE id=? AND shop_id=?").run(payment_note, req.params.id, req.shopId).changes;
+      changes += db.prepare("UPDATE orders SET payment_note=? WHERE id=? AND shop_id=?").run(sanitizeText(payment_note), req.params.id, req.shopId).changes;
     }
     if (changes === 0) return res.status(404).json({ error: "order not found" });
     res.json({ ok: true });

@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const fs = require("fs");
 const logger = require("../lib/logger");
+const { sanitizeName } = require("../lib/sanitize");
 
 function registerPlatformRoutes(app, db, { JWT_SECRET, platformAuth, platformLimiter }) {
 
@@ -95,9 +96,9 @@ function registerPlatformRoutes(app, db, { JWT_SECRET, platformAuth, platformLim
     const params = [];
 
     if (typeof active === "number") { fields.push("active=?"); params.push(active); }
-    if (cuisine_type !== undefined) { fields.push("cuisine_type=?"); params.push(cuisine_type); }
-    if (region !== undefined) { fields.push("region=?"); params.push(region); }
-    if (business_hours !== undefined) { fields.push("business_hours=?"); params.push(business_hours); }
+    if (cuisine_type !== undefined) { fields.push("cuisine_type=?"); params.push(sanitizeName(cuisine_type)); }
+    if (region !== undefined) { fields.push("region=?"); params.push(sanitizeName(region)); }
+    if (business_hours !== undefined) { fields.push("business_hours=?"); params.push(sanitizeName(business_hours)); }
 
     if (!fields.length) return res.status(400).json({ error: "no fields to update" });
 
@@ -183,7 +184,6 @@ function registerPlatformRoutes(app, db, { JWT_SECRET, platformAuth, platformLim
 
     res.json({ topItems, hourlyDist, weeklyAOV, repeatCustomers, menuDepth });
   });
-}
 
   // Off-instance backup: trigger atomic backup and stream as download
   app.get("/api/platform/backup", platformAuth, (req, res) => {
@@ -201,7 +201,6 @@ function registerPlatformRoutes(app, db, { JWT_SECRET, platformAuth, platformLim
       const stream = fs.createReadStream(dest);
       stream.pipe(res);
       stream.on("end", () => {
-        // Clean up after download — keep the backup for local retention too
         logger.info("off-instance backup download complete", { filename });
       });
     } catch (err) {

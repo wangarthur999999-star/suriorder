@@ -422,6 +422,8 @@
     color: #64748b;
   }
 
+  .os-print-shop { display: none; }
+
   /* ====== @media print — 58mm/80mm 热敏小票 ====== */
   @media print {
     body * { visibility: hidden !important; }
@@ -435,6 +437,15 @@
     #order-screen .os-header,
     #order-screen .os-exit,
     #order-screen .osc-confirm { display: none !important; }
+    #order-screen .os-print-shop {
+      display: block !important;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      padding-bottom: 4px;
+      border-bottom: 1px dashed #000;
+    }
     #order-screen .os-card:not(.printing) { display: none !important; }
     #order-screen .os-card.printing {
       border: none !important;
@@ -581,6 +592,7 @@
 
 <!-- 接单大屏 -->
 <div id="order-screen">
+  <div class="os-print-shop" id="os-print-shop"></div>
   <div class="os-header">
     <div>
       <h2>接单大屏</h2>
@@ -653,7 +665,7 @@ var L_admin = {
     cat_delete_confirm: "Categorie en items verwijderen?",
     th_avail: "Beschikbaar", sold_out: "Uitverkocht", return_badge: "Vaste klant",
     os_title: "Bestellingen Scherm", os_exit: "Verlaten", os_enter: "🔔 Order Scherm",
-    os_active: "Live", os_confirm: "✅ Bevestigen", os_confirmed: "Bevestigd",
+    os_active: "Live", os_confirm: "✅ Bevestigen", os_confirmed: "Bevestigd", os_retry: "Opnieuw",
     os_dine_in: "🍽 Dine-in", os_takeaway: "🛍 Afhalen",
     os_cod: "💵 Contant", os_bank: "🏦 Overboeking", os_pickup: "Ophalen",
     os_empty: "Wachten op bestellingen..."
@@ -713,7 +725,7 @@ var L_admin = {
     cat_delete_confirm: "Delete category and its items?",
     th_avail: "Available", sold_out: "Sold out", return_badge: "Regular",
     os_title: "Order Screen", os_exit: "Exit", os_enter: "🔔 Order Screen",
-    os_active: "Live", os_confirm: "✅ Confirm", os_confirmed: "Confirmed",
+    os_active: "Live", os_confirm: "✅ Confirm", os_confirmed: "Confirmed", os_retry: "Retry",
     os_dine_in: "🍽 Dine-in", os_takeaway: "🛍 Takeaway",
     os_cod: "💵 Cash", os_bank: "🏦 Transfer", os_pickup: "Pickup",
     os_empty: "Waiting for orders..."
@@ -773,7 +785,7 @@ var L_admin = {
     cat_delete_confirm: "确定删除分类及其菜品？",
     th_avail: "状态", sold_out: "售罄", return_badge: "熟客",
     os_title: "接单大屏", os_exit: "退出", os_enter: "🔔 进入接单大屏",
-    os_active: "实时", os_confirm: "✅ 确认接单", os_confirmed: "已确认",
+    os_active: "实时", os_confirm: "✅ 确认接单", os_confirmed: "已确认", os_retry: "重试",
     os_dine_in: "🍽 堂食", os_takeaway: "🛍 外带",
     os_cod: "💵 现金", os_bank: "🏦 转账", os_pickup: "取餐时间",
     os_empty: "等待订单中..."
@@ -833,7 +845,7 @@ var L_admin = {
     cat_delete_confirm: "¿Eliminar categoría y todos sus platos?",
     th_avail: "Disponible", sold_out: "Agotado", return_badge: "Cliente frecuente",
     os_title: "Pantalla de Pedidos", os_exit: "Salir", os_enter: "🔔 Pantalla de Pedidos",
-    os_active: "En vivo", os_confirm: "✅ Confirmar", os_confirmed: "Confirmado",
+    os_active: "En vivo", os_confirm: "✅ Confirmar", os_confirmed: "Confirmado", os_retry: "Reintentar",
     os_dine_in: "🍽 Para servir", os_takeaway: "🛍 Para llevar",
     os_cod: "💵 Efectivo", os_bank: "🏦 Transferencia", os_pickup: "Recoger",
     os_empty: "Esperando pedidos..."
@@ -1036,7 +1048,7 @@ async function loadOrders(){
     }).join('');
     return '<tr class="order-row" data-order-id="'+esc(o.id)+'">'+
       '<td><span class="order-expand-arrow">▶</span> #'+esc(String(o.id)).slice(0,8)+'</td>'+
-      '<td>'+esc(o.customer_name)+(o.prev_orders > 0 ? '<br><span class="return-badge" style="color:var(--pri);font-size:.72rem;font-weight:600">🔄 '+t('return_badge')+' (x'+o.prev_orders+')</span>' : '')+(o.customer_phone ? '<br><a class="order-link" href="https://wa.me/'+o.customer_phone.replace(/[^0-9]/g,'')+'" target="_blank" rel="noopener">💬 '+esc(o.customer_phone)+'</a>' : '')+'</td>'+
+      '<td>'+esc(o.customer_name)+(o.dining_option === 'dine_in' ? ' <span class="dine-badge" style="background:#dcfce7;color:#16a34a;padding:1px 6px;border-radius:10px;font-size:.7rem;font-weight:600">'+t('os_dine_in')+'</span>' : '')+(o.dining_option === 'takeaway' ? ' <span class="dine-badge" style="background:#fff7ed;color:#f97316;padding:1px 6px;border-radius:10px;font-size:.7rem;font-weight:600">'+t('os_takeaway')+'</span>' : '')+(o.prev_orders > 0 ? '<br><span class="return-badge" style="color:var(--pri);font-size:.72rem;font-weight:600">🔄 '+t('return_badge')+' (x'+o.prev_orders+')</span>' : '')+(o.customer_phone ? '<br><a class="order-link" href="https://wa.me/'+o.customer_phone.replace(/[^0-9]/g,'')+'" target="_blank" rel="noopener">💬 '+esc(o.customer_phone)+'</a>' : '')+'</td>'+
       '<td>'+items.map(function(i){ return i.qty+'x '+esc(i.name); }).join(', ')+'</td>'+
       '<td>SRD '+o.total.toFixed(2)+' <span class="'+psClass+'">'+t(ps)+'</span> '+payBtn+'</td>'+
       '<td class="col-time">'+esc(o.created_at?.slice(11,16)||'')+'</td>'+
@@ -1342,6 +1354,8 @@ var orderScreenOrders = {};  // { orderId: { ...order, confirmed: false, speechT
 function enterOrderScreen() {
   orderScreenActive = true;
   document.getElementById('order-screen').classList.add('active');
+  // Set print-only shop name
+  document.getElementById('os-print-shop').textContent = shop.name;
   // Update static texts
   document.querySelector('#order-screen .os-header h2').textContent = t('os_title');
   document.querySelector('#order-screen .os-header .os-badge').textContent = t('os_active');
@@ -1352,6 +1366,21 @@ function enterOrderScreen() {
   var u = new SpeechSynthesisUtterance('');
   u.volume = 0;
   speechSynthesis.speak(u);
+
+  // Load existing pending orders (silently — no speech for old orders)
+  fetch('/api/admin/orders', { headers: authHeaders() }).then(function(r) {
+    if (!r.ok) return;
+    return r.json();
+  }).then(function(orders) {
+    if (!orders || !orderScreenActive) return;
+    orders.forEach(function(o) {
+      if (o.status !== 'pending') return;
+      if (orderScreenOrders[o.id]) return;
+      var items; try { items = JSON.parse(o.items_json); } catch (_) { items = []; }
+      o.items = items;
+      addOrderCard(o, false);
+    });
+  }).catch(function() { /* ignore — SSE will catch new ones */ });
 
   // Resume SSE if needed
   if (!eventSource || eventSource.readyState > 1) {
@@ -1412,7 +1441,8 @@ function startSpeechLoop(order) {
   return timer;
 }
 
-function addOrderCard(order) {
+function addOrderCard(order, speak) {
+  if (speak === undefined) speak = true;
   var grid = document.getElementById('os-grid');
   // Remove empty state if present
   var emptyEl = grid.querySelector('.os-empty');
@@ -1464,26 +1494,42 @@ function addOrderCard(order) {
 
   // Track order
   orderScreenOrders[order.id] = { order: order, confirmed: false, speechTimer: null };
-  // Start speech loop
-  orderScreenOrders[order.id].speechTimer = startSpeechLoop(order);
+  // Start speech loop only for new orders
+  if (speak) {
+    orderScreenOrders[order.id].speechTimer = startSpeechLoop(order);
+  }
 }
 
 async function confirmOrderScreen(orderId) {
   var entry = orderScreenOrders[orderId];
   if (!entry || entry.confirmed) return;
-  entry.confirmed = true;
 
   // Stop speech for this order
   if (entry.speechTimer) clearInterval(entry.speechTimer);
 
   // Update status on server
+  var ok = false;
   try {
-    await fetch('/api/admin/orders/' + orderId, {
+    var r = await fetch('/api/admin/orders/' + orderId, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
       body: JSON.stringify({ status: 'confirmed' })
     });
-  } catch (e) { /* fire and forget */ }
+    ok = r.ok;
+  } catch (e) { /* network error */ }
+
+  if (!ok) {
+    // Revert — restart speech loop
+    entry.speechTimer = startSpeechLoop(entry.order);
+    var card = document.getElementById('osc-' + orderId);
+    if (card) {
+      var btn = card.querySelector('.osc-confirm');
+      if (btn) { btn.textContent = '⚠ ' + t('os_retry'); btn.style.background = '#ef4444'; }
+    }
+    return;
+  }
+
+  entry.confirmed = true;
 
   // Print
   var card = document.getElementById('osc-' + orderId);
@@ -1676,7 +1722,7 @@ function bindAdminEvents() {
   });
 }
 
-if (window.location.pathname === '/register') { showRegister(); } else { showLogin(); }
+if (!token) { if (window.location.pathname === '/register') { showRegister(); } else { showLogin(); } }
 bindAdminEvents();
 </script>
 </body>

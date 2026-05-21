@@ -25,6 +25,9 @@ const { registerWebhookRoute } = require("./routes/webhook");
 const { platformAuthMiddleware } = require("./middleware/platformAuth");
 const { registerPlatformRoutes } = require("./routes/platform");
 
+// SSE uses EventSource (no custom headers) → token passed via query string
+process.env.ALLOW_QUERY_TOKEN = process.env.ALLOW_QUERY_TOKEN ?? '1';
+
 fs.mkdirSync(path.join(__dirname, "data"), { recursive: true });
 
 const app = express();

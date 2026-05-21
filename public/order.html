@@ -1,275 +1,478 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Bestellen</title>
-<meta property="og:title" content="" id="og-title">
-<meta property="og:description" content="" id="og-desc">
-<meta property="og:url" content="" id="og-url">
+<meta property="og:title" content="Wangs Eatery" id="og-title">
+<meta property="og:description" content="Gerechten bestellen" id="og-desc">
+<meta property="og:url" content="http://localhost:3456/order/demo" id="og-url">
 <meta property="og:type" content="website">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%2316a34a'/><text x='16' y='24' text-anchor='middle' font-size='18'>🍽️</text></svg>">
 <link rel="stylesheet" href="/shared.css">
 <style>
+  /* ═══════════════════════════════════════════
+     SuriOrder — Order Page (Google Studio CSS)
+     Adapted for JS class-toggle compatibility
+     ═══════════════════════════════════════════ */
+
+  /* ── Design Tokens ── */
+  :root {
+    --pri: #16a34a; --pri-dark: #15803d; --pri-light: #dcfce7; --pri-bg: #f0fdf4;
+    --bg: #f5f5f5; --card: #fff; --border: #e5e7eb;
+    --text: #1a1a1a; --text-sec: #4b5563; --muted: #6b7280;
+    --accent: #f97316; --wa: #25D366; --wa-hover: #1fa954;
+    --r-sm: 8px; --r: 10px; --r-lg: 14px; --r-xl: 18px; --r-2xl: 24px;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,.04);
+    --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
+    --shadow-card: 0 2px 12px rgba(0,0,0,.06);
+    --shadow-lift: 0 8px 24px rgba(0,0,0,.10);
+    --touch: 44px; --touch-sm: 36px;
+    --tran: 150ms ease; --tran-slow: 250ms ease;
+    --safe-bot: env(safe-area-inset-bottom, 0px);
+    --safe-top: env(safe-area-inset-top, 0px);
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
   body {
-    max-width: 480px; margin: 0 auto; padding-bottom: 70px;
-    background-color: #f5f5f5;
-    /* Dot matrix paper texture */
-    background-image: radial-gradient(#e0e0e0 .7px, transparent .7px);
-    background-size: 18px 18px;
+    max-width: 480px; margin: 0 auto;
+    font-family: system-ui, -apple-system, sans-serif;
+    background-color: #faf6eb;
+    background-image: radial-gradient(#ebdcb9 1.2px, transparent 1.2px);
+    background-size: 16px 16px;
+    color: var(--text);
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    overflow-x: hidden;
+    padding-bottom: 24px;
   }
 
-  /* ── Category Nav (sticky top) ── */
-  .cat-nav {
-    position: sticky; top: 0; z-index: 10;
-    background: rgba(255,255,255,.92); backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px); border-bottom: 1px solid var(--border);
-    padding: 6px 4px;
-    display: flex; gap: 2px; overflow-x: auto;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-  }
-  .cat-nav::-webkit-scrollbar { display: none; }
-  .cat-nav button {
-    flex: 0 0 auto; text-align: center; white-space: nowrap;
-    padding: 8px 14px; border-radius: 0;
-    border: none; background: transparent;
-    font-size: .82rem; font-weight: 500; cursor: pointer;
-    min-height: var(--touch-sm); transition: all var(--tran);
-    color: var(--text-sec);
-  }
-  .cat-nav button:hover { color: var(--pri); }
-  .cat-nav button.active {
-    color: var(--pri); font-weight: 700; background: transparent;
-    box-shadow: inset 0 -3px 0 0 var(--pri);
-  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-  /* ── Cart Bar (bottom fixed) ── */
-  .cart-bar {
-    position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
-    width: 100%; max-width: 480px; z-index: 25;
-    background: var(--card);
-    padding: 12px 16px;
-    padding-bottom: calc(12px + var(--safe-bot));
-    border-top: 1px solid var(--border); display: flex;
-    justify-content: space-between; align-items: center;
-    box-shadow: 0 -1px 12px rgba(0,0,0,.06), 0 -4px 16px rgba(0,0,0,.04);
-  }
-
-  /* ── Header ── */
+  /* ── Header (green gradient + radial highlight) ── */
   header {
-    background: linear-gradient(160deg, var(--pri) 0%, #0d8f3a 50%, var(--pri-dark) 100%);
-    color: #fff; padding: calc(22px + var(--safe-top)) 16px 18px;
-    text-align: center; position: relative; overflow: hidden;
+    background: linear-gradient(135deg, var(--pri) 0%, var(--pri-dark) 100%);
+    color: #fff; padding: 36px 20px 44px 20px;
+    border-radius: 0 0 var(--r-2xl) var(--r-2xl);
+    text-align: center; position: relative;
+    display: flex; flex-direction: column; align-items: center;
+    box-shadow: var(--shadow-card);
   }
-  /* Subtle grain overlay */
   header::before {
-    content: \"\"; position: absolute; inset: 0; opacity: .12; pointer-events: none;
-    background-image: radial-gradient(rgba(255,255,255,.5) .5px, transparent .5px);
-    background-size: 10px 10px;
+    content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(circle at 50% 30%, rgba(255,255,255,0.12) 0%, transparent 75%);
+    pointer-events: none;
   }
-  header h1 { font-size: 1.35rem; font-weight: 700; margin-bottom: 2px; position: relative; letter-spacing: -.01em; }
-  header p { font-size: .82rem; opacity: .85; position: relative; }
-  .lang-switch button.active { background: #fff; color: var(--pri); font-weight: 700; }
+  header > * { position: relative; }
+  #shop-name {
+    font-size: 2.1rem; font-weight: 700; margin: 16px 0 2px 0;
+    letter-spacing: -0.5px;
+  }
+  #shop-desc {
+    font-size: .85rem; color: rgba(255,255,255,.88); font-weight: 500;
+    letter-spacing: 1px; margin: 0;
+  }
+
+  /* ── Language Switch (segmented pill) ── */
+  .lang-switch {
+    position: absolute; top: 14px; right: 16px;
+    background: rgba(0,0,0,.15); backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 9px; display: flex; padding: 2px; gap: 1px;
+    border: 1px solid rgba(255,255,255,.1); z-index: 10;
+  }
+  .lang-switch button {
+    background: transparent; color: rgba(255,255,255,.75);
+    border: none; font-size: .7rem; font-weight: 700;
+    padding: 4px 8px; border-radius: 7px; cursor: pointer;
+    transition: all var(--tran); font-family: inherit;
+  }
+  .lang-switch button.active {
+    background: #fff; color: var(--pri-dark);
+    box-shadow: var(--shadow-sm);
+  }
 
   /* ── WhatsApp Contact ── */
   .wa-contact {
-    position: absolute; top: calc(16px + var(--safe-top)); left: 14px;
-    background: var(--wa); color: #fff; padding: 6px 12px; border-radius: var(--r);
-    font-size: .78rem; text-decoration: none; font-weight: 600;
-    min-height: var(--touch-sm); display: none; transition: background var(--tran);
+    display: inline-flex; align-items: center; gap: 6px;
+    background-color: var(--wa); color: #fff;
+    padding: 8px 16px; font-size: .82rem; font-weight: 700;
+    border-radius: var(--r-2xl); text-decoration: none;
+    box-shadow: 0 4px 10px rgba(37,211,102,.25);
+    margin-top: 14px; transition: all var(--tran);
+    border: 1px solid rgba(255,255,255,.15); cursor: pointer;
   }
-  .wa-contact:hover { background: var(--wa-hover); }
+  .wa-contact:hover { background-color: var(--wa-hover); transform: translateY(-1px); }
+  .wa-contact:active { transform: translateY(1px); }
 
-  /* ── Menu Items ── */
-  .menu { padding: 12px 16px; }
-  .cat-title { font-size: .85rem; font-weight: 700; margin: 16px 0 8px; color: var(--text-sec); text-transform: uppercase; letter-spacing: .5px; }
+  /* ── Category Nav (sticky, frosted glass, underline active) ── */
+  .cat-nav {
+    position: sticky; top: 0; z-index: 40;
+    background: rgba(250,246,235,.95); backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    display: flex; overflow-x: auto; scrollbar-width: none;
+    padding: 0 16px; gap: 18px;
+  }
+  .cat-nav::-webkit-scrollbar { display: none; }
+  .cat-nav button {
+    background: transparent; color: var(--text-sec);
+    border: none; padding: 16px 2px; font-size: .88rem;
+    font-weight: 600; cursor: pointer; white-space: nowrap;
+    transition: all var(--tran); position: relative; font-family: inherit;
+  }
+  .cat-nav button.active {
+    color: var(--pri); font-weight: 800;
+  }
+  .cat-nav button.active::after {
+    content: ""; position: absolute; bottom: 0; left: 0; right: 0;
+    height: 3px; background-color: var(--pri); border-radius: 3px 3px 0 0;
+  }
+
+  /* ── Menu List & Paper Cards ── */
+  .menu { padding: 8px 0 100px 0; display: flex; flex-direction: column; }
+  .cat-title {
+    font-size: .72rem; font-weight: 700; color: var(--muted);
+    letter-spacing: 1.5px; text-transform: uppercase;
+    padding: 24px 16px 6px 16px; text-align: left;
+  }
   .item {
-    display: flex; gap: 10px; padding: 12px; background: var(--card);
-    border-radius: var(--r-lg); margin-bottom: 10px; align-items: center;
-    box-shadow: var(--shadow-sm);
-    transition: transform var(--tran), box-shadow var(--tran);
+    background: var(--card); margin: 10px 16px; padding: 16px;
+    border-radius: var(--r-lg); border: 1px solid rgba(0,0,0,.03);
+    box-shadow: 0 2px 8px rgba(0,0,0,.02);
+    display: flex; gap: 14px; position: relative;
+    transition: transform var(--tran-slow), box-shadow var(--tran-slow);
     animation: fadeInUp .4s ease forwards; opacity: 0;
   }
-  .item:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
-  .item:active { transform: scale(.98); }
+  .item:active { transform: scale(.985); }
   .item-img {
-    width: 64px; height: 64px; border-radius: var(--r); background: var(--bg);
-    flex-shrink: 0; display: flex; align-items: center; justify-content: center;
-    font-size: 1.8rem; overflow: hidden;
+    width: 72px; height: 72px; border-radius: var(--r);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.1rem; flex-shrink: 0; background-color: #faf6eb;
   }
-  .item-img img { width: 100%; height: 100%; object-fit: cover; }
+  .item-img img { width: 100%; height: 100%; object-fit: cover; border-radius: var(--r); }
 
-  /* Category-tinted image placeholders */
   .item[data-cat="1"] .item-img { background: #dcfce7; }
   .item[data-cat="2"] .item-img { background: #fff7ed; }
   .item[data-cat="3"] .item-img { background: #dbeafe; }
   .item[data-cat="4"] .item-img { background: #f3e8ff; }
   .item[data-cat="5"] .item-img { background: #fef9c3; }
-  .item-info { flex: 1; min-width: 0; }
-  .item-info h3 { font-size: .92rem; font-weight: 700; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .item-info p { font-size: .78rem; color: var(--text-sec); line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-  .item-action { display: flex; flex-direction: column; align-items: center; gap: 6px; flex-shrink: 0; }
-  .item-price { font-weight: 800; font-size: 1.05rem; color: var(--pri); }
-
-  /* ── Quantity Controls ── */
-  .qty-ctrl { display: flex; align-items: center; gap: 10px; }
-  .qty-ctrl button {
-    width: var(--touch); height: var(--touch); min-width: var(--touch); min-height: var(--touch);
-    border-radius: 50%; border: none; background: var(--pri);
-    color: #fff; font-size: 1.2rem; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: all var(--tran); font-weight: 600;
+  .item-info { flex: 1; display: flex; flex-direction: column; justify-content: center; min-width: 0; text-align: left; }
+  .item-info h3 {
+    font-size: .95rem; font-weight: 700; color: var(--text);
+    margin: 0; line-height: 1.3;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  .qty-ctrl button:hover { background: var(--pri-dark); }
-  .qty-ctrl button:active { transform: scale(.9); }
-  .qty-ctrl span { font-weight: 700; min-width: 24px; text-align: center; font-size: .95rem; }
+  .item-info p {
+    font-size: .78rem; color: var(--text-sec); margin: 4px 0 0 0; line-height: 1.4;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .item-action {
+    display: flex; flex-direction: column; justify-content: space-between;
+    align-items: flex-end; flex-shrink: 0; width: 104px;
+  }
+  .item-price {
+    font-weight: 800; font-size: .88rem; color: var(--text);
+    white-space: nowrap; margin-bottom: auto;
+  }
 
-  /* ── Cart Bar (see top of style block for fixed positioning) ── */
+  /* ── Quantity Controls (44px green circles) ── */
+  .qty-ctrl { display: flex; align-items: center; gap: 10px; margin-top: auto; }
+  .qty-ctrl button {
+    width: var(--touch); height: var(--touch);
+    border-radius: 50%; border: none;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 1.15rem; cursor: pointer;
+    background-color: var(--pri); color: #fff;
+    transition: all var(--tran); font-family: inherit;
+    box-shadow: 0 3px 10px rgba(22,163,74,.25);
+  }
+  .qty-ctrl button:hover { background-color: var(--pri-dark); box-shadow: 0 5px 14px rgba(22,163,74,.35); }
+  .qty-ctrl button:active { transform: scale(.88); }
+  .qty-ctrl span { font-weight: 700; font-size: .95rem; color: var(--text); min-width: 16px; text-align: center; }
+
+  /* ── Sold-Out State ── */
+  .item-sold-out { opacity: .45 !important; }
+  .sold-out-badge {
+    background-color: #e5e7eb; color: #6b7280;
+    font-size: .75rem; font-weight: 700;
+    padding: 6px 12px; border-radius: var(--r-sm);
+    display: inline-block; user-select: none;
+    cursor: not-allowed; border: 1px solid var(--border);
+  }
+
+  /* ── Cart Bar (fixed bottom, glass) ── */
+  .cart-bar {
+    position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 100%; max-width: 480px;
+    background-color: var(--card);
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -4px 16px rgba(0,0,0,.04);
+    padding: 16px 20px calc(16px + var(--safe-bot)) 20px;
+    display: flex; justify-content: space-between; align-items: center;
+    z-index: 30; border-radius: var(--r-xl) var(--r-xl) 0 0;
+  }
   .cart-bar--bounce { animation: cartBounce 300ms ease; }
   @keyframes cartBounce {
-    0%, 100% { transform: scale(1); }
-    50%      { transform: scale(1.04); }
+    0%, 100% { transform: translateX(-50%) scale(1); }
+    50%      { transform: translateX(-50%) scale(1.03); }
   }
-  .cart-info { font-size: .82rem; line-height: 1.3; }
-  .cart-info .label { color: var(--text-sec); }
-  .cart-total { font-weight: 700; font-size: 1.15rem; color: var(--pri); }
-  .cart-bar .order-btn {
-    background: var(--pri); color: #fff; border: none;
-    padding: 12px 28px; border-radius: var(--r-lg); font-weight: 700;
-    font-size: .95rem; cursor: pointer; min-height: var(--touch);
-    transition: all var(--tran); box-shadow: 0 2px 8px rgba(22,163,74,.25);
-  }
-  .cart-bar .order-btn:hover { background: var(--pri-dark); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(22,163,74,.3); }
-  .cart-bar .order-btn:disabled { opacity: .4; cursor: default; }
-  .cart-bar .order-btn:disabled:hover { background: var(--pri); }
+  .cart-info { display: flex; flex-direction: column; gap: 2px; text-align: left; }
+  #cart-count { font-size: .72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+  .cart-total { font-size: 1.35rem; font-weight: 850; color: var(--pri-dark); }
 
-  /* ── Checkout Modal ── */
+  .order-btn {
+    background-color: var(--pri); color: #fff; border: none;
+    padding: 10px 24px; border-radius: var(--r-lg); cursor: pointer;
+    transition: all var(--tran-slow);
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; min-width: 156px; font-family: inherit;
+    box-shadow: 0 4px 14px rgba(22,163,74,.28);
+  }
+  .order-btn:hover:not(:disabled) { background-color: var(--pri-dark); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(22,163,74,.35); }
+  .order-btn:active:not(:disabled) { transform: scale(.97); }
+  .order-btn:disabled { opacity: .35 !important; cursor: not-allowed; transform: none !important; box-shadow: none; }
+  .order-btn:disabled:hover { background-color: var(--pri); transform: none; }
+
+  .cart-btn-main { font-weight: 800; font-size: .92rem; line-height: 1.25; }
+  .cart-btn-sub { font-size: .72rem; font-weight: 500; opacity: .85; line-height: 1.25; }
+
+  /* ── Checkout Modal (bottom sheet) ── */
   .modal-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,.45);
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(0,0,0,.45);
+    backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
     z-index: 100; display: flex; align-items: flex-end; justify-content: center;
-    animation: fadeIn 150ms ease;
+    animation: fadeIn .15s ease;
   }
   .modal {
     background: var(--card); width: 100%; max-width: 480px;
-    border-radius: var(--r-2xl) var(--r-2xl) 0 0; padding: 24px 16px;
-    padding-bottom: calc(24px + var(--safe-bot));
-    max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-lg); animation: slideUp .3s ease;
+    border-radius: var(--r-2xl) var(--r-2xl) 0 0;
+    box-shadow: 0 -8px 40px rgba(0,0,0,.12);
+    padding: 24px 20px calc(24px + var(--safe-bot)) 20px;
+    max-height: 90vh; overflow-y: auto;
+    animation: slideUp .35s cubic-bezier(.16,1,.3,1);
+    display: flex; flex-direction: column; gap: 16px;
   }
-  .modal h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 16px; text-align: center; }
-  .modal input, .modal textarea, .modal select {
-    width: 100%; padding: 12px 14px; border: 2px solid var(--border);
-    border-radius: var(--r-lg); margin-bottom: 10px; font-size: .9rem;
-    min-height: var(--touch); outline: none; transition: border-color var(--tran), box-shadow var(--tran);
-    background: var(--bg); font-family: inherit;
+  .modal::before {
+    content: ""; display: block; width: 40px; height: 4px;
+    background-color: #e5e7eb; border-radius: 2px;
+    margin: 0 auto 6px auto;
   }
-  .modal input:focus, .modal textarea:focus, .modal select:focus { border-color: var(--pri); box-shadow: 0 0 0 3px rgba(22,163,74,.12); }
-  .modal textarea { resize: none; height: 60px; }
+  #checkout-title { font-size: 1.35rem; font-weight: 700; color: var(--text); margin: 0; text-align: center; }
 
-  /* ── Pickup Times ── */
-  .pickup-time { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
-  .pickup-time button {
-    padding: 8px 12px; border: 1.5px solid var(--border); border-radius: var(--r);
-    background: var(--card); font-size: .8rem; cursor: pointer;
-    min-height: var(--touch-sm); transition: all var(--tran);
+  /* ── Dining Toggle & Payment Methods ── */
+  .dining-toggle, .pay-methods { display: flex; gap: 10px; width: 100%; }
+  .dining-toggle button, .pay-methods button {
+    flex: 1; background-color: #f9f9f9;
+    border: 1.5px solid var(--border); border-radius: var(--r-lg);
+    padding: 12px; font-size: .88rem; font-weight: 600; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    transition: all var(--tran); font-family: inherit; color: var(--text-sec);
   }
-  .pickup-time button:hover { border-color: var(--pri); }
-  .pickup-time button.active { background: var(--pri); color: #fff; border-color: var(--pri); }
-
-  /* ── Payment Methods ── */
-  .pay-methods { display: flex; gap: 8px; margin-bottom: 12px; }
-  .pay-methods button {
-    flex: 1; padding: 12px 8px; border: 2px solid var(--border);
-    border-radius: var(--r-lg); background: var(--card); font-size: .82rem;
-    cursor: pointer; min-height: var(--touch-sm); transition: all var(--tran);
-    font-weight: 500;
+  .dining-toggle button.active, .pay-methods button.active {
+    border-color: var(--pri); background-color: var(--pri-bg); color: var(--pri-dark);
+    box-shadow: inset 0 0 0 1px var(--pri);
   }
-  .pay-methods button:hover { border-color: var(--pri); }
-  .pay-methods button.active { border-color: var(--pri); background: var(--pri-bg); font-weight: 600; box-shadow: inset 0 0 0 1px var(--pri); }
-
-  /* ── Bank Instructions ── */
-  .bank-instructions {
-    background: var(--pri-bg); padding: 12px; border-radius: var(--r);
-    margin-bottom: 12px; font-size: .8rem; line-height: 1.4;
-    border: 1px solid var(--pri-light);
-  }
-  .bank-instructions strong { display: block; margin-bottom: 4px; }
 
   /* ── Order Summary ── */
   .order-summary {
-    background: var(--bg); border-radius: var(--r); padding: 12px; margin-bottom: 12px;
+    background-color: #fcfbfa; border: 1px dashed var(--border);
+    border-radius: var(--r-lg); padding: 16px;
+    display: flex; flex-direction: column; gap: 10px; font-size: .85rem;
   }
-  .order-summary .line { display: flex; justify-content: space-between; font-size: .85rem; margin-bottom: 4px; line-height: 1.5; }
-  .order-summary .line--total { font-weight: 700; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+  .order-summary .line { display: flex; justify-content: space-between; color: var(--text-sec); }
+  .order-summary .line--total {
+    display: flex; justify-content: space-between; font-weight: 800;
+    color: var(--pri-dark); font-size: 1rem; margin-top: 10px; padding-top: 10px;
+    border-top: 1px dashed var(--border);
+  }
 
-  /* ── Buttons in Modal ── */
+  /* ── Bank Instructions ── */
+  .bank-instructions {
+    background: var(--pri-bg); border-left: 3px solid var(--pri);
+    border-radius: var(--r-lg); padding: 12px 14px;
+    font-size: .82rem; color: var(--pri-dark); line-height: 1.4; text-align: left;
+  }
+  .bank-instructions strong { display: block; margin-bottom: 4px; font-size: .85rem; }
+
+  /* ── Modal Inputs ── */
+  .modal input[type="text"],
+  .modal input[type="tel"],
+  .modal textarea {
+    background-color: #f9f9f9; border: 1.5px solid var(--border);
+    border-radius: var(--r-lg); padding: 12px 16px;
+    font-size: .88rem; color: var(--text); outline: none;
+    font-family: inherit; width: 100%; box-sizing: border-box;
+    transition: all var(--tran);
+  }
+  .modal input:focus, .modal textarea:focus { border-color: var(--pri); background-color: #fff; }
+  .modal textarea { resize: none; height: 64px; }
+
+  /* ── Validation Error ── */
+  @keyframes shakeInput {
+    0%, 100% { transform: translateX(0); }
+    15%, 45%, 75% { transform: translateX(-6px); }
+    30%, 60%, 90% { transform: translateX(6px); }
+  }
+  .input-error { border: 1.5px solid #ef4444 !important; animation: shakeInput .4s ease-in-out; background-color: #fef2f2 !important; }
+
+  /* ── Pickup Times ── */
+  .pickup-time { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; width: 100%; }
+  .pickup-time::-webkit-scrollbar { display: none; }
+  .pickup-time button {
+    background-color: #f3f4f6; border: none; border-radius: var(--r);
+    padding: 8px 12px; font-size: .8rem; font-weight: 600;
+    color: var(--text-sec); cursor: pointer; white-space: nowrap;
+    transition: all var(--tran); font-family: inherit;
+  }
+  .pickup-time button.active { background-color: var(--pri); color: #fff; }
+
+  /* ── Note Field ── */
+  #cust-note { background: #fefce8; border: 1px solid #fde68a; border-radius: var(--r-lg); color: #78350f; }
+  #cust-note:focus { background: #fefcbd; border-color: #f59e0b; }
+
+  /* ── Consent ── */
+  .consent-label {
+    display: flex; align-items: flex-start; gap: 10px;
+    font-size: .78rem; color: var(--text-sec); cursor: pointer;
+    text-align: left; margin: 4px 0;
+  }
+  .consent-label input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--pri); margin-top: 1px; cursor: pointer; }
+  .consent-label a { color: var(--pri); text-decoration: underline; font-weight: 600; }
+
+  /* ── Modal Buttons ── */
+  .submit-btn, .cancel-btn {
+    border: none; border-radius: var(--r-lg);
+    font-size: .95rem; font-weight: 700; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    width: 100%; font-family: inherit; transition: all var(--tran);
+  }
   .submit-btn {
-    width: 100%; padding: 14px; background: var(--pri); color: #fff;
-    border: none; border-radius: var(--r-lg); font-weight: 700; font-size: 1rem;
-    cursor: pointer; min-height: var(--touch); transition: all var(--tran);
-    box-shadow: 0 2px 8px rgba(22,163,74,.25);
+    background-color: var(--pri); color: #fff;
+    min-height: var(--touch);
+    box-shadow: 0 4px 14px rgba(22,163,74,.25);
   }
-  .submit-btn:hover { background: var(--pri-dark); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(22,163,74,.35); }
+  .submit-btn:hover:not(:disabled) { background-color: var(--pri-dark); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(22,163,74,.35); }
+  .submit-btn:active:not(:disabled) { transform: scale(.97); }
+  .submit-btn:disabled { opacity: .35; cursor: not-allowed; box-shadow: none; }
+  .submit-btn:disabled:hover { background-color: var(--pri); transform: none; }
   .cancel-btn {
-    width: 100%; padding: 12px; margin-top: 8px; background: var(--bg);
-    border: none; border-radius: var(--r-lg); font-size: .9rem; cursor: pointer;
-    min-height: var(--touch-sm); transition: background var(--tran); color: var(--text-sec);
+    background-color: #f3f4f6; color: var(--text-sec);
+    min-height: var(--touch-sm); margin-top: 0;
   }
-  .cancel-btn:hover { background: var(--border); }
-
-  /* ── Consent Checkbox ── */
-  .consent-label { display: flex; align-items: flex-start; gap: 8px; font-size: .8rem; color: var(--text-sec); margin-bottom: 12px; line-height: 1.4; cursor: pointer; }
-  .consent-label input { width: auto; margin-top: 2px; min-height: auto; accent-color: var(--pri); }
-  .consent-label a { color: var(--pri); text-decoration: underline; }
-
-  /* ── Footer ── */
-  .order-footer { text-align: center; padding: 16px 16px 24px; color: var(--muted); font-size: .75rem; }
-  .order-footer a { color: var(--muted); text-decoration: none; }
-  .order-footer a:hover { color: var(--pri); }
+  .cancel-btn:hover { background-color: #e5e7eb; }
 
   /* ── Success View ── */
-  .success { text-align: center; padding: 56px 20px; animation: fadeInUp .5s ease; }
-  .success .icon { font-size: 4.5rem; margin-bottom: 20px; animation: successBounce .6s ease .1s both; display: inline-block; }
-  .success h2 { color: var(--pri); font-weight: 700; margin-bottom: 8px; }
-  .success p { color: var(--text-sec); margin-bottom: 4px; font-size: .9rem; }
-  .share-btn {
-    display: inline-block; margin-top: 12px; padding: 13px 28px;
-    background: var(--wa); color: #fff; border-radius: var(--r-2xl); text-decoration: none;
-    font-weight: 600; font-size: .92rem; transition: all var(--tran);
-    box-shadow: 0 2px 8px rgba(37,211,102,.25);
+  #success-view {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding: 32px 16px; text-align: center;
+    background-color: #faf6eb;
+    background-image: radial-gradient(#ebdcb9 1.2px, transparent 1.2px);
+    background-size: 16px 16px;
+    min-height: 100vh;
+    animation: fadeIn .3s ease;
   }
-  .share-btn:hover { background: var(--wa-hover); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(37,211,102,.35); }
+  .success {
+    background-color: var(--card); border-radius: var(--r-2xl);
+    padding: 40px 24px; box-shadow: var(--shadow-card);
+    border: 1px solid rgba(0,0,0,.03);
+    display: flex; flex-direction: column; align-items: center; gap: 18px;
+    width: 100%; max-width: 440px;
+    animation: successCardPop .4s cubic-bezier(.16,1,.3,1) both;
+  }
+  @keyframes successCardPop {
+    from { transform: scale(.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .success .icon { font-size: 5rem; margin-bottom: 8px; display: inline-block; animation: successBounce .6s cubic-bezier(.175,.885,.32,1.275) both; }
+  @keyframes successBounce {
+    0%   { transform: scale(0); }
+    60%  { transform: scale(1.2); }
+    100% { transform: scale(1); }
+  }
+  .success h2 { color: var(--pri-dark); font-weight: 800; font-size: 1.5rem; margin: 0; }
+  .success p { font-size: .95rem; color: var(--text-sec); line-height: 1.5; margin: 0; }
+  .dining-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background-color: var(--pri-bg); color: var(--pri-dark);
+    padding: 6px 14px; border-radius: var(--r-xl);
+    font-size: .82rem; font-weight: 700; margin: 2px 0;
+  }
 
-  /* ── Skeleton (pre-JS loading state) ── */
-  .skeleton-item { display: flex; gap: 10px; padding: 12px; margin-bottom: 10px; background: var(--card); border-radius: var(--r-lg); align-items: center; }
-  .skel-img { width: 56px; height: 56px; border-radius: var(--r); background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; flex-shrink: 0; }
+  /* ── Success Actions (加单 + 完成 buttons) ── */
+  .success-actions { display: flex; gap: 12px; width: 100%; margin-top: 16px; }
+  .btn-append {
+    flex: 1; background: transparent; color: var(--pri);
+    border: 2px solid var(--pri); border-radius: var(--r-lg);
+    padding: 12px 16px; font-size: .95rem; font-weight: 700;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    gap: 6px; transition: all var(--tran); font-family: inherit; min-height: var(--touch);
+  }
+  .btn-append:hover { background-color: var(--pri-bg); border-color: var(--pri-dark); color: var(--pri-dark); }
+  .btn-append:active { transform: scale(.96); }
+  .btn-done {
+    flex: 1; background: var(--pri); color: #fff; border: none;
+    border-radius: var(--r-lg); padding: 12px 16px;
+    font-size: .95rem; font-weight: 700; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    gap: 6px; transition: all var(--tran); font-family: inherit;
+    min-height: var(--touch);
+    box-shadow: 0 4px 12px rgba(22,163,74,.2);
+  }
+  .btn-done:hover { background-color: var(--pri-dark); }
+  .btn-done:active { transform: scale(.96); }
+  .success-countdown { font-size: .8rem; color: var(--muted); margin-top: 10px; font-weight: 500; }
+
+  /* ── Footer ── */
+  .order-footer { text-align: center; padding: 32px 16px 48px 16px; font-size: .75rem; color: var(--muted); display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .order-footer a { color: var(--muted); text-decoration: none; transition: color .15s ease; }
+  .order-footer a:hover { color: var(--pri); }
+
+  /* ── Skeleton (pre-JS loading) ── */
+  .skeleton-item {
+    display: flex; gap: 12px; padding: 14px; margin: 10px 16px;
+    background: var(--card); border-radius: var(--r-lg); align-items: center;
+    border: 1px solid rgba(0,0,0,.03);
+    box-shadow: 0 2px 8px rgba(0,0,0,.02);
+  }
+  .skel-img {
+    width: 72px; height: 72px; border-radius: var(--r); flex-shrink: 0;
+    background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+    background-size: 200% 100%; animation: shimmer 1.5s infinite;
+  }
   .skel-body { flex: 1; min-width: 0; }
-  .skel-line { height: 12px; border-radius: 6px; background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; margin-bottom: 6px; }
+  .skel-line {
+    height: 13px; border-radius: 7px; margin-bottom: 8px;
+    background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+    background-size: 200% 100%; animation: shimmer 1.5s infinite;
+  }
   .skel-line--w { width: 65%; }
   .skel-line--n { width: 42%; }
-  .skel-line--p { width: 40px; height: 14px; }
-  .skel-qty { display: flex; flex-direction: column; align-items: center; gap: 6px; flex-shrink: 0; }
-  .skel-circle { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
-  @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+  .skel-line--p { width: 44px; height: 16px; }
+  .skel-qty { display: flex; flex-direction: column; align-items: center; gap: 8px; flex-shrink: 0; }
+  .skel-circle {
+    width: var(--touch); height: var(--touch); border-radius: 50%;
+    background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+    background-size: 200% 100%; animation: shimmer 1.5s infinite;
+  }
+  @keyframes shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
 
+  /* ── Utilities ── */
   .hidden { display: none !important; }
 
   @keyframes slideUp {
     from { transform: translateY(100%); }
     to   { transform: translateY(0); }
   }
-
   @keyframes fadeInUp {
     from { opacity: 0; transform: translateY(16px); }
     to   { opacity: 1; transform: translateY(0); }
   }
-
-  @keyframes successBounce {
-    0%   { transform: scale(0); }
-    60%  { transform: scale(1.15); }
-    100% { transform: scale(1); }
-  }
-
 </style>
 </head>
 <body>
@@ -302,12 +505,13 @@
     <span class="label" id="cart-count">0 items</span><br>
     <span class="cart-total" id="cart-total">SRD 0</span>
   </div>
-  <button class="order-btn" id="cart-btn" disabled>Bestellen</button>
+  <button class="order-btn" id="cart-btn" disabled><span class="cart-btn-main">Bestellen</span><span class="cart-btn-sub"></span></button>
 </div>
 
 <div class="modal-overlay hidden" id="checkout-modal">
   <div class="modal">
     <h2 id="checkout-title">Uw bestelling</h2>
+    <div class="dining-toggle" id="dining-toggle"><button data-dining="dine_in" id="dining-dine_in">🍽️ Dine-in</button><button data-dining="takeaway" class="active" id="dining-takeaway">🛍️ Takeaway</button></div>
     <div class="order-summary" id="order-summary"></div>
     <div class="pay-methods" id="pay-methods" role="group" aria-label="Select payment method">
       <button class="active" data-pay="cod" id="pay-cod">💵 Contant</button>
@@ -350,13 +554,13 @@
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 
 const L = {
-  nl:{shop_desc:"Gerechten bestellen",all:"Alles",cart_empty:"0 items",order_btn:"Bestellen",checkout_title:"Uw bestelling",name_ph:"Naam",phone_ph:"Telefoon (+597...)",note_ph:"Opmerkingen",submit:"Plaats bestelling",cancel:"Annuleren",success_title:"Gelukt!",success_msg:"Uw bestelling is geplaatst.",order_id:"Bestelling",total:"Totaal",share:"Delen via WhatsApp",annuleren:"Annuleren",pay_cod:"💵 Contant",pay_bank:"🏦 Overschrijving",bank_title:"Bank overschrijving",bank_details:"Maak over naar: ",confirm_wa:"Bevestig uw bestelling via WhatsApp",alert_name:"Vul uw naam in",alert_phone:"Vul uw telefoonnummer in",alert_phone_format:"Ongeldig telefoonnummer. Gebruik formaat +597XXXXXXX",alert_order_error:"Fout bij plaatsen bestelling",empty_menu:"Geen items beschikbaar",consent_text:"Ik ga akkoord met de <a href='/privacy' target='_blank'>privacyverklaring</a> en <a href='/tos' target='_blank'>servicevoorwaarden</a>",alert_consent:"Accepteer eerst de servicevoorwaarden en privacyverklaring",footer:"SuriOrder — WhatsApp-first bestellen voor Suriname",footer_privacy:"Privacy",footer_tos:"Voorwaarden"},
-  zh:{shop_desc:"在线点餐",all:"全部",cart_empty:"0 件",order_btn:"下单",checkout_title:"确认订单",name_ph:"姓名",phone_ph:"电话 (+597...)",note_ph:"备注",submit:"提交订单",cancel:"取消",success_title:"下单成功！",success_msg:"您的订单已提交。",order_id:"订单号",total:"合计",share:"通过 WhatsApp 分享",annuleren:"取消",pay_cod:"💵 现金支付",pay_bank:"🏦 银行转账",bank_title:"银行转账信息",bank_details:"请转账至：",confirm_wa:"通过 WhatsApp 确认订单",alert_name:"请输入姓名",alert_phone:"请输入电话号码",alert_phone_format:"电话号码格式无效，请使用 +597XXXXXXX",alert_order_error:"订单提交失败",empty_menu:"暂无菜品",consent_text:"我同意<a href='/privacy' target='_blank'>隐私政策</a>和<a href='/tos' target='_blank'>服务条款</a>",alert_consent:"请先同意服务条款和隐私政策",footer:"SuriOrder — 苏里南 WhatsApp 优先点餐平台",footer_privacy:"隐私",footer_tos:"条款"},
-  en:{shop_desc:"Order food",all:"All",cart_empty:"0 items",order_btn:"Order",checkout_title:"Your order",name_ph:"Name",phone_ph:"Phone (+597...)",note_ph:"Note",submit:"Place order",cancel:"Cancel",success_title:"Success!",success_msg:"Your order has been placed.",order_id:"Order",total:"Total",share:"Share via WhatsApp",annuleren:"Cancel",pay_cod:"💵 Cash",pay_bank:"🏦 Bank Transfer",bank_title:"Bank Transfer",bank_details:"Transfer to: ",confirm_wa:"Confirm your order via WhatsApp",alert_name:"Please enter your name",alert_phone:"Please enter your phone number",alert_phone_format:"Invalid phone number. Use format +597XXXXXXX",alert_order_error:"Failed to place order",empty_menu:"No items available",consent_text:"I agree to the <a href='/privacy' target='_blank'>Privacy Policy</a> and <a href='/tos' target='_blank'>Terms of Service</a>",alert_consent:"Please accept the Terms of Service and Privacy Policy first",footer:"SuriOrder — WhatsApp-first ordering for Suriname",footer_privacy:"Privacy",footer_tos:"Terms"},
-  es:{shop_desc:"Pedir comida",all:"Todo",cart_empty:"0 items",order_btn:"Pedir",checkout_title:"Tu pedido",name_ph:"Nombre",phone_ph:"Teléfono (+597...)",note_ph:"Nota",submit:"Enviar pedido",cancel:"Cancelar",success_title:"¡Listo!",success_msg:"Tu pedido ha sido enviado.",order_id:"Pedido",total:"Total",share:"Compartir por WhatsApp",annuleren:"Cancelar",pay_cod:"💵 Efectivo",pay_bank:"🏦 Transferencia",bank_title:"Transferencia bancaria",bank_details:"Transferir a: ",confirm_wa:"Confirma tu pedido por WhatsApp",alert_name:"Ingresa tu nombre",alert_phone:"Ingresa tu número",alert_phone_format:"Número inválido. Usa formato +597XXXXXX",alert_order_error:"Error al enviar pedido",empty_menu:"Sin platos disponibles",consent_text:"Acepto la <a href='/privacy' target='_blank'>Política de Privacidad</a> y los <a href='/tos' target='_blank'>Términos de Servicio</a>",alert_consent:"Acepta primero los Términos y la Política de Privacidad",footer:"SuriOrder — Pedidos por WhatsApp en Surinam",footer_privacy:"Privacidad",footer_tos:"Términos"},
+  nl:{shop_desc:"Gerechten bestellen",all:"Alles",cart_empty:"0 items",order_btn:"Bestellen",checkout_title:"Uw bestelling",name_ph:"Naam",phone_ph:"Telefoon (+597...)",note_ph:"Opmerkingen",submit:"Plaats bestelling",cancel:"Annuleren",success_title:"Gelukt!",success_msg:"Uw bestelling is geplaatst.",order_id:"Bestelling",total:"Totaal",share:"Delen via WhatsApp",annuleren:"Annuleren",pay_cod:"💵 Contant",pay_bank:"🏦 Overschrijving",bank_title:"Bank overschrijving",bank_details:"Maak over naar: ",confirm_wa:"Bevestig uw bestelling via WhatsApp",alert_name:"Vul uw naam in",alert_phone:"Vul uw telefoonnummer in",alert_phone_format:"Ongeldig telefoonnummer. Gebruik formaat +597XXXXXXX",alert_order_error:"Fout bij plaatsen bestelling",empty_menu:"Geen items beschikbaar",consent_text:"Ik ga akkoord met de <a href='/privacy' target='_blank'>privacyverklaring</a> en <a href='/tos' target='_blank'>servicevoorwaarden</a>",alert_consent:"Accepteer eerst de servicevoorwaarden en privacyverklaring",dine_in:"🍽️ Dine-in",takeaway:"🛍️ Takeaway",sold_out:"Uitverkocht",cart_view:"Tik om te bestellen",cart_empty_sub:"Voeg items toe",success_countdown:"s dan terug...",alert_name_short:"Naam min 2 tekens",dining_label:"Eetoptie",footer:"SuriOrder — WhatsApp-first bestellen voor Suriname",footer_privacy:"Privacy",footer_tos:"Voorwaarden",success_append_btn:"➕ Bijbestellen",success_done_btn:"✓ Klaar",append_to:"Bijbestellen #",append_cart_hint:"Tik om toe te voegen",checkout_title_append:"Items toevoegen",submit_append:"Bijbestellen"},
+  zh:{shop_desc:"在线点餐",all:"全部",cart_empty:"0 件",order_btn:"下单",checkout_title:"确认订单",name_ph:"姓名",phone_ph:"电话 (+597...)",note_ph:"备注",submit:"提交订单",cancel:"取消",success_title:"下单成功！",success_msg:"您的订单已提交。",order_id:"订单号",total:"合计",share:"通过 WhatsApp 分享",annuleren:"取消",pay_cod:"💵 现金支付",pay_bank:"🏦 银行转账",bank_title:"银行转账信息",bank_details:"请转账至：",confirm_wa:"通过 WhatsApp 确认订单",alert_name:"请输入姓名",alert_phone:"请输入电话号码",alert_phone_format:"电话号码格式无效，请使用 +597XXXXXXX",alert_order_error:"订单提交失败",empty_menu:"暂无菜品",consent_text:"我同意<a href='/privacy' target='_blank'>隐私政策</a>和<a href='/tos' target='_blank'>服务条款</a>",alert_consent:"请先同意服务条款和隐私政策",dine_in:"🍽️ 堂食",takeaway:"🛍️ 外带",sold_out:"售罄",cart_view:"点击查看订单",cart_empty_sub:"请先添加菜品",success_countdown:"秒后自动返回...",alert_name_short:"姓名至少2个字符",dining_label:"用餐方式",footer:"SuriOrder — 苏里南 WhatsApp 优先点餐平台",footer_privacy:"隐私",footer_tos:"条款",success_append_btn:"➕ 加单",success_done_btn:"✓ 完成",append_to:"追加到 #",append_cart_hint:"点击加单",checkout_title_append:"加单",submit_append:"追加订单"},
+  en:{shop_desc:"Order food",all:"All",cart_empty:"0 items",order_btn:"Order",checkout_title:"Your order",name_ph:"Name",phone_ph:"Phone (+597...)",note_ph:"Note",submit:"Place order",cancel:"Cancel",success_title:"Success!",success_msg:"Your order has been placed.",order_id:"Order",total:"Total",share:"Share via WhatsApp",annuleren:"Cancel",pay_cod:"💵 Cash",pay_bank:"🏦 Bank Transfer",bank_title:"Bank Transfer",bank_details:"Transfer to: ",confirm_wa:"Confirm your order via WhatsApp",alert_name:"Please enter your name",alert_phone:"Please enter your phone number",alert_phone_format:"Invalid phone number. Use format +597XXXXXXX",alert_order_error:"Failed to place order",empty_menu:"No items available",consent_text:"I agree to the <a href='/privacy' target='_blank'>Privacy Policy</a> and <a href='/tos' target='_blank'>Terms of Service</a>",alert_consent:"Please accept the Terms of Service and Privacy Policy first",dine_in:"🍽️ Dine-in",takeaway:"🛍️ Takeaway",sold_out:"Sold out",cart_view:"Tap to view order",cart_empty_sub:"Add items first",success_countdown:"s until auto-return...",alert_name_short:"Name min 2 characters",dining_label:"Dining option",footer:"SuriOrder — WhatsApp-first ordering for Suriname",footer_privacy:"Privacy",footer_tos:"Terms",success_append_btn:"➕ Add more",success_done_btn:"✓ Done",append_to:"Append to #",append_cart_hint:"Tap to add more",checkout_title_append:"Add items",submit_append:"Append to order"},
+  es:{shop_desc:"Pedir comida",all:"Todo",cart_empty:"0 items",order_btn:"Pedir",checkout_title:"Tu pedido",name_ph:"Nombre",phone_ph:"Teléfono (+597...)",note_ph:"Nota",submit:"Enviar pedido",cancel:"Cancelar",success_title:"¡Listo!",success_msg:"Tu pedido ha sido enviado.",order_id:"Pedido",total:"Total",share:"Compartir por WhatsApp",annuleren:"Cancelar",pay_cod:"💵 Efectivo",pay_bank:"🏦 Transferencia",bank_title:"Transferencia bancaria",bank_details:"Transferir a: ",confirm_wa:"Confirma tu pedido por WhatsApp",alert_name:"Ingresa tu nombre",alert_phone:"Ingresa tu número",alert_phone_format:"Número inválido. Usa formato +597XXXXXX",alert_order_error:"Error al enviar pedido",empty_menu:"Sin platos disponibles",consent_text:"Acepto la <a href='/privacy' target='_blank'>Política de Privacidad</a> y los <a href='/tos' target='_blank'>Términos de Servicio</a>",alert_consent:"Acepta primero los Términos y la Política de Privacidad",dine_in:"🍽️ Comer aquí",takeaway:"🛍️ Para llevar",sold_out:"Agotado",cart_view:"Toca para ver",cart_empty_sub:"Agrega platos primero",success_countdown:"s hasta volver...",alert_name_short:"Nombre mín 2 caracteres",dining_label:"Opción de comida",footer:"SuriOrder — Pedidos por WhatsApp en Surinam",footer_privacy:"Privacidad",footer_tos:"Términos",success_append_btn:"➕ Agregar más",success_done_btn:"✓ Listo",append_to:"Agregar a #",append_cart_hint:"Toca para agregar",checkout_title_append:"Agregar items",submit_append:"Agregar al pedido"},
 };
 
-let shopId, shop, categories=[], items=[], cart={}, lang=localStorage.getItem('suriorder_lang')||'nl', pickupTime='Nu', paymentMethod='cod', activeCat=0;
+let shopId, shop, categories=[], items=[], cart={}, lang=localStorage.getItem('suriorder_lang')||'nl', pickupTime='Nu', paymentMethod='cod', diningOption='takeaway', activeCat=0, successCountdownTimer=null, activeOrderId=null;
 
 function bindEvents() {
   // Language switch
@@ -368,6 +572,13 @@ function bindEvents() {
 
   // Cart button
   document.getElementById('cart-btn').addEventListener('click', showCheckout);
+
+  // Dining option toggle
+  document.getElementById('dining-toggle').addEventListener('click', function(e) {
+    var btn = e.target.closest('button');
+    if (!btn || !btn.dataset.dining) return;
+    setDining(btn.dataset.dining);
+  });
 
   // Payment methods
   document.getElementById('pay-methods').addEventListener('click', function(e) {
@@ -404,9 +615,10 @@ function bindEvents() {
     changeQty(parseInt(btn.dataset.itemId), parseInt(btn.dataset.delta));
   });
 
-  // Success view "new order" button delegation
+  // Success view delegation (append + done buttons)
   document.getElementById('success-view').addEventListener('click', function(e) {
-    if (e.target.closest('#btn-reload')) location.reload();
+    if (e.target.closest('#btn-append')) startAppend();
+    if (e.target.closest('#btn-done')) location.reload();
   });
 }
 
@@ -450,6 +662,8 @@ function setLang(l){
   document.getElementById('footer-privacy').textContent = t('footer_privacy');
   document.getElementById('footer-tos').textContent = t('footer_tos');
   document.getElementById('footer-brand').textContent = t('footer');
+  document.getElementById('dining-dine_in').textContent = t('dine_in');
+  document.getElementById('dining-takeaway').textContent = t('takeaway');
   renderAll();
 }
 
@@ -479,17 +693,20 @@ function filterCat(cid){
       lastCat = i.category_id;
     }
     var q = cart[i.id]||0;
-    html+='<div class="item"'+(i.category_id ? ' data-cat="'+i.category_id+'"' : '')+'>'+
+    var soldOut = i.available === 0;
+    html+='<div class="item'+(soldOut ? ' item-sold-out' : '')+'"'+(i.category_id ? ' data-cat="'+i.category_id+'"' : '')+'>'+
       '<div class="item-img">'+(i.image_url?'<img src="'+esc(i.image_url)+'" alt="">':(catEmojiMap[i.category_id]||'🍽️'))+'</div>'+
       '<div class="item-info"><h3>'+esc(tn(i)||i.name)+'</h3><p>'+esc(td(i))+'</p></div>'+
       '<div class="item-action"><div class="item-price">'+fmtPrice(i.price)+'</div>'+
-      '<div class="qty-ctrl"><button data-item-id="'+i.id+'" data-delta="-1" aria-label="'+t('remove_one').replace('{item}', esc(tn(i)||i.name))+'">−</button><span>'+q+'</span><button data-item-id="'+i.id+'" data-delta="1" aria-label="'+t('add_one').replace('{item}', esc(tn(i)||i.name))+'">+</button></div></div></div>';
+      (soldOut ? '<span class="sold-out-badge">'+t('sold_out')+'</span>' : '<div class="qty-ctrl"><button data-item-id="'+i.id+'" data-delta="-1" aria-label="'+t('remove_one').replace('{item}', esc(tn(i)||i.name))+'">−</button><span>'+q+'</span><button data-item-id="'+i.id+'" data-delta="1" aria-label="'+t('add_one').replace('{item}', esc(tn(i)||i.name))+'">+</button></div>')+'</div></div>';
   });
   if(!filtered.length) html='<p style="text-align:center;color:var(--muted);padding:40px">'+t('empty_menu')+'</p>';
   menu.innerHTML = html;
 }
 
 function changeQty(id,d){
+  var item = items.find(function(i){ return i.id===id; });
+  if (item && item.available === 0) return;
   if(!cart[id]) cart[id]=0;
   cart[id]+=d;
   if(cart[id]<=0) delete cart[id];
@@ -510,13 +727,46 @@ function updateCart(){
   });
   document.getElementById('cart-count').textContent = count + ' items';
   document.getElementById('cart-total').textContent = fmtPrice(total);
-  document.getElementById('cart-btn').disabled = count===0;
+  var mainEl = document.querySelector('.cart-btn-main');
+  var subEl = document.querySelector('.cart-btn-sub');
+  if (activeOrderId) {
+    if (count > 0) {
+      mainEl.textContent = (count + ' items · ' + fmtPrice(total));
+      subEl.textContent = t('append_to') + activeOrderId;
+    } else {
+      mainEl.textContent = t('append_to') + activeOrderId;
+      subEl.textContent = t('append_cart_hint');
+    }
+    document.getElementById('cart-btn').disabled = count===0;
+  } else {
+    if (count > 0) {
+      mainEl.textContent = (count + ' items · ' + fmtPrice(total));
+      subEl.textContent = t('cart_view');
+    } else {
+      mainEl.textContent = t('order_btn');
+      subEl.textContent = t('cart_empty_sub');
+    }
+    document.getElementById('cart-btn').disabled = count===0;
+  }
 }
 
 function showCheckout(){
   if(!Object.keys(cart).length) return;
   document.getElementById('checkout-modal').classList.remove('hidden');
-  document.getElementById('checkout-title').textContent = t('checkout_title');
+  if (activeOrderId) {
+    document.getElementById('checkout-title').textContent = t('checkout_title_append') + ' #' + activeOrderId;
+    document.getElementById('cust-name').style.display = 'none';
+    document.getElementById('cust-phone').style.display = 'none';
+    document.getElementById('consent-label').style.display = 'none';
+    document.getElementById('submit-btn').textContent = t('submit_append');
+    document.getElementById('submit-btn').disabled = false;
+  } else {
+    document.getElementById('checkout-title').textContent = t('checkout_title');
+    document.getElementById('cust-name').style.display = '';
+    document.getElementById('cust-phone').style.display = '';
+    document.getElementById('consent-label').style.display = '';
+    document.getElementById('submit-btn').textContent = t('submit');
+  }
   document.getElementById('cust-name').placeholder = t('name_ph');
   document.getElementById('cust-phone').placeholder = t('phone_ph');
   document.getElementById('cust-note').placeholder = t('note_ph');
@@ -530,7 +780,10 @@ function showCheckout(){
   });
   summary+='<div class="line line--total"><span>'+t('total')+'</span><span>'+fmtPrice(total)+'</span></div>';
   document.getElementById('order-summary').innerHTML = summary;
-  setPayment(paymentMethod); // ensure active state
+  document.getElementById('dining-dine_in').textContent = t('dine_in');
+  document.getElementById('dining-takeaway').textContent = t('takeaway');
+  setDining(diningOption);
+  setPayment(paymentMethod);
   document.getElementById('consent-text').innerHTML = t('consent_text');
   document.getElementById('consent-check').checked = false;
   updateConsent();
@@ -548,6 +801,22 @@ function setPickup(val,btn){
   btn.classList.add('active');
 }
 
+function setDining(val){
+  diningOption = val;
+  document.querySelectorAll('.dining-toggle button').forEach(function(b){ b.classList.remove('active'); });
+  document.getElementById('dining-'+val).classList.add('active');
+  var pt = document.getElementById('pickup-times');
+  if (val === 'dine_in') {
+    pt.style.display = 'none';
+  } else {
+    pt.style.display = '';
+    pickupTime = 'Nu';
+    document.querySelectorAll('.pickup-time button').forEach(function(b){ b.classList.remove('active'); });
+    var nuBtn = document.querySelector('.pickup-time button[data-time="Nu"]');
+    if (nuBtn) nuBtn.classList.add('active');
+  }
+}
+
 function setPayment(m){
   paymentMethod=m;
   document.querySelectorAll('.pay-methods button').forEach(function(b){ b.classList.remove('active'); });
@@ -562,39 +831,85 @@ function setPayment(m){
 }
 
 async function submitOrder(){
-  var name=document.getElementById('cust-name').value.trim();
-  var phone=document.getElementById('cust-phone').value.trim();
-  if(!name) return Toast.warn(t('alert_name'));
-  if(!phone) return Toast.warn(t('alert_phone'));
-  if(!/^\+?597\d{6,7}$/.test(phone)) return Toast.error(t('alert_phone_format'));
-  if(!document.getElementById('consent-check').checked) return Toast.warn(t('alert_consent'));
+  var isAppend = !!activeOrderId;
   var btn = document.getElementById('submit-btn');
   btn.disabled = true;
   btn.textContent = '...';
+
+  var name, phone;
+  if (!isAppend) {
+    name = document.getElementById('cust-name').value.trim();
+    phone = document.getElementById('cust-phone').value.trim();
+    if(!name) { btn.disabled = false; btn.textContent = t('submit'); return Toast.warn(t('alert_name')); }
+    if (name.length < 2) { btn.disabled = false; btn.textContent = t('submit'); return Toast.warn(t('alert_name_short')); }
+    if(!phone) { btn.disabled = false; btn.textContent = t('submit'); return Toast.warn(t('alert_phone')); }
+    if(!/^\+?597\d{6,7}$/.test(phone)) { btn.disabled = false; btn.textContent = t('submit'); return Toast.error(t('alert_phone_format')); }
+    if(!document.getElementById('consent-check').checked) { btn.disabled = false; btn.textContent = t('submit'); return Toast.warn(t('alert_consent')); }
+  }
+
   try {
   var items_arr = Object.entries(cart).map(function(e){ return {id:parseInt(e[0]), qty:e[1]}; });
-  var r = await fetch('/api/order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({shop_id:shopId,customer_name:name,customer_phone:phone,items:items_arr,note:document.getElementById('cust-note').value.trim(),pickup_time:pickupTime,payment_method:paymentMethod})});
-  if(!r.ok){ var errData = await r.json().catch(function(){return {};}); btn.disabled = false; btn.textContent = t('submit'); Toast.error(errData.error || t('alert_order_error')); return; }
+  var url, method, body;
+  if (isAppend) {
+    url = '/api/order/' + activeOrderId + '/append';
+    method = 'PUT';
+    body = JSON.stringify({items:items_arr, note:document.getElementById('cust-note').value.trim()});
+  } else {
+    url = '/api/order';
+    method = 'POST';
+    body = JSON.stringify({shop_id:shopId,customer_name:name,customer_phone:phone,items:items_arr,note:document.getElementById('cust-note').value.trim(),pickup_time:pickupTime,payment_method:paymentMethod,dining_option:diningOption});
+  }
+  var r = await fetch(url,{method:method,headers:{'Content-Type':'application/json'},body:body});
+  if(!r.ok){ var errData = await r.json().catch(function(){return {};}); btn.disabled = false; btn.textContent = isAppend ? t('submit_append') : t('submit'); Toast.error(errData.error || t('alert_order_error')); return; }
   var order=await r.json();
   document.getElementById('checkout-modal').classList.add('hidden');
+  showSuccess(order);
+  cart={};updateCart();
+  } catch(_) {
+    btn.disabled = false; btn.textContent = isAppend ? t('submit_append') : t('submit');
+    Toast.error(t('alert_order_error'));
+  }
+}
+
+function showSuccess(order){
   document.getElementById('cat-nav').classList.add('hidden');
   document.getElementById('menu').classList.add('hidden');
   document.getElementById('cart-bar').classList.add('hidden');
   var sv = document.getElementById('success-view');
   sv.classList.remove('hidden');
-  var link = location.origin + '/order/' + shopId;
-  var waConfirmBtn = '';
-  if (shop.whatsapp_number) {
-    var waNum = shop.whatsapp_number.replace(/[^0-9]/g, '');
-    var waMsg = encodeURIComponent('Hallo, ik heb bestelling #' + order.order_id + ' geplaatst. Bedankt!');
-    waConfirmBtn = '<a class="share-btn" href="https://wa.me/'+waNum+'?text='+waMsg+'" target="_blank" rel="noopener">💬 '+t('confirm_wa')+'</a><br>';
-  }
-  sv.innerHTML = '<div class="success"><div class="icon">✅</div><h2>'+t('success_title')+'</h2><p>'+t('success_msg')+'</p><p style="font-weight:700;margin-top:8px">'+t('order_id')+': #'+esc(order.order_id)+'</p><p>'+t('total')+': '+fmtPrice(order.total)+'</p>'+waConfirmBtn+'<a class="share-btn" href="https://wa.me/?text='+encodeURIComponent('🍽️ '+shop.name+' - Bestel online: '+link)+'" target="_blank" rel="noopener">📱 '+t('share')+'</a><br><button class="btn btn--pri" id="btn-reload" style="margin-top:16px">Nieuwe bestelling</button></div>';
-  cart={};updateCart();
-  } catch(_) {
-    btn.disabled = false; btn.textContent = t('submit');
-    Toast.error(t('alert_order_error'));
-  }
+  var diningLabel = diningOption === 'dine_in' ? t('dine_in') : t('takeaway');
+  sv.innerHTML = '<div class="success">' +
+    '<div class="icon">✅</div>' +
+    '<h2>'+t('success_title')+'</h2>' +
+    '<p>'+t('success_msg')+'</p>' +
+    '<p style="font-weight:700;margin-top:8px">'+t('order_id')+': #'+esc(order.order_id)+'</p>' +
+    '<p>'+t('total')+': '+fmtPrice(order.total)+'</p>' +
+    '<div class="dining-badge">'+diningLabel+'</div>' +
+    '<div class="success-actions">' +
+      '<button class="btn-append" id="btn-append">'+t('success_append_btn')+'</button>' +
+      '<button class="btn-done" id="btn-done">'+t('success_done_btn')+'</button>' +
+    '</div>' +
+    '<div class="success-countdown" id="success-countdown"></div>' +
+  '</div>';
+  // Countdown timer
+  var sec = 8;
+  var cdEl = document.getElementById('success-countdown');
+  cdEl.textContent = sec + t('success_countdown');
+  if (successCountdownTimer) clearInterval(successCountdownTimer);
+  successCountdownTimer = setInterval(function(){
+    sec--;
+    if (sec <= 0) { clearInterval(successCountdownTimer); successCountdownTimer = null; location.reload(); }
+    else { cdEl.textContent = sec + t('success_countdown'); }
+  }, 1000);
+}
+
+function startAppend(){
+  if (successCountdownTimer) { clearInterval(successCountdownTimer); successCountdownTimer = null; }
+  document.getElementById('success-view').classList.add('hidden');
+  document.getElementById('cat-nav').classList.remove('hidden');
+  document.getElementById('menu').classList.remove('hidden');
+  document.getElementById('cart-bar').classList.remove('hidden');
+  updateCart();
 }
 
 init();

@@ -66,6 +66,71 @@ function registerOrderRoutes(app, db, { auth, orderLimiter }) {
     }, shop.name);
   });
 
+
+  // Public: append items to existing order (Pizza Hut style add-to-order)
+  app.put('/api/order/:id/append', orderLimiter, (req, res) => {
+    const { items, note } = req.body;
+    if (!items || !items.length) return res.status(400).json({ error: 'missing items' });
+    if (!Array.isArray(items) || items.length > 50) return res.status(400).json({ error: 'too many items' });
+
+    const order = db.prepare('SELECT * FROM orders WHERE id=?').get(req.params.id);
+    if (!order) return res.status(404).json({ error: 'order not found' });
+    if (order.status !== 'pending') return res.status(400).json({ error: 'order is already being prepared, cannot append' });
+
+    const shop = db.prepare('SELECT * FROM shops WHERE id=? AND active=1').get(order.shop_id);
+    if (!shop) return res.status(404).json({ error: 'shop not found' });
+
+    let existingItems;
+    try { existingItems = JSON.parse(order.items_json); } catch (_) { existingItems = []; }
+
+    let appendTotal = 0;
+    const appendItems = [];
+    for (const oi of items) {
+      const dbi = db.prepare('SELECT * FROM items WHERE id=?').get(oi.id);
+      if (!dbi) return res.status(400).json({ error: 'item ' + oi.id + ' not found' });
+      const qty = parseInt(oi.qty);
+      if (!Number.isFinite(qty) || qty < 1 || qty > 999) return res.status(400).json({ error: 'invalid quantity' });
+      appendTotal += dbi.price * qty;
+      appendItems.push({ id: dbi.id, name: dbi.name, price: dbi.price, qty });
+    }
+
+    // Merge: same item increments qty, new item pushes
+    const merged = existingItems.slice();
+    appendItems.forEach(ai => {
+      const exist = merged.find(m => m.id === ai.id);
+      if (exist) { exist.qty += ai.qty; }
+      else { merged.push(ai); }
+    });
+    const newTotal = merged.reduce((sum, mi) => sum + mi.price * mi.qty, 0);
+
+    db.prepare('UPDATE orders SET items_json=?, total=?, note=CASE WHEN ? IS NOT NULL THEN ? ELSE note END WHERE id=?')
+      .run(JSON.stringify(merged), newTotal, note || null, note || null, req.params.id);
+
+    const events = require('../lib/events');
+    events.emit('order-updated', {
+      id: order.id, shop_id: order.shop_id,
+      items: merged, total: newTotal,
+      status: order.status, payment_method: order.payment_method,
+      payment_status: order.payment_status, dining_option: order.dining_option,
+      customer_name: order.customer_name, customer_phone: order.customer_phone,
+      note: note !== undefined ? note : order.note,
+      pickup_time: order.pickup_time,
+      created_at: order.created_at,
+    });
+
+    res.json({ order_id: order.id, total: newTotal, items: merged, payment_method: order.payment_method });
+
+    // WhatsApp: notify merchant about appended items
+    const wa = require('../lib/whatsapp');
+    wa.notifyMerchantNewOrder(shop.whatsapp_number, {
+      order_id: order.id, customer_name: order.customer_name,
+      customer_phone: order.customer_phone, items: merged, total: newTotal,
+      payment_method: order.payment_method, pickup_time: order.pickup_time,
+      note: note !== undefined ? note : order.note,
+      dining_option: order.dining_option, is_append: true,
+    });
+  });
+
   // Admin: orders list
   app.get("/api/admin/orders", auth, (req, res) => {
     const limit = Math.min(parseInt(req.query.limit) || 50, 200);
